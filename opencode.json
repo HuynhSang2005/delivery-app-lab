@@ -1,0 +1,104 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [".opencode/AGENTS.md"],
+  "mcp": {
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "ctx7sk-176798ee-99d2-43e0-ba22-8107ed923b81"
+      },
+      "enabled": true
+    },
+    "tavily": {
+      "type": "local",
+      "command": ["bunx", "-y", "tavily-mcp@latest"],
+      "environment": {
+        "TAVILY_API_KEY": "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"
+      },
+      "enabled": true
+    },
+    "neon": {
+      "type": "remote",
+      "url": "https://mcp.neon.tech/mcp",
+      "headers": {
+        "Authorization": "Bearer napi_a860lvz3zhx5n4yqvu5evrmpa4gz3wab050cioqba9h19nj0jzrdgnt0xjll417f"
+      },
+      "oauth": false,
+      "enabled": true,
+      "timeout": 15000
+    },
+    "serena": {
+      "type": "local",
+      "command": [
+        "uvx",
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "ide",
+        "--project",
+        "D:\\delivery-app-lab"
+      ],
+      "enabled": true,
+      "timeout": 30000
+    }
+  },
+  "agent": {
+    "build": {
+      "mode": "primary",
+      "temperature": 0.3,
+      "prompt": "{file:.opencode/agents/build-prompt.md}",
+      "permission": {
+        "skill": { "*": "allow" },
+        "edit": "allow",
+        "bash": "ask",
+        "webfetch": "allow"
+      }
+    },
+    "plan": {
+      "mode": "primary",
+      "temperature": 0.1,
+      "prompt": "{file:.opencode/agents/plan-prompt.md}",
+      "permission": {
+        "skill": { "*": "allow" },
+        "edit": "deny",
+        "bash": { "*": "deny" }
+      }
+    }
+  },
+  "default_agent": "build",
+  "permission": {
+    "skill": { "*": "allow" },
+    "edit": "ask",
+    "bash": "ask"
+  },
+  "command": {
+    "test": {
+      "template": "Run the test suite and report results",
+      "description": "Run tests"
+    },
+    "review": {
+      "template": "Review code for quality and best practices",
+      "description": "Code review"
+    }
+  },
+  "compaction": {
+    "auto": true,
+    "prune": true
+  },
+  "watcher": {
+    "ignore": [
+      "node_modules/**",
+      "dist/**",
+      ".git/**",
+      ".next/**",
+      "build/**",
+      "*.log",
+      ".env*"
+    ]
+  },
+  "autoupdate": true,
+  "share": "manual"
+}
