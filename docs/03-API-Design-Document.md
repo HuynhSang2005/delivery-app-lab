@@ -1,7 +1,7 @@
 # Logship-MVP: API Design Document
 
-**Version:** 1.0  
-**Last Updated:** January 2025  
+**Version:** 3.0  
+**Last Updated:** February 2025  
 **Backend Framework:** NestJS 11.x  
 **API Format:** REST + WebSocket (Socket.io)  
 
@@ -1492,10 +1492,10 @@ We use **Hey-API** (`@hey-api/openapi-ts`) to auto-generate type-safe TypeScript
 
 ```bash
 # Install in frontend project (admin or mobile)
-npm install @hey-api/client-fetch @tanstack/react-query
+bun add @hey-api/client-fetch @tanstack/react-query
 
 # Dev dependency for code generation
-npm install -D @hey-api/openapi-ts
+bun add -d @hey-api/openapi-ts
 ```
 
 **Configuration file (`hey-api.config.ts`):**
@@ -1531,8 +1531,8 @@ export default defineConfig({
 ```json
 {
   "scripts": {
-    "api:generate": "openapi-ts",
-    "api:watch": "openapi-ts --watch"
+    "api:generate": "bunx openapi-ts",
+    "api:watch": "bunx openapi-ts --watch"
   }
 }
 ```
@@ -1654,7 +1654,7 @@ name: Generate API Client
 on:
   push:
     paths:
-      - 'apps/backend/src/**'
+      - 'apps/api/src/**'
     branches: [main]
 
 jobs:
@@ -1663,18 +1663,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      
       - name: Start backend
         run: |
-          cd apps/backend
-          npm ci
-          npm run start:dev &
+          cd apps/api
+          bun install
+          bun run dev &
           sleep 10  # Wait for server
       
       - name: Generate client
         run: |
           cd apps/admin
-          npm ci
-          npm run api:generate
+          bun install
+          bun run api:generate
       
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v5

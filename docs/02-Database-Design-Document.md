@@ -1,7 +1,7 @@
 # Logship-MVP: Database Design Document
 
-**Version:** 1.0  
-**Last Updated:** January 2025  
+**Version:** 3.0  
+**Last Updated:** February 2025  
 **Database:** Neon Serverless Postgres 17 + PostGIS  
 
 ---
@@ -797,19 +797,19 @@ export class GeoService {
 
 ```bash
 # Generate Prisma client
-npx prisma generate
+bunx prisma generate
 
 # Create migration
-npx prisma migrate dev --name init
+bunx prisma migrate dev --name init
 
 # Apply migration to production
-npx prisma migrate deploy
+bunx prisma migrate deploy
 
 # Reset database (development only!)
-npx prisma migrate reset
+bunx prisma migrate reset
 
 # Open Prisma Studio
-npx prisma studio
+bunx prisma studio
 ```
 
 ---

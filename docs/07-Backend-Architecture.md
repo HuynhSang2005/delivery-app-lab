@@ -1,9 +1,13 @@
 # Logship-MVP: Backend Architecture Document
 
-**Version:** 1.0  
-**Last Updated:** January 2025  
+**Version:** 3.0  
+**Last Updated:** February 2025  
 **Framework:** NestJS 11.x  
-**Runtime:** Node.js 22 LTS  
+**Runtime:** Bun 1.2+  
+**Database:** Neon Serverless PostgreSQL + PostGIS  
+**ORM:** Prisma 6.x  
+
+> **Reference:** See [00-Unified-Tech-Stack-Spec.md](./00-Unified-Tech-Stack-Spec.md) for complete tech stack details.
 
 ---
 
@@ -56,9 +60,9 @@ This document provides comprehensive technical architecture for the Logship-MVP 
 │  │                              SHARED INFRASTRUCTURE                                              │   │
 │  │                                                                                                 │   │
 │  │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────┐   │   │
-│  │  │  PrismaService  │  │  RedisService   │  │  GeoService     │  │  Common Guards/Pipes    │   │   │
-│  │  │  (Database)     │  │  (Cache/PubSub) │  │  (PostGIS)      │  │  - JwtAuthGuard         │   │   │
-│  │  │                 │  │                 │  │                 │  │  - RolesGuard           │   │   │
+│  │  │  Prisma ORM     │  │  RedisService   │  │  GeoService     │  │  Common Guards/Pipes    │   │   │
+│  │  │  (Database      │  │  (Cache/PubSub) │  │  (PostGIS)      │  │  - JwtAuthGuard         │   │   │
+│  │  │   Access Layer) │  │                 │  │                 │  │  - RolesGuard           │   │   │
 │  │  │                 │  │                 │  │                 │  │  - ThrottlerGuard       │   │   │
 │  │  └────────┬────────┘  └────────┬────────┘  └─────────────────┘  │  - ValidationPipe       │   │   │
 │  │           │                    │                                └─────────────────────────┘   │   │
@@ -68,174 +72,402 @@ This document provides comprehensive technical architecture for the Logship-MVP 
                │                    │
                ▼                    ▼
 ┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────────┐
-│   Neon Postgres      │  │   Upstash Redis      │  │   Firebase Auth      │  │   Cloudinary         │
+│   Neon PostgreSQL    │  │   Upstash Redis      │  │   Firebase Auth      │  │   Cloudinary         │
 │   + PostGIS          │  │                      │  │   (Phone OTP)        │  │   (Images)           │
 │                      │  │   - BullMQ Queues    │  │                      │  │                      │
 │   - Users            │  │   - Driver Geo Cache │  │   - OTP Verify       │  │   - Avatars          │
 │   - Orders           │  │   - Session Store    │  │   - Email Link Auth  │  │   - Proof Images     │
 │   - Messages         │  │   - Socket Adapter   │  │   - ID Tokens        │  │   - Driver Docs      │
-│   - Tracking         │  │   - Rate Limiting    │  │                      │  │                      │
 └──────────────────────┘  └──────────────────────┘  └──────────────────────┘  └──────────────────────┘
 ```
 
+> **IMPORTANT:** Neon is the **Database** (PostgreSQL), Prisma is the **ORM** (Object-Relational Mapping tool).
+
 ---
 
-## 2. Folder Structure
+## 2. Complete Package.json
+
+```json
+{
+  "name": "@logship/api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "bunx nest build",
+    "dev": "bunx nest start --watch",
+    "start": "bun run dist/main",
+    "start:debug": "bunx nest start --debug --watch",
+    "start:prod": "bun run dist/main",
+    "lint": "bunx eslint \"{src,apps,libs,test}/**/*.ts\"",
+    "test": "bunx jest",
+    "test:e2e": "bunx jest --config ./test/jest-e2e.json",
+    "db:generate": "bunx prisma generate",
+    "db:migrate": "bunx prisma migrate dev",
+    "db:studio": "bunx prisma studio",
+    "db:seed": "bunx ts-node prisma/seed.ts"
+  },
+  "dependencies": {
+    "@nestjs/bullmq": "^11.0.0",
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/config": "^4.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/jwt": "^11.0.0",
+    "@nestjs/passport": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/platform-socket.io": "^11.0.0",
+    "@nestjs/schedule": "^5.0.0",
+    "@nestjs/swagger": "^11.0.0",
+    "@nestjs/terminus": "^11.0.0",
+    "@nestjs/throttler": "^6.0.0",
+    "@nestjs/websockets": "^11.0.0",
+    "@prisma/client": "^6.0.0",
+    "bullmq": "^5.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.0",
+    "cloudinary": "^2.5.0",
+    "date-fns": "^4.1.0",
+    "firebase-admin": "^13.0.0",
+    "ioredis": "^5.4.0",
+    "lodash": "^4.17.21",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.0",
+    "reflect-metadata": "^0.2.0",
+    "rxjs": "^7.8.0",
+    "socket.io": "^4.8.0",
+    "socket.io-redis-adapter": "^8.0.0",
+    "uuid": "^11.0.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.0",
+    "@nestjs/schematics": "^11.0.0",
+    "@nestjs/testing": "^11.0.0",
+    "@types/express": "^5.0.0",
+    "@types/jest": "^29.5.0",
+    "@types/lodash": "^4.17.0",
+    "@types/multer": "^1.4.0",
+    "@types/node": "^20.0.0",
+    "@types/passport-jwt": "^4.0.0",
+    "@types/uuid": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "jest": "^29.7.0",
+    "prettier": "^3.4.0",
+    "prisma": "^6.0.0",
+    "ts-jest": "^29.2.0",
+    "ts-node": "^10.9.0",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.7.0"
+  }
+}
+```
+
+### 2.1. Essential Libraries Overview
+
+| Category | Library | Version | Purpose |
+|----------|---------|---------|---------|
+| **Core** | `@nestjs/*` | ^11.0.0 | NestJS framework |
+| **API Docs** | `@nestjs/swagger` | ^11.0.0 | OpenAPI/Swagger |
+| **Validation** | `class-validator` | ^0.14.0 | DTO validation |
+| **Transform** | `class-transformer` | ^0.5.1 | Object transformation |
+| **ORM** | `@prisma/client` | ^6.0.0 | **Prisma ORM** |
+| **ORM CLI** | `prisma` | ^6.0.0 | **Prisma CLI** |
+| **Queue** | `bullmq` | ^5.0.0 | Message queues |
+| **Redis** | `ioredis` | ^5.4.0 | Redis client |
+| **Auth** | `@nestjs/jwt` | ^11.0.0 | JWT tokens |
+| **Auth** | `@nestjs/passport` | ^11.0.0 | Passport integration |
+| **Auth** | `passport-jwt` | ^4.0.0 | JWT strategy |
+| **Auth** | `firebase-admin` | ^13.0.0 | Firebase Auth |
+| **WebSocket** | `@nestjs/websockets` | ^11.0.0 | Socket.io |
+| **WebSocket** | `socket.io` | ^4.8.0 | Socket.io server |
+| **WebSocket** | `socket.io-redis-adapter` | ^8.0.0 | Redis adapter |
+| **Rate Limit** | `@nestjs/throttler` | ^6.0.0 | Rate limiting |
+| **Health** | `@nestjs/terminus` | ^11.0.0 | Health checks |
+| **Schedule** | `@nestjs/schedule` | ^5.0.0 | Cron jobs |
+| **Storage** | `cloudinary` | ^2.5.0 | Image storage |
+| **Utilities** | `lodash` | ^4.17.21 | Utility functions |
+| **Utilities** | `uuid` | ^11.0.0 | UUID generation |
+| **Utilities** | `date-fns` | ^4.1.0 | Date formatting |
+| **Schema** | `zod` | ^3.24.0 | Schema validation |
+
+> **CRITICAL DISTINCTION:**
+> - **Neon** = Database (Serverless PostgreSQL)
+> - **Prisma** = ORM (Tool to interact with the database)
+> - **PostGIS** = PostgreSQL extension for geospatial data
+
+---
+
+## 3. Clean Architecture Folder Structure
 
 ```
-apps/backend/
+apps/api/
 ├── src/
-│   ├── main.ts                           # Application bootstrap
-│   ├── app.module.ts                     # Root module
+│   ├── main.ts                          # Entry point
+│   ├── app.module.ts                    # Root module
 │   │
-│   ├── common/                           # Shared utilities
+│   ├── config/                          # Configuration
+│   │   ├── app.config.ts
+│   │   ├── database.config.ts           # Neon PostgreSQL config
+│   │   ├── redis.config.ts              # Upstash Redis config
+│   │   ├── firebase.config.ts           # Firebase Auth config
+│   │   ├── bullmq.config.ts             # Queue config
+│   │   ├── swagger.config.ts            # OpenAPI/Swagger setup
+│   │   └── validation.config.ts         # Global validation pipe config
+│   │
+│   ├── common/                          # Shared infrastructure
+│   │   ├── constants/
 │   │   ├── decorators/
-│   │   │   ├── current-user.decorator.ts # Extract user from request
-│   │   │   ├── roles.decorator.ts        # @Roles('ADMIN', 'DRIVER')
-│   │   │   └── public.decorator.ts       # @Public() skip auth
-│   │   ├── guards/
-│   │   │   ├── jwt-auth.guard.ts         # JWT validation
-│   │   │   ├── roles.guard.ts            # RBAC enforcement
-│   │   │   └── ws-auth.guard.ts          # WebSocket auth
-│   │   ├── pipes/
-│   │   │   └── validation.pipe.ts        # Zod/class-validator
+│   │   │   ├── current-user.decorator.ts
+│   │   │   ├── public.decorator.ts
+│   │   │   └── roles.decorator.ts
+│   │   ├── dto/
+│   │   │   ├── pagination.dto.ts
+│   │   │   └── response.dto.ts
+│   │   ├── enums/
+│   │   ├── exceptions/
 │   │   ├── filters/
-│   │   │   ├── all-exceptions.filter.ts  # Global error handling
+│   │   │   ├── all-exceptions.filter.ts
 │   │   │   └── prisma-exception.filter.ts
+│   │   ├── guards/
+│   │   │   ├── jwt-auth.guard.ts
+│   │   │   ├── roles.guard.ts
+│   │   │   └── throttler.guard.ts
 │   │   ├── interceptors/
-│   │   │   ├── logging.interceptor.ts    # Request/response logging
-│   │   │   ├── transform.interceptor.ts  # Response transformation
+│   │   │   ├── logging.interceptor.ts
+│   │   │   ├── transform.interceptor.ts
 │   │   │   └── timeout.interceptor.ts
-│   │   └── dto/
-│   │       ├── pagination.dto.ts         # Shared pagination
-│   │       └── response.dto.ts           # Standard response wrapper
+│   │   ├── pipes/
+│   │   │   └── validation.pipe.ts
+│   │   └── utils/
 │   │
-│   ├── config/                           # Configuration
-│   │   ├── app.config.ts                 # General app config
-│   │   ├── database.config.ts            # Neon connection
-│   │   ├── redis.config.ts               # Upstash Redis
-│   │   ├── firebase.config.ts            # Firebase Admin SDK
-│   │   ├── bullmq.config.ts              # Queue configuration
-│   │   └── swagger.config.ts             # OpenAPI setup
-│   │
-│   ├── database/                         # Prisma & Database
+│   ├── database/                        # Database layer (Prisma + Neon)
 │   │   ├── prisma.module.ts
-│   │   ├── prisma.service.ts             # Prisma client with extensions
-│   │   └── geo.service.ts                # PostGIS helper functions
+│   │   ├── prisma.service.ts            # Prisma Client
+│   │   ├── geo.service.ts               # PostGIS helpers
+│   │   └── repositories/                # Repository pattern
+│   │       └── base.repository.ts
 │   │
-│   ├── cache/                            # Redis & Caching
+│   ├── cache/                           # Redis caching (Upstash)
 │   │   ├── cache.module.ts
-│   │   ├── redis.service.ts              # Redis client wrapper
-│   │   └── cache.service.ts              # Cache-aside pattern
+│   │   ├── redis.service.ts
+│   │   └── cache.service.ts
 │   │
-│   ├── queues/                           # BullMQ Queues
-│   │   ├── queues.module.ts              # Queue registration
+│   ├── queues/                          # BullMQ queues
+│   │   ├── queues.module.ts
 │   │   ├── notification/
-│   │   │   ├── notification.queue.ts     # Queue definition
-│   │   │   ├── notification.processor.ts # Job processor (worker)
-│   │   │   └── notification.producer.ts  # Job producer service
+│   │   │   ├── notification.queue.ts
+│   │   │   ├── notification.processor.ts
+│   │   │   └── notification.producer.ts
 │   │   ├── location/
 │   │   │   ├── location.queue.ts
-│   │   │   ├── location.processor.ts     # Batch location processing
+│   │   │   ├── location.processor.ts
 │   │   │   └── location.producer.ts
-│   │   ├── order-matching/
-│   │   │   ├── matching.queue.ts
-│   │   │   ├── matching.processor.ts     # Driver matching logic
-│   │   │   └── matching.producer.ts
-│   │   └── reports/
-│   │       ├── report.queue.ts
-│   │       ├── report.processor.ts       # Analytics generation
-│   │       └── report.producer.ts
+│   │   └── order-matching/
+│   │       ├── matching.queue.ts
+│   │       ├── matching.processor.ts
+│   │       └── matching.producer.ts
 │   │
-│   ├── modules/                          # Feature Modules
-│   │   ├── auth/
+│   ├── modules/                         # Feature modules
+│   │   │
+│   │   ├── auth/                        # Auth Module
 │   │   │   ├── auth.module.ts
 │   │   │   ├── auth.controller.ts
 │   │   │   ├── auth.service.ts
 │   │   │   ├── strategies/
 │   │   │   │   ├── jwt.strategy.ts
 │   │   │   │   └── firebase.strategy.ts
-│   │   │   ├── dto/
-│   │   │   │   ├── send-otp.dto.ts
-│   │   │   │   ├── verify-otp.dto.ts
-│   │   │   │   ├── add-email.dto.ts      # NEW: Email verification
-│   │   │   │   └── refresh-token.dto.ts
-│   │   │   └── guards/
-│   │   │       └── firebase-auth.guard.ts
+│   │   │   └── dto/
+│   │   │       ├── send-otp.dto.ts
+│   │   │       ├── verify-otp.dto.ts
+│   │   │       └── refresh-token.dto.ts
 │   │   │
-│   │   ├── users/
+│   │   ├── users/                       # Users Module
 │   │   │   ├── users.module.ts
 │   │   │   ├── users.controller.ts
 │   │   │   ├── users.service.ts
-│   │   │   ├── users.repository.ts       # Data access layer
 │   │   │   └── dto/
 │   │   │
-│   │   ├── drivers/
+│   │   ├── drivers/                     # Drivers Module
 │   │   │   ├── drivers.module.ts
 │   │   │   ├── drivers.controller.ts
 │   │   │   ├── drivers.service.ts
 │   │   │   └── dto/
 │   │   │
-│   │   ├── orders/
+│   │   ├── orders/                      # Orders Module
 │   │   │   ├── orders.module.ts
 │   │   │   ├── orders.controller.ts
 │   │   │   ├── orders.service.ts
-│   │   │   ├── orders.repository.ts
-│   │   │   ├── events/                   # Domain events
+│   │   │   ├── events/
 │   │   │   │   ├── order-created.event.ts
-│   │   │   │   ├── order-assigned.event.ts
-│   │   │   │   └── order-completed.event.ts
+│   │   │   │   └── order-assigned.event.ts
 │   │   │   └── dto/
 │   │   │
-│   │   ├── chat/
+│   │   ├── chat/                        # Chat Module
 │   │   │   ├── chat.module.ts
 │   │   │   ├── chat.controller.ts
-│   │   │   ├── chat.service.ts
-│   │   │   └── dto/
+│   │   │   └── chat.service.ts
 │   │   │
-│   │   └── admin/
+│   │   └── admin/                       # Admin Module
 │   │       ├── admin.module.ts
 │   │       ├── admin.controller.ts
-│   │       ├── admin.service.ts
-│   │       └── dto/
+│   │       └── admin.service.ts
 │   │
-│   └── gateway/                          # WebSocket Gateways
+│   └── gateway/                         # WebSocket Gateway
 │       ├── gateway.module.ts
-│       ├── events.gateway.ts             # Main gateway
+│       ├── events.gateway.ts
 │       ├── adapters/
-│       │   └── redis-io.adapter.ts       # Socket.io Redis adapter
+│       │   └── redis-io.adapter.ts
 │       └── dto/
-│           ├── driver-location.dto.ts
-│           └── chat-message.dto.ts
 │
 ├── prisma/
-│   ├── schema.prisma                     # Database schema
-│   └── migrations/                       # Migration files
+│   ├── schema.prisma                    # Prisma schema (defines Neon DB structure)
+│   ├── migrations/                      # Database migrations
+│   └── seed.ts                          # Seed data
 │
-├── test/                                 # E2E tests
+├── test/
+│   ├── setup.ts
+│   ├── factories/
+│   └── e2e/
+│
 ├── .env.example
 ├── nest-cli.json
 ├── tsconfig.json
+├── tsconfig.build.json
 └── package.json
 ```
 
 ---
 
-## 3. BullMQ Message Queue Architecture
+## 4. Database Architecture (Neon + PostGIS + Prisma)
 
-### 3.1. Why BullMQ?
+### 4.1. Technology Stack
 
-| Feature | Benefit for Logship |
-|---------|---------------------|
-| **Redis-backed** | Uses existing Upstash Redis infrastructure |
-| **Job Scheduling** | Delayed notifications, retry scheduling |
-| **Concurrency Control** | Process multiple jobs simultaneously |
-| **Rate Limiting** | Prevent external API abuse (Firebase, SMS) |
-| **Job Prioritization** | Urgent notifications first |
-| **Dead Letter Queue** | Failed job tracking and retry |
-| **Built-in Retries** | Automatic retry with exponential backoff |
+| Component | Technology | Role |
+|-----------|------------|------|
+| **Database** | **Neon** | Serverless PostgreSQL 16+ |
+| **Extension** | **PostGIS** | Geospatial queries |
+| **ORM** | **Prisma** | Database access layer |
 
-### 3.2. Queue Definitions
+### 4.2. Connection Configuration
+
+```typescript
+// src/config/database.config.ts
+export const databaseConfig = {
+  // Neon PostgreSQL connection string
+  // Use pooled connection for serverless
+  url: process.env.DATABASE_URL,
+  
+  // Prisma Client options
+  prismaOptions: {
+    log: process.env.NODE_ENV === 'development' 
+      ? ['query', 'info', 'warn', 'error'] 
+      : ['error'],
+  },
+};
+```
+
+```env
+# .env
+# Neon PostgreSQL - Use pooled connection for serverless
+DATABASE_URL="postgresql://user:pass@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require"
+
+# Direct connection (for migrations)
+DATABASE_URL_DIRECT="postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=require"
+```
+
+### 4.3. Prisma Schema Example
+
+```prisma
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis]
+}
+
+model User {
+  id          String   @id @default(uuid())
+  phone       String   @unique
+  firebaseUid String?  @unique
+  name        String?
+  avatarUrl   String?
+  role        UserRole @default(USER)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  DRIVER
+  ADMIN
+}
+```
+
+### 4.4. PostGIS Geospatial Queries
+
+```typescript
+// src/database/geo.service.ts
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from './prisma.service';
+
+@Injectable()
+export class GeoService {
+  constructor(private prisma: PrismaService) {}
+
+  /**
+   * Find nearest active drivers using PostGIS
+   * Runs on Neon PostgreSQL with PostGIS extension
+   */
+  async findNearestDrivers(
+    lat: number,
+    lng: number,
+    radiusMeters: number = 5000,
+    limit: number = 5,
+  ) {
+    // Raw query using PostGIS functions
+    return this.prisma.$queryRaw`
+      SELECT 
+        d.id,
+        d.user_id,
+        u.name,
+        u.phone,
+        ST_Distance(
+          d.last_location, 
+          ST_MakePoint(${lng}, ${lat})::geography
+        ) as distance_meters
+      FROM drivers d
+      JOIN users u ON d.user_id = u.id
+      WHERE d.status = 'ACTIVE'
+        AND d.is_approved = true
+        AND d.last_location IS NOT NULL
+        AND ST_DWithin(
+          d.last_location, 
+          ST_MakePoint(${lng}, ${lat})::geography,
+          ${radiusMeters}
+        )
+      ORDER BY d.last_location <-> ST_MakePoint(${lng}, ${lat})::geography
+      LIMIT ${limit}
+    `;
+  }
+}
+```
+
+---
+
+## 5. BullMQ Message Queue Architecture
+
+### 5.1. Queue Configuration
 
 ```typescript
 // src/queues/queues.module.ts
@@ -243,22 +475,17 @@ import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { ConfigService } from '@nestjs/config';
 
-// Queue names as constants
 export const NOTIFICATION_QUEUE = 'notification';
 export const LOCATION_QUEUE = 'location';
 export const ORDER_MATCHING_QUEUE = 'order-matching';
-export const REPORT_QUEUE = 'report';
 
 @Module({
   imports: [
-    // Global BullMQ configuration
     BullModule.forRootAsync({
       useFactory: (config: ConfigService) => ({
         connection: {
-          host: config.get('REDIS_HOST'),
-          port: config.get('REDIS_PORT'),
-          password: config.get('REDIS_PASSWORD'),
-          tls: config.get('NODE_ENV') === 'production' ? {} : undefined,
+          // Upstash Redis connection
+          url: config.get('REDIS_URL'),
         },
         defaultJobOptions: {
           attempts: 3,
@@ -266,24 +493,14 @@ export const REPORT_QUEUE = 'report';
             type: 'exponential',
             delay: 1000,
           },
-          removeOnComplete: {
-            age: 24 * 3600,    // Keep completed jobs for 24 hours
-            count: 1000,       // Keep last 1000 completed jobs
-          },
-          removeOnFail: {
-            age: 7 * 24 * 3600, // Keep failed jobs for 7 days
-          },
         },
       }),
       inject: [ConfigService],
     }),
-
-    // Register individual queues
     BullModule.registerQueue(
       { name: NOTIFICATION_QUEUE },
       { name: LOCATION_QUEUE },
       { name: ORDER_MATCHING_QUEUE },
-      { name: REPORT_QUEUE },
     ),
   ],
   exports: [BullModule],
@@ -291,525 +508,14 @@ export const REPORT_QUEUE = 'report';
 export class QueuesModule {}
 ```
 
-### 3.3. Notification Queue (Example Implementation)
-
-```typescript
-// src/queues/notification/notification.queue.ts
-export interface NotificationJobData {
-  type: 'push' | 'sms' | 'email';
-  userId: string;
-  title: string;
-  body: string;
-  data?: Record<string, unknown>;
-}
-
-export enum NotificationJobName {
-  SEND_PUSH = 'send-push',
-  SEND_SMS = 'send-sms',
-  SEND_EMAIL = 'send-email',
-  ORDER_STATUS_UPDATE = 'order-status-update',
-  DRIVER_ASSIGNED = 'driver-assigned',
-}
-```
-
-```typescript
-// src/queues/notification/notification.producer.ts
-import { Injectable } from '@nestjs/common';
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
-import { NOTIFICATION_QUEUE } from '../queues.module';
-import { NotificationJobData, NotificationJobName } from './notification.queue';
-
-@Injectable()
-export class NotificationProducer {
-  constructor(
-    @InjectQueue(NOTIFICATION_QUEUE)
-    private notificationQueue: Queue<NotificationJobData>,
-  ) {}
-
-  /**
-   * Add a push notification job to the queue
-   */
-  async sendPushNotification(
-    userId: string,
-    title: string,
-    body: string,
-    data?: Record<string, unknown>,
-  ) {
-    return this.notificationQueue.add(
-      NotificationJobName.SEND_PUSH,
-      {
-        type: 'push',
-        userId,
-        title,
-        body,
-        data,
-      },
-      {
-        priority: 1, // High priority
-      },
-    );
-  }
-
-  /**
-   * Notify user when order status changes
-   */
-  async notifyOrderStatusUpdate(
-    userId: string,
-    orderId: string,
-    status: string,
-  ) {
-    const statusMessages: Record<string, string> = {
-      ASSIGNED: 'Driver has been assigned to your order',
-      PICKING_UP: 'Driver is heading to pickup location',
-      DELIVERING: 'Your package is on the way',
-      COMPLETED: 'Delivery completed successfully',
-    };
-
-    return this.notificationQueue.add(
-      NotificationJobName.ORDER_STATUS_UPDATE,
-      {
-        type: 'push',
-        userId,
-        title: 'Order Update',
-        body: statusMessages[status] || `Order status: ${status}`,
-        data: { orderId, status },
-      },
-      {
-        // Deduplicate: only one notification per order+status
-        jobId: `order-status-${orderId}-${status}`,
-      },
-    );
-  }
-
-  /**
-   * Send delayed reminder (e.g., rate driver after 1 hour)
-   */
-  async scheduleRatingReminder(userId: string, orderId: string) {
-    return this.notificationQueue.add(
-      'rating-reminder',
-      {
-        type: 'push',
-        userId,
-        title: 'Rate your delivery',
-        body: 'How was your delivery experience?',
-        data: { orderId, action: 'rate' },
-      },
-      {
-        delay: 60 * 60 * 1000, // 1 hour delay
-        jobId: `rating-reminder-${orderId}`, // Prevent duplicates
-      },
-    );
-  }
-}
-```
-
-```typescript
-// src/queues/notification/notification.processor.ts
-import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
-import { Logger } from '@nestjs/common';
-import { Job } from 'bullmq';
-import { NOTIFICATION_QUEUE } from '../queues.module';
-import { NotificationJobData, NotificationJobName } from './notification.queue';
-import { FirebaseService } from '../../services/firebase.service';
-import { PrismaService } from '../../database/prisma.service';
-
-@Processor(NOTIFICATION_QUEUE, {
-  concurrency: 10, // Process up to 10 jobs concurrently
-  limiter: {
-    max: 100,       // Max 100 jobs
-    duration: 60000, // Per minute (Firebase rate limit)
-  },
-})
-export class NotificationProcessor extends WorkerHost {
-  private readonly logger = new Logger(NotificationProcessor.name);
-
-  constructor(
-    private firebaseService: FirebaseService,
-    private prisma: PrismaService,
-  ) {
-    super();
-  }
-
-  async process(job: Job<NotificationJobData>): Promise<void> {
-    this.logger.debug(`Processing job ${job.id}: ${job.name}`);
-
-    switch (job.name) {
-      case NotificationJobName.SEND_PUSH:
-      case NotificationJobName.ORDER_STATUS_UPDATE:
-      case NotificationJobName.DRIVER_ASSIGNED:
-        await this.handlePushNotification(job);
-        break;
-      case NotificationJobName.SEND_SMS:
-        await this.handleSmsNotification(job);
-        break;
-      case NotificationJobName.SEND_EMAIL:
-        await this.handleEmailNotification(job);
-        break;
-      default:
-        this.logger.warn(`Unknown job name: ${job.name}`);
-    }
-  }
-
-  private async handlePushNotification(job: Job<NotificationJobData>) {
-    const { userId, title, body, data } = job.data;
-
-    // Get user's FCM token(s)
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { fcmTokens: true },
-    });
-
-    if (!user?.fcmTokens?.length) {
-      this.logger.warn(`No FCM tokens for user ${userId}`);
-      return;
-    }
-
-    // Update job progress
-    await job.updateProgress(50);
-
-    // Send to all user devices
-    const results = await this.firebaseService.sendMulticast({
-      tokens: user.fcmTokens,
-      notification: { title, body },
-      data: data as Record<string, string>,
-    });
-
-    // Remove invalid tokens
-    if (results.failureCount > 0) {
-      const invalidTokens = results.responses
-        .map((resp, idx) => (!resp.success ? user.fcmTokens[idx] : null))
-        .filter(Boolean);
-
-      if (invalidTokens.length > 0) {
-        await this.prisma.user.update({
-          where: { id: userId },
-          data: {
-            fcmTokens: {
-              set: user.fcmTokens.filter((t) => !invalidTokens.includes(t)),
-            },
-          },
-        });
-      }
-    }
-
-    // Store notification in database
-    await this.prisma.notification.create({
-      data: {
-        userId,
-        title,
-        body,
-        data: data ?? {},
-      },
-    });
-
-    await job.updateProgress(100);
-    this.logger.log(`Push notification sent to user ${userId}`);
-  }
-
-  private async handleSmsNotification(job: Job<NotificationJobData>) {
-    // Implement SMS sending (e.g., via Twilio or local Vietnam SMS provider)
-    this.logger.log(`SMS notification: ${job.data.body}`);
-  }
-
-  private async handleEmailNotification(job: Job<NotificationJobData>) {
-    // Implement email sending (e.g., via Resend, SendGrid)
-    this.logger.log(`Email notification: ${job.data.body}`);
-  }
-
-  // Event handlers for monitoring
-  @OnWorkerEvent('completed')
-  onCompleted(job: Job) {
-    this.logger.debug(`Job ${job.id} completed`);
-  }
-
-  @OnWorkerEvent('failed')
-  onFailed(job: Job, error: Error) {
-    this.logger.error(`Job ${job.id} failed: ${error.message}`, error.stack);
-  }
-
-  @OnWorkerEvent('progress')
-  onProgress(job: Job, progress: number) {
-    this.logger.debug(`Job ${job.id} progress: ${progress}%`);
-  }
-}
-```
-
-### 3.4. Order Matching Queue
-
-```typescript
-// src/queues/order-matching/matching.processor.ts
-import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Job } from 'bullmq';
-import { ORDER_MATCHING_QUEUE } from '../queues.module';
-import { GeoService } from '../../database/geo.service';
-import { RedisService } from '../../cache/redis.service';
-import { EventsGateway } from '../../gateway/events.gateway';
-
-interface MatchingJobData {
-  orderId: string;
-  pickupLat: number;
-  pickupLng: number;
-  attempt: number;
-}
-
-@Processor(ORDER_MATCHING_QUEUE, {
-  concurrency: 5,
-})
-export class OrderMatchingProcessor extends WorkerHost {
-  constructor(
-    private geoService: GeoService,
-    private redisService: RedisService,
-    private eventsGateway: EventsGateway,
-  ) {
-    super();
-  }
-
-  async process(job: Job<MatchingJobData>): Promise<void> {
-    const { orderId, pickupLat, pickupLng, attempt } = job.data;
-
-    // Expand search radius with each attempt
-    const radiusMeters = Math.min(5000 + attempt * 2000, 15000); // 5km → 15km max
-
-    // Find nearest available drivers
-    const nearbyDrivers = await this.geoService.findNearestDrivers(
-      { lat: pickupLat, lng: pickupLng },
-      radiusMeters,
-      10,
-    );
-
-    if (nearbyDrivers.length === 0) {
-      // No drivers found - retry with larger radius
-      if (attempt < 3) {
-        await job.moveToDelayed(Date.now() + 30000); // Wait 30 seconds
-        throw new Error(`No drivers found, attempt ${attempt + 1}`);
-      }
-      // After 3 attempts, mark as no driver available
-      return;
-    }
-
-    // Notify drivers about new order via WebSocket
-    for (const driver of nearbyDrivers) {
-      this.eventsGateway.sendToUser(driver.user_id, 'order:new', {
-        orderId,
-        distanceToPickup: driver.distance_meters,
-        // ... order summary
-      });
-    }
-
-    // Set expiry for drivers to respond (2 minutes)
-    await this.redisService.setex(
-      `order:matching:${orderId}`,
-      120,
-      JSON.stringify({ driverIds: nearbyDrivers.map((d) => d.driver_id) }),
-    );
-  }
-}
-```
-
-### 3.5. Location Batch Processing Queue
-
-```typescript
-// src/queues/location/location.processor.ts
-import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Job } from 'bullmq';
-import { LOCATION_QUEUE } from '../queues.module';
-import { PrismaService } from '../../database/prisma.service';
-
-interface LocationBatchData {
-  driverId: string;
-  orderId?: string;
-  locations: Array<{
-    lat: number;
-    lng: number;
-    timestamp: Date;
-  }>;
-}
-
-/**
- * Process location updates in batches to reduce database writes.
- * Instead of writing every 5-second update, batch them every minute.
- */
-@Processor(LOCATION_QUEUE, {
-  concurrency: 20,
-})
-export class LocationProcessor extends WorkerHost {
-  constructor(private prisma: PrismaService) {
-    super();
-  }
-
-  async process(job: Job<LocationBatchData>): Promise<void> {
-    const { driverId, orderId, locations } = job.data;
-
-    // Update driver's current location (latest only)
-    const latestLocation = locations[locations.length - 1];
-    await this.prisma.$executeRaw`
-      UPDATE drivers 
-      SET 
-        last_location = ST_MakePoint(${latestLocation.lng}, ${latestLocation.lat})::geography,
-        last_location_updated_at = ${latestLocation.timestamp}
-      WHERE id = ${driverId}::uuid
-    `;
-
-    // If on active order, store tracking history
-    if (orderId) {
-      await this.prisma.orderTracking.createMany({
-        data: locations.map((loc) => ({
-          orderId,
-          location: `POINT(${loc.lng} ${loc.lat})`,
-          recordedAt: loc.timestamp,
-        })),
-      });
-    }
-  }
-}
-```
-
 ---
 
-## 4. Caching Strategy
+## 6. Caching Strategy (Upstash Redis)
 
-### 4.1. Redis Cache Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           UPSTASH REDIS                                      │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  ┌─────────────────────┐  ┌─────────────────────┐  ┌─────────────────────┐  │
-│  │  Cache Layer        │  │  Real-time Layer    │  │  Queue Layer        │  │
-│  │                     │  │                     │  │                     │  │
-│  │  cache:user:{id}    │  │  geo:drivers        │  │  bull:notification  │  │
-│  │  cache:order:{id}   │  │  socket:user:{id}   │  │  bull:location      │  │
-│  │  cache:config       │  │  typing:{orderId}   │  │  bull:matching      │  │
-│  │                     │  │  room:{orderId}     │  │                     │  │
-│  │  TTL: 5-60 min      │  │  TTL: seconds       │  │  Persistent         │  │
-│  └─────────────────────┘  └─────────────────────┘  └─────────────────────┘  │
-│                                                                              │
-│  ┌─────────────────────┐  ┌─────────────────────┐                           │
-│  │  Session Layer      │  │  Rate Limit Layer   │                           │
-│  │                     │  │                     │                           │
-│  │  refresh:{token}    │  │  rate:api:{userId}  │                           │
-│  │  blacklist:{token}  │  │  rate:otp:{phone}   │                           │
-│  │                     │  │                     │                           │
-│  │  TTL: 7 days        │  │  TTL: 1-5 min       │                           │
-│  └─────────────────────┘  └─────────────────────┘                           │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### 4.2. Cache Service Implementation
+### 6.1. Redis Configuration
 
 ```typescript
-// src/cache/cache.service.ts
-import { Injectable, Logger } from '@nestjs/common';
-import { RedisService } from './redis.service';
-
-interface CacheOptions {
-  ttlSeconds?: number;
-  prefix?: string;
-}
-
-@Injectable()
-export class CacheService {
-  private readonly logger = new Logger(CacheService.name);
-  private readonly defaultTTL = 300; // 5 minutes
-
-  constructor(private redis: RedisService) {}
-
-  /**
-   * Cache-Aside Pattern: Get from cache, or fetch and cache
-   */
-  async getOrSet<T>(
-    key: string,
-    fetcher: () => Promise<T>,
-    options: CacheOptions = {},
-  ): Promise<T> {
-    const { ttlSeconds = this.defaultTTL, prefix = 'cache' } = options;
-    const cacheKey = `${prefix}:${key}`;
-
-    // Try to get from cache
-    const cached = await this.redis.get(cacheKey);
-    if (cached) {
-      this.logger.debug(`Cache HIT: ${cacheKey}`);
-      return JSON.parse(cached) as T;
-    }
-
-    this.logger.debug(`Cache MISS: ${cacheKey}`);
-
-    // Fetch fresh data
-    const data = await fetcher();
-
-    // Cache the result
-    if (data !== null && data !== undefined) {
-      await this.redis.setex(cacheKey, ttlSeconds, JSON.stringify(data));
-    }
-
-    return data;
-  }
-
-  /**
-   * Invalidate cache by key
-   */
-  async invalidate(key: string, prefix = 'cache'): Promise<void> {
-    const cacheKey = `${prefix}:${key}`;
-    await this.redis.del(cacheKey);
-    this.logger.debug(`Cache INVALIDATED: ${cacheKey}`);
-  }
-
-  /**
-   * Invalidate multiple keys by pattern
-   */
-  async invalidatePattern(pattern: string): Promise<void> {
-    const keys = await this.redis.keys(pattern);
-    if (keys.length > 0) {
-      await this.redis.del(...keys);
-      this.logger.debug(`Cache INVALIDATED: ${keys.length} keys matching ${pattern}`);
-    }
-  }
-
-  /**
-   * Cache system configuration (long TTL)
-   */
-  async getSystemConfig(key: string): Promise<any> {
-    return this.getOrSet(
-      `config:${key}`,
-      async () => {
-        // Fetch from database
-        const config = await this.prisma.systemConfig.findUnique({
-          where: { key },
-        });
-        return config?.value;
-      },
-      { ttlSeconds: 3600, prefix: 'cache' }, // 1 hour
-    );
-  }
-
-  /**
-   * Cache order details (short TTL for active orders)
-   */
-  async getCachedOrder(orderId: string): Promise<any> {
-    return this.getOrSet(
-      `order:${orderId}`,
-      async () => {
-        return this.prisma.order.findUnique({
-          where: { id: orderId },
-          include: {
-            user: { select: { id: true, name: true, phone: true } },
-            driver: { select: { id: true, name: true, phone: true } },
-          },
-        });
-      },
-      { ttlSeconds: 60 }, // 1 minute for active tracking
-    );
-  }
-}
-```
-
-### 4.3. Driver Location Geo Cache
-
-```typescript
-// src/cache/redis.service.ts (Geo methods)
+// src/cache/redis.service.ts
 import { Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
 
@@ -818,1011 +524,115 @@ export class RedisService {
   private client: Redis;
 
   constructor() {
-    this.client = new Redis(process.env.REDIS_URL);
+    // Upstash Redis connection
+    this.client = new Redis(process.env.REDIS_URL, {
+      tls: process.env.NODE_ENV === 'production' ? {} : undefined,
+    });
   }
 
-  /**
-   * Store driver location in Redis Geo
-   * Faster than PostGIS for real-time queries
-   */
-  async updateDriverGeo(
-    driverId: string,
-    lat: number,
+  async get(key: string): Promise<string | null> {
+    return this.client.get(key);
+  }
+
+  async setex(key: string, seconds: number, value: string): Promise<void> {
+    await this.client.setex(key, seconds, value);
+  }
+
+  async del(key: string): Promise<void> {
+    await this.client.del(key);
+  }
+
+  // Geo operations for driver locations
+  async geoadd(key: string, lng: number, lat: number, member: string): Promise<void> {
+    await this.client.geoadd(key, lng, lat, member);
+  }
+
+  async georadius(
+    key: string,
     lng: number,
-  ): Promise<void> {
-    await this.client.geoadd('geo:drivers', lng, lat, driverId);
-    // Also store timestamp
-    await this.client.hset(`driver:meta:${driverId}`, 'lastUpdate', Date.now());
-  }
-
-  /**
-   * Find nearby drivers from Redis (faster than PostGIS for hot queries)
-   */
-  async findNearbyDrivers(
     lat: number,
-    lng: number,
-    radiusKm: number,
-    limit = 10,
-  ): Promise<Array<{ driverId: string; distance: number }>> {
-    const results = await this.client.georadius(
-      'geo:drivers',
-      lng,
-      lat,
-      radiusKm,
-      'km',
-      'WITHDIST',
-      'ASC',
-      'COUNT',
-      limit,
-    );
-
-    return results.map(([driverId, distance]) => ({
-      driverId,
-      distance: parseFloat(distance),
-    }));
-  }
-
-  /**
-   * Remove inactive drivers (not updated in last 5 minutes)
-   */
-  async removeInactiveDrivers(): Promise<void> {
-    const threshold = Date.now() - 5 * 60 * 1000;
-    const driverIds = await this.client.zrange('geo:drivers', 0, -1);
-
-    for (const driverId of driverIds) {
-      const lastUpdate = await this.client.hget(`driver:meta:${driverId}`, 'lastUpdate');
-      if (lastUpdate && parseInt(lastUpdate) < threshold) {
-        await this.client.zrem('geo:drivers', driverId);
-        await this.client.del(`driver:meta:${driverId}`);
-      }
-    }
+    radius: number,
+    unit: 'km' | 'm',
+  ) {
+    return this.client.georadius(key, lng, lat, radius, unit, 'WITHDIST', 'ASC');
   }
 }
 ```
 
 ---
 
-## 5. Hey-API Client Generation
+## 7. Hey-API Client Generation
 
-### 5.1. NestJS Swagger Configuration
+### 7.1. Swagger Configuration
 
 ```typescript
 // src/config/swagger.config.ts
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { INestApplication } from '@nestjs/common';
-import * as fs from 'fs';
-import * as path from 'path';
 
 export function setupSwagger(app: INestApplication) {
   const config = new DocumentBuilder()
     .setTitle('Logship API')
     .setDescription('Logship-MVP Delivery App API')
     .setVersion('1.0.0')
-    .setContact('Developer', 'https://github.com/yourname', 'dev@example.com')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        description: 'Enter JWT token',
-      },
-      'access-token',
-    )
-    .addTag('Auth', 'Authentication endpoints')
-    .addTag('Users', 'User management')
-    .addTag('Drivers', 'Driver operations')
-    .addTag('Orders', 'Order management')
-    .addTag('Chat', 'In-order messaging')
-    .addTag('Admin', 'Admin dashboard APIs')
-    .addServer('http://localhost:3000', 'Development')
-    .addServer('https://api.logship.example.com', 'Production')
+    .addBearerAuth()
     .build();
 
-  const document = SwaggerModule.createDocument(app, config, {
-    operationIdFactory: (controllerKey: string, methodKey: string) => methodKey,
-  });
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
 
-  // Setup Swagger UI
-  SwaggerModule.setup('api/docs', app, document, {
-    swaggerOptions: {
-      persistAuthorization: true,
-      docExpansion: 'none',
-      filter: true,
-    },
-  });
-
-  // Export OpenAPI spec as JSON (for Hey-API)
-  if (process.env.NODE_ENV !== 'production') {
-    const outputPath = path.resolve(__dirname, '../../openapi.json');
-    fs.writeFileSync(outputPath, JSON.stringify(document, null, 2));
-    console.log(`OpenAPI spec written to ${outputPath}`);
-  }
-
+  // Export for Hey-API generation
   return document;
 }
 ```
 
-### 5.2. Controller with Swagger Decorators
-
-```typescript
-// src/modules/orders/orders.controller.ts
-import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Param,
-  Body,
-  Query,
-  UseGuards,
-  ParseUUIDPipe,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiParam,
-  ApiQuery,
-} from '@nestjs/swagger';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
-import { Roles } from '../../common/decorators/roles.decorator';
-import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { OrdersService } from './orders.service';
-import {
-  CreateOrderDto,
-  OrderResponseDto,
-  OrderListResponseDto,
-  UpdateOrderStatusDto,
-  CalculatePriceDto,
-  PriceResponseDto,
-} from './dto';
-import { User, UserRole } from '@prisma/client';
-
-@Controller('orders')
-@ApiTags('Orders')
-@ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard, RolesGuard)
-export class OrdersController {
-  constructor(private readonly ordersService: OrdersService) {}
-
-  @Post('calculate-price')
-  @ApiOperation({
-    summary: 'Calculate order price',
-    description: 'Preview price based on pickup and dropoff locations',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Price calculation result',
-    type: PriceResponseDto,
-  })
-  calculatePrice(@Body() dto: CalculatePriceDto): Promise<PriceResponseDto> {
-    return this.ordersService.calculatePrice(dto);
-  }
-
-  @Post()
-  @Roles(UserRole.USER)
-  @ApiOperation({
-    summary: 'Create new order',
-    description: 'Create a delivery order as a customer',
-  })
-  @ApiResponse({
-    status: 201,
-    description: 'Order created successfully',
-    type: OrderResponseDto,
-  })
-  @ApiResponse({ status: 400, description: 'Validation error' })
-  create(
-    @CurrentUser() user: User,
-    @Body() dto: CreateOrderDto,
-  ): Promise<OrderResponseDto> {
-    return this.ordersService.create(user.id, dto);
-  }
-
-  @Get()
-  @ApiOperation({
-    summary: 'List orders',
-    description: 'Get paginated list of orders for current user',
-  })
-  @ApiQuery({ name: 'status', required: false, enum: ['PENDING', 'ASSIGNED', 'DELIVERING', 'COMPLETED', 'CANCELLED'] })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiResponse({
-    status: 200,
-    description: 'Paginated order list',
-    type: OrderListResponseDto,
-  })
-  findAll(
-    @CurrentUser() user: User,
-    @Query('status') status?: string,
-    @Query('page') page = 1,
-    @Query('limit') limit = 20,
-  ): Promise<OrderListResponseDto> {
-    return this.ordersService.findAllForUser(user, { status, page, limit });
-  }
-
-  @Get(':id')
-  @ApiOperation({ summary: 'Get order details' })
-  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
-  @ApiResponse({ status: 200, type: OrderResponseDto })
-  @ApiResponse({ status: 404, description: 'Order not found' })
-  findOne(
-    @CurrentUser() user: User,
-    @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<OrderResponseDto> {
-    return this.ordersService.findOneForUser(id, user);
-  }
-
-  @Post(':id/accept')
-  @Roles(UserRole.DRIVER)
-  @ApiOperation({
-    summary: 'Accept order',
-    description: 'Driver accepts a pending order',
-  })
-  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
-  @ApiResponse({ status: 200, type: OrderResponseDto })
-  @ApiResponse({ status: 409, description: 'Order already assigned' })
-  acceptOrder(
-    @CurrentUser() user: User,
-    @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<OrderResponseDto> {
-    return this.ordersService.acceptOrder(id, user.driver.id);
-  }
-
-  @Patch(':id/status')
-  @Roles(UserRole.DRIVER)
-  @ApiOperation({
-    summary: 'Update order status',
-    description: 'Driver updates order status during delivery',
-  })
-  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
-  @ApiResponse({ status: 200, type: OrderResponseDto })
-  updateStatus(
-    @CurrentUser() user: User,
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: UpdateOrderStatusDto,
-  ): Promise<OrderResponseDto> {
-    return this.ordersService.updateStatus(id, user.driver.id, dto);
-  }
-}
-```
-
-### 5.3. Hey-API Configuration (Frontend)
-
-```typescript
-// apps/admin/openapi-ts.config.ts
-import { defineConfig } from '@hey-api/openapi-ts';
-
-export default defineConfig({
-  input: '../backend/openapi.json', // Or 'http://localhost:3000/api/docs-json'
-  output: 'src/client',
-  plugins: [
-    // Generate Fetch-based client
-    '@hey-api/client-fetch',
-    
-    // Generate TypeScript types
-    '@hey-api/typescript',
-    
-    // Generate Zod schemas for validation
-    {
-      name: 'zod',
-      definitions: true,
-      requests: true,
-      responses: true,
-    },
-    
-    // Generate TanStack Query hooks
-    {
-      name: '@tanstack/react-query',
-      queryOptions: true,
-      mutationOptions: true,
-      queryKeys: true,
-      infiniteQueryOptions: true,
-    },
-  ],
-});
-```
-
-```json
-// apps/admin/package.json (scripts)
-{
-  "scripts": {
-    "generate:api": "openapi-ts",
-    "dev": "npm run generate:api && next dev",
-    "build": "npm run generate:api && next build"
-  }
-}
-```
-
-### 5.4. Using Generated Client (Admin Dashboard)
-
-```typescript
-// apps/admin/src/app/orders/page.tsx
-'use client';
-
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  findAllOptions,
-  findOneOptions,
-  updateStatusMutation,
-  ordersQueryKey,
-} from '@/client/tanstack-query.gen';
-import { zOrderResponseDto } from '@/client/zod.gen';
-
-export default function OrdersPage() {
-  const queryClient = useQueryClient();
-
-  // Fetch orders with type-safe options
-  const { data: orders, isLoading, error } = useQuery({
-    ...findAllOptions({
-      query: { status: 'PENDING', page: 1, limit: 20 },
-    }),
-  });
-
-  // Update order status mutation
-  const updateStatus = useMutation({
-    ...updateStatusMutation(),
-    onSuccess: (updatedOrder) => {
-      // Invalidate order list
-      queryClient.invalidateQueries({
-        queryKey: ordersQueryKey(),
-      });
-      
-      // Validate response with Zod
-      const validated = zOrderResponseDto.parse(updatedOrder);
-      console.log('Order updated:', validated.orderNumber);
-    },
-  });
-
-  const handleStatusUpdate = (orderId: string, newStatus: string) => {
-    updateStatus.mutate({
-      path: { id: orderId },
-      body: { status: newStatus },
-    });
-  };
-
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
-
-  return (
-    <div>
-      <h1>Orders</h1>
-      <table>
-        <thead>
-          <tr>
-            <th>Order #</th>
-            <th>Status</th>
-            <th>Created</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {orders?.data?.map((order) => (
-            <tr key={order.id}>
-              <td>{order.orderNumber}</td>
-              <td>{order.status}</td>
-              <td>{new Date(order.createdAt).toLocaleDateString()}</td>
-              <td>
-                <button onClick={() => handleStatusUpdate(order.id, 'CANCELLED')}>
-                  Cancel
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-```
-
 ---
 
-## 6. Email Verification Flow
+## 8. Environment Variables
 
-### 6.1. Overview
+### 8.1. .env File
 
-After phone OTP registration, users can optionally add and verify an email for:
-- Password recovery (future)
-- Email notifications
-- Admin login (web dashboard)
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        EMAIL VERIFICATION FLOW                               │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  1. User logged in via Phone OTP                                            │
-│     │                                                                        │
-│     ▼                                                                        │
-│  2. User requests to add email                                              │
-│     POST /auth/email/request-verification                                    │
-│     Body: { email: "user@example.com" }                                     │
-│     │                                                                        │
-│     ▼                                                                        │
-│  3. Backend sends verification link via Firebase Auth                       │
-│     Email contains: https://app.logship.com/verify-email?token=xxx          │
-│     │                                                                        │
-│     ▼                                                                        │
-│  4. User clicks link (opens in app or web)                                  │
-│     │                                                                        │
-│     ▼                                                                        │
-│  5. App/Web sends token to backend                                          │
-│     POST /auth/email/verify                                                  │
-│     Body: { token: "xxx" }                                                  │
-│     │                                                                        │
-│     ▼                                                                        │
-│  6. Backend verifies with Firebase and updates user                         │
-│     - Set user.email                                                        │
-│     - Set user.emailVerified = true                                         │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### 6.2. Auth Controller Endpoints
-
-```typescript
-// src/modules/auth/auth.controller.ts
-
-@Post('email/request-verification')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@ApiOperation({
-  summary: 'Request email verification',
-  description: 'Send verification link to user email',
-})
-@ApiResponse({ status: 200, description: 'Verification email sent' })
-@ApiResponse({ status: 409, description: 'Email already in use' })
-async requestEmailVerification(
-  @CurrentUser() user: User,
-  @Body() dto: RequestEmailVerificationDto,
-): Promise<{ message: string }> {
-  return this.authService.requestEmailVerification(user.id, dto.email);
-}
-
-@Post('email/verify')
-@Public() // Can be called from email link without auth
-@ApiOperation({
-  summary: 'Verify email',
-  description: 'Complete email verification with token from email link',
-})
-@ApiResponse({ status: 200, description: 'Email verified successfully' })
-@ApiResponse({ status: 400, description: 'Invalid or expired token' })
-async verifyEmail(
-  @Body() dto: VerifyEmailDto,
-): Promise<{ message: string; user: UserResponseDto }> {
-  return this.authService.verifyEmail(dto.token);
-}
-```
-
-### 6.3. Auth Service Implementation
-
-```typescript
-// src/modules/auth/auth.service.ts
-
-async requestEmailVerification(userId: string, email: string) {
-  // Check if email already used by another user
-  const existingUser = await this.prisma.user.findFirst({
-    where: { email, NOT: { id: userId } },
-  });
-
-  if (existingUser) {
-    throw new ConflictException('Email already in use');
-  }
-
-  // Get user's Firebase UID
-  const user = await this.prisma.user.findUnique({
-    where: { id: userId },
-    select: { firebaseUid: true },
-  });
-
-  if (!user?.firebaseUid) {
-    throw new BadRequestException('User not linked to Firebase');
-  }
-
-  // Update Firebase user email and send verification
-  await this.firebaseAdmin.auth().updateUser(user.firebaseUid, {
-    email,
-    emailVerified: false,
-  });
-
-  // Generate email verification link
-  const link = await this.firebaseAdmin.auth().generateEmailVerificationLink(email, {
-    url: `${process.env.APP_URL}/verify-email`,
-  });
-
-  // Queue email sending (via BullMQ)
-  await this.notificationProducer.sendEmail(
-    email,
-    'Verify your email - Logship',
-    `Click here to verify: ${link}`,
-  );
-
-  // Temporarily store pending email
-  await this.prisma.user.update({
-    where: { id: userId },
-    data: { pendingEmail: email },
-  });
-
-  return { message: 'Verification email sent' };
-}
-
-async verifyEmail(oobCode: string) {
-  try {
-    // Verify the action code with Firebase
-    const info = await this.firebaseAdmin.auth().checkActionCode(oobCode);
-    
-    if (info.operation !== 'VERIFY_EMAIL') {
-      throw new BadRequestException('Invalid verification token');
-    }
-
-    // Apply the action code
-    await this.firebaseAdmin.auth().applyActionCode(oobCode);
-
-    // Get Firebase user
-    const firebaseUser = await this.firebaseAdmin.auth().getUserByEmail(info.data.email!);
-
-    // Update our database
-    const user = await this.prisma.user.update({
-      where: { firebaseUid: firebaseUser.uid },
-      data: {
-        email: info.data.email,
-        emailVerified: true,
-        pendingEmail: null,
-      },
-    });
-
-    return {
-      message: 'Email verified successfully',
-      user: this.toUserResponse(user),
-    };
-  } catch (error) {
-    if (error.code === 'auth/invalid-action-code') {
-      throw new BadRequestException('Invalid or expired verification link');
-    }
-    throw error;
-  }
-}
-```
-
----
-
-## 7. Security Implementation
-
-### 7.1. Security Layers
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          SECURITY LAYERS                                     │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │ Layer 1: Transport Security                                          │    │
-│  │ - HTTPS/TLS 1.3 everywhere                                           │    │
-│  │ - Secure WebSocket (WSS)                                             │    │
-│  │ - HTTP Strict Transport Security (HSTS)                              │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-│                                      │                                       │
-│                                      ▼                                       │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │ Layer 2: Rate Limiting (ThrottlerGuard)                              │    │
-│  │ - API: 100 req/min per user                                          │    │
-│  │ - Auth: 5 req/5min per IP                                            │    │
-│  │ - Location: 20 req/min per driver                                    │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-│                                      │                                       │
-│                                      ▼                                       │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │ Layer 3: Authentication (JwtAuthGuard)                               │    │
-│  │ - Firebase token verification                                        │    │
-│  │ - JWT access token (15min expiry)                                    │    │
-│  │ - Refresh token rotation                                             │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-│                                      │                                       │
-│                                      ▼                                       │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │ Layer 4: Authorization (RolesGuard)                                  │    │
-│  │ - Role-based access control (USER, DRIVER, ADMIN)                    │    │
-│  │ - Resource ownership checks                                          │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-│                                      │                                       │
-│                                      ▼                                       │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │ Layer 5: Input Validation (ValidationPipe)                           │    │
-│  │ - Zod schema validation                                              │    │
-│  │ - class-validator decorators                                         │    │
-│  │ - Sanitization (trim, escape)                                        │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-│                                      │                                       │
-│                                      ▼                                       │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │ Layer 6: Database Security (Prisma)                                  │    │
-│  │ - Parameterized queries (SQL injection prevention)                   │    │
-│  │ - SSL connections to Neon                                            │    │
-│  │ - Sensitive data encryption                                          │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### 7.2. Rate Limiting Configuration
-
-```typescript
-// src/app.module.ts
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import { ThrottlerStorageRedisService } from 'nestjs-throttler-storage-redis';
-
-@Module({
-  imports: [
-    ThrottlerModule.forRootAsync({
-      useFactory: (configService: ConfigService) => ({
-        throttlers: [
-          {
-            name: 'short',
-            ttl: 1000,    // 1 second
-            limit: 3,     // 3 requests
-          },
-          {
-            name: 'medium',
-            ttl: 60000,   // 1 minute
-            limit: 100,   // 100 requests
-          },
-          {
-            name: 'long',
-            ttl: 3600000, // 1 hour
-            limit: 1000,  // 1000 requests
-          },
-        ],
-        storage: new ThrottlerStorageRedisService({
-          host: configService.get('REDIS_HOST'),
-          port: configService.get('REDIS_PORT'),
-          password: configService.get('REDIS_PASSWORD'),
-        }),
-      }),
-      inject: [ConfigService],
-    }),
-  ],
-  providers: [
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerGuard,
-    },
-  ],
-})
-export class AppModule {}
-```
-
-```typescript
-// Custom rate limit per endpoint
-// src/modules/auth/auth.controller.ts
-import { Throttle, SkipThrottle } from '@nestjs/throttler';
-
-@Controller('auth')
-export class AuthController {
-  @Post('otp/send')
-  @Throttle({ short: { limit: 1, ttl: 30000 } }) // 1 per 30 seconds
-  async sendOtp(@Body() dto: SendOtpDto) {
-    // ...
-  }
-
-  @Post('otp/verify')
-  @Throttle({ short: { limit: 5, ttl: 300000 } }) // 5 per 5 minutes
-  async verifyOtp(@Body() dto: VerifyOtpDto) {
-    // ...
-  }
-
-  @Get('me')
-  @SkipThrottle() // No rate limit for profile fetch
-  async getProfile(@CurrentUser() user: User) {
-    // ...
-  }
-}
-```
-
-### 7.3. JWT Strategy
-
-```typescript
-// src/modules/auth/strategies/jwt.strategy.ts
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
-import { ConfigService } from '@nestjs/config';
-import { PrismaService } from '../../database/prisma.service';
-import { RedisService } from '../../cache/redis.service';
-
-interface JwtPayload {
-  sub: string;      // User ID
-  role: string;     // User role
-  iat: number;      // Issued at
-  exp: number;      // Expiry
-}
-
-@Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(
-    private prisma: PrismaService,
-    private redis: RedisService,
-    configService: ConfigService,
-  ) {
-    super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      ignoreExpiration: false,
-      secretOrKey: configService.get('JWT_SECRET'),
-    });
-  }
-
-  async validate(payload: JwtPayload) {
-    // Check if token is blacklisted (logout)
-    const isBlacklisted = await this.redis.exists(`blacklist:${payload.sub}:${payload.iat}`);
-    if (isBlacklisted) {
-      throw new UnauthorizedException('Token has been revoked');
-    }
-
-    // Get user from database
-    const user = await this.prisma.user.findUnique({
-      where: { id: payload.sub },
-      include: {
-        driver: {
-          select: {
-            id: true,
-            status: true,
-            isApproved: true,
-          },
-        },
-      },
-    });
-
-    if (!user || !user.isActive) {
-      throw new UnauthorizedException('User not found or inactive');
-    }
-
-    return user;
-  }
-}
-```
-
-### 7.4. CORS Configuration
-
-```typescript
-// src/main.ts
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-
-  // CORS configuration
-  app.enableCors({
-    origin: (origin, callback) => {
-      const allowedOrigins = [
-        'http://localhost:3001',          // Admin dev
-        'http://localhost:8081',          // Expo dev
-        'https://admin.logship.example.com',
-        'https://app.logship.example.com',
-      ];
-
-      // Allow requests with no origin (mobile apps, Postman)
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    exposedHeaders: ['X-Total-Count', 'X-Total-Pages'],
-  });
-
-  // Helmet for security headers
-  app.use(helmet({
-    contentSecurityPolicy: false, // Disable for Swagger UI
-    crossOriginEmbedderPolicy: false,
-  }));
-
-  await app.listen(3000);
-}
-```
-
----
-
-## 8. Observability & Monitoring
-
-### 8.1. Logging Interceptor
-
-```typescript
-// src/common/interceptors/logging.interceptor.ts
-import {
-  Injectable,
-  NestInterceptor,
-  ExecutionContext,
-  CallHandler,
-  Logger,
-} from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
-
-@Injectable()
-export class LoggingInterceptor implements NestInterceptor {
-  private readonly logger = new Logger('HTTP');
-
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const request = context.switchToHttp().getRequest();
-    const { method, url, body, user } = request;
-    const userAgent = request.get('user-agent') || '';
-    const ip = request.ip;
-    const now = Date.now();
-
-    // Don't log sensitive data
-    const sanitizedBody = this.sanitizeBody(body);
-
-    return next.handle().pipe(
-      tap({
-        next: (data) => {
-          const response = context.switchToHttp().getResponse();
-          const { statusCode } = response;
-          const duration = Date.now() - now;
-
-          this.logger.log(
-            `${method} ${url} ${statusCode} ${duration}ms - ${ip} - ${userAgent} - user:${user?.id || 'anonymous'}`,
-          );
-        },
-        error: (error) => {
-          const duration = Date.now() - now;
-          this.logger.error(
-            `${method} ${url} ${error.status || 500} ${duration}ms - ${ip} - ${error.message}`,
-          );
-        },
-      }),
-    );
-  }
-
-  private sanitizeBody(body: any): any {
-    if (!body) return body;
-    const sensitive = ['password', 'token', 'otp', 'firebaseToken', 'refreshToken'];
-    const sanitized = { ...body };
-    for (const key of sensitive) {
-      if (sanitized[key]) {
-        sanitized[key] = '[REDACTED]';
-      }
-    }
-    return sanitized;
-  }
-}
-```
-
-### 8.2. Health Check Endpoint
-
-```typescript
-// src/modules/health/health.controller.ts
-import { Controller, Get } from '@nestjs/common';
-import {
-  HealthCheck,
-  HealthCheckService,
-  PrismaHealthIndicator,
-  HealthCheckResult,
-} from '@nestjs/terminus';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { Public } from '../../common/decorators/public.decorator';
-import { RedisHealthIndicator } from './redis.health';
-
-@Controller('health')
-@ApiTags('Health')
-export class HealthController {
-  constructor(
-    private health: HealthCheckService,
-    private prisma: PrismaHealthIndicator,
-    private redis: RedisHealthIndicator,
-  ) {}
-
-  @Get()
-  @Public()
-  @HealthCheck()
-  @ApiOperation({ summary: 'Health check' })
-  check(): Promise<HealthCheckResult> {
-    return this.health.check([
-      () => this.prisma.pingCheck('database'),
-      () => this.redis.isHealthy('redis'),
-    ]);
-  }
-
-  @Get('ready')
-  @Public()
-  @ApiOperation({ summary: 'Readiness check' })
-  ready() {
-    return { status: 'ready', timestamp: new Date().toISOString() };
-  }
-}
-```
-
----
-
-## 9. Environment Configuration
-
-### 9.1. Environment Variables
-
-```bash
-# .env.example
-
-# App
-NODE_ENV=development
-PORT=3000
-APP_URL=http://localhost:3000
-
-# Database (Neon)
-DATABASE_URL="postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=require"
-DATABASE_URL_POOLED="postgresql://user:pass@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require"
+```env
+# Database (Neon PostgreSQL)
+DATABASE_URL="postgresql://user:pass@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require"
+DATABASE_URL_DIRECT="postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=require"
 
 # Redis (Upstash)
-REDIS_URL="rediss://default:xxx@xxx.upstash.io:6379"
-REDIS_HOST=xxx.upstash.io
-REDIS_PORT=6379
-REDIS_PASSWORD=xxx
-
-# JWT
-JWT_SECRET=your-super-secret-key-min-32-chars
-JWT_EXPIRES_IN=15m
-JWT_REFRESH_EXPIRES_IN=7d
+REDIS_URL="rediss://default:pass@host.upstash.io:6379"
 
 # Firebase
-FIREBASE_PROJECT_ID=your-project-id
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
-FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxx@your-project.iam.gserviceaccount.com
+FIREBASE_PROJECT_ID="your-project"
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n..."
+FIREBASE_CLIENT_EMAIL="firebase-adminsdk@..."
 
 # Cloudinary
-CLOUDINARY_CLOUD_NAME=xxx
-CLOUDINARY_API_KEY=xxx
-CLOUDINARY_API_SECRET=xxx
+CLOUDINARY_CLOUD_NAME="your-cloud"
+CLOUDINARY_API_KEY="your-key"
+CLOUDINARY_API_SECRET="your-secret"
 
-# External APIs (Goong Maps for Vietnam)
-GOONG_API_KEY=xxx
-GOONG_MAPTILES_KEY=xxx
+# JWT
+JWT_SECRET="your-secret"
+JWT_EXPIRES_IN="15m"
+
+# Goong Maps
+GOONG_API_KEY="your-goong-key"
 ```
 
-### 9.2. Configuration Module
+---
 
-```typescript
-// src/config/configuration.ts
-export default () => ({
-  port: parseInt(process.env.PORT, 10) || 3000,
-  nodeEnv: process.env.NODE_ENV || 'development',
-  
-  database: {
-    url: process.env.DATABASE_URL,
-    pooledUrl: process.env.DATABASE_URL_POOLED,
-  },
-  
-  redis: {
-    url: process.env.REDIS_URL,
-    host: process.env.REDIS_HOST,
-    port: parseInt(process.env.REDIS_PORT, 10) || 6379,
-    password: process.env.REDIS_PASSWORD,
-  },
-  
-  jwt: {
-    secret: process.env.JWT_SECRET,
-    expiresIn: process.env.JWT_EXPIRES_IN || '15m',
-    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
-  },
-  
-  firebase: {
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-  },
-  
-  cloudinary: {
-    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
-    apiKey: process.env.CLOUDINARY_API_KEY,
-    apiSecret: process.env.CLOUDINARY_API_SECRET,
-  },
-  
-  goong: {
-    apiKey: process.env.GOONG_API_KEY,
-    maptilesKey: process.env.GOONG_MAPTILES_KEY,
-  },
-});
-```
+## 9. Commands Reference
+
+| Command | Description |
+|---------|-------------|
+| `bun install` | Install dependencies |
+| `bun run dev` | Start development server with hot reload |
+| `bun run build` | Build for production |
+| `bun run start` | Start production server |
+| `bun run db:generate` | Generate Prisma Client |
+| `bun run db:migrate` | Run database migrations |
+| `bun run db:studio` | Open Prisma Studio |
+| `bun run test` | Run tests |
+| `bun run lint` | Run ESLint |
 
 ---
 
@@ -1830,9 +640,39 @@ export default () => ({
 
 | Document | Description |
 |----------|-------------|
-| [01-SDD-System-Design-Document.md](./01-SDD-System-Design-Document.md) | Architecture overview |
-| [02-Database-Design-Document.md](./02-Database-Design-Document.md) | Schema, PostGIS, indexes |
-| [03-API-Design-Document.md](./03-API-Design-Document.md) | REST + WebSocket endpoints |
-| [04-Mobile-App-Technical-Spec.md](./04-Mobile-App-Technical-Spec.md) | React Native + Expo |
-| [05-Admin-Dashboard-Spec.md](./05-Admin-Dashboard-Spec.md) | Web admin panel |
-| [06-Development-Phases.md](./06-Development-Phases.md) | Timeline & milestones |
+| [00-Unified-Tech-Stack-Spec.md](./00-Unified-Tech-Stack-Spec.md) | Complete tech stack specification |
+| [01-SDD-System-Design-Document.md](./01-SDD-System-Design-Document.md) | System architecture |
+| [02-Database-Design-Document.md](./02-Database-Design-Document.md) | Neon + PostGIS schema details |
+| [03-API-Design-Document.md](./03-API-Design-Document.md) | API endpoints |
+| [04-Mobile-App-Technical-Spec.md](./04-Mobile-App-Technical-Spec.md) | Mobile app |
+| [05-Admin-Dashboard-Spec.md](./05-Admin-Dashboard-Spec.md) | Admin dashboard |
+| [08-Monorepo-Structure.md](./08-Monorepo-Structure.md) | Monorepo setup with Bun |
+
+---
+
+## 11. Key Distinctions
+
+### 11.1. Database vs ORM
+
+| Term | Definition | Example |
+|------|------------|---------|
+| **Neon** | Serverless PostgreSQL database provider | Hosts the actual data |
+| **PostgreSQL** | Relational database management system | Stores tables, indexes |
+| **PostGIS** | PostgreSQL extension for geospatial data | Enables geo queries |
+| **Prisma** | ORM (Object-Relational Mapping) tool | Generates type-safe database client |
+| **Prisma Client** | Auto-generated database client | Used in code to query database |
+
+### 11.2. Correct Terminology
+
+✅ **CORRECT:**
+- "We use **Neon** as our database"
+- "We use **Prisma** as our ORM to access the database"
+- "**PostGIS** is enabled on our Neon PostgreSQL database"
+
+❌ **INCORRECT:**
+- "We use Prisma as our database" ← WRONG
+- "Prisma stores our data" ← WRONG
+
+---
+
+**END OF DOCUMENT**

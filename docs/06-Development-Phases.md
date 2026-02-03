@@ -1,7 +1,7 @@
 # Logship-MVP: Development Phases
 
-**Version:** 1.0  
-**Last Updated:** January 2025  
+**Version:** 3.0  
+**Last Updated:** February 2025  
 **Timeline:** 10-12 weeks (Solo developer + AI assistance)  
 **Working Hours:** ~20-30 hours/week  
 
@@ -25,7 +25,7 @@ This document outlines the development phases for Logship-MVP, a logistics deliv
 
 | Component | Technology |
 |-----------|------------|
-| Mobile | React Native + Expo SDK 54 |
+| Mobile | React Native + Expo SDK 52 |
 | Admin Web | Next.js 15 + Tailwind |
 | Backend | NestJS 11 + Prisma |
 | Database | Neon (Postgres + PostGIS) |
@@ -94,7 +94,7 @@ This document outlines the development phases for Logship-MVP, a logistics deliv
 
 | Task | Est. Hours | Priority |
 |------|------------|----------|
-| Initialize Expo project (SDK 54) | 2 | High |
+| Initialize Expo project (SDK 52) | 2 | High |
 | Configure Expo Router, TypeScript | 2 | High |
 | Set up Zustand + TanStack Query | 3 | High |
 | Initialize Next.js admin dashboard | 2 | High |
@@ -115,16 +115,16 @@ This document outlines the development phases for Logship-MVP, a logistics deliv
 
 ```bash
 # Backend
-cd apps/backend && npm run start:dev  # Runs on localhost:3000
+cd apps/api && bun run dev            # Runs on localhost:3000
 
 # Mobile
-cd apps/mobile && npx expo start      # Opens in Expo Go
+cd apps/mobile && bunx expo start     # Opens in Expo Go
 
 # Admin
-cd apps/admin && npm run dev          # Runs on localhost:3001
+cd apps/admin && bun run dev          # Runs on localhost:3001
 
 # Database
-npx prisma studio                     # Shows tables in browser
+bunx prisma studio                    # Shows tables in browser
 ```
 
 ---

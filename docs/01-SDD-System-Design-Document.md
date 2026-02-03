@@ -1,7 +1,7 @@
 # Logship-MVP: System Design Document (SDD)
 
-**Version:** 2.0  
-**Last Updated:** January 2025  
+**Version:** 3.0  
+**Last Updated:** February 2025  
 **Author:** Solo Developer  
 **Project:** Logistics Delivery App - Mobile-first React Native, Web Admin Dashboard, NestJS Backend  
 **Purpose:** Learning project for CV/Portfolio demonstration  
@@ -50,7 +50,7 @@ Logship-MVP is a logistics delivery application connecting **Users** (customers)
 │  │   (User)         │    │   (Driver)       │    │   Dashboard      │  │
 │  │                  │    │                  │    │                  │  │
 │  │  React Native    │    │  React Native    │    │  React/Next.js   │  │
-│  │  + Expo SDK 54   │    │  + Expo SDK 54   │    │  + TanStack      │  │
+│  │  + Expo SDK 52   │    │  + Expo SDK 52   │    │  + TanStack      │  │
 │  │  + Zustand       │    │  + Zustand       │    │  Query           │  │
 │  └────────┬─────────┘    └────────┬─────────┘    └────────┬─────────┘  │
 │           │                       │                       │             │
@@ -94,7 +94,7 @@ Logship-MVP is a logistics delivery application connecting **Users** (customers)
 | Backend Architecture | Monolith | Solo dev, simpler deployment |
 | Database | Neon (Serverless Postgres) | Free tier, PostGIS support, scale-to-zero |
 | Real-time | Socket.io + Redis Adapter | Room-based broadcasting, scalable |
-| Mobile Framework | React Native + Expo | Cross-platform, OTA updates |
+| Mobile Framework | React Native + Expo SDK 52 | Cross-platform, OTA updates |
 | State Management | Zustand + TanStack Query | Simple local state + powerful server state |
 | Authentication | Firebase Auth (OTP + Email) | Free tier, phone auth built-in |
 | Maps (Vietnam) | Goong Maps | Vietnam-optimized, competitive pricing |
@@ -484,12 +484,12 @@ Order Event                    BullMQ                         External Services
 | Category | Technology | Version |
 |----------|------------|---------|
 | Framework | React Native | 0.76+ |
-| Platform | Expo SDK | 54 |
+| Platform | Expo SDK | 52 |
 | Navigation | Expo Router | 4.x |
 | State (Local) | Zustand | 5.x |
 | State (Server) | TanStack Query | 5.x |
 | Maps | react-native-maps + **Goong Maps** | 1.x |
-| Location | expo-location + expo-task-manager | SDK 54 |
+| Location | expo-location + expo-task-manager | SDK 52 |
 | WebSocket | socket.io-client | 4.x |
 | Forms | React Hook Form + Zod | Latest |
 
