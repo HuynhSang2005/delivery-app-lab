@@ -2,7 +2,7 @@
 
 **Version:** 3.0  
 **Last Updated:** February 2025  
-**Platform:** React Native + Expo SDK 52  
+**Platform:** React Native + Expo SDK 54  
 **Target:** iOS 14+ / Android 10+  
 **Package Manager:** Bun  
 
@@ -12,7 +12,7 @@
 
 ## 1. Overview
 
-This document specifies the technical implementation for Logship-MVP mobile applications (User App & Driver App) using React Native with Expo SDK 52.
+This document specifies the technical implementation for Logship-MVP mobile applications (User App & Driver App) using React Native with Expo SDK 54.
 
 ### 1.1. App Variants
 
@@ -23,19 +23,19 @@ This document specifies the technical implementation for Logship-MVP mobile appl
 
 > **Note:** Both apps share the same codebase with conditional rendering based on user role.
 
-### 1.2. Why Expo SDK 52?
+### 1.2. Why Expo SDK 54?
 
 | Feature | Benefit |
 |---------|---------|
-| Expo Router v4 | File-based routing, deep linking |
+| Expo Router v5 | File-based routing, deep linking |
 | expo-location | Foreground/background location tracking |
 | expo-task-manager | Background tasks for driver location |
 | EAS Build | Cloud builds for iOS/Android |
 | EAS Update | OTA updates without app store review |
-| React Native 0.76 | Latest stable React Native |
-| React 18.3.1 | Stable React version |
+| React Native 0.81 | Latest stable React Native |
+| React 19.1 | Latest React version |
 
-> **Note:** Expo SDK 52 is the latest stable release. SDK 54 does not exist yet.
+> **Note:** Expo SDK 54 is the latest stable release with React Native 0.81 and React 19.
 
 ---
 
@@ -111,57 +111,57 @@ apps/mobile/
     "@gorhom/bottom-sheet": "^5.0.0",
     "@hey-api/client-fetch": "^0.8.0",
     "@react-native-community/netinfo": "^11.4.0",
-    "@react-native-firebase/app": "^21.0.0",
-    "@react-native-firebase/auth": "^21.0.0",
+    "@react-native-firebase/app": "^22.0.0",
+    "@react-native-firebase/auth": "^22.0.0",
     "@react-native-masked-view/masked-view": "^0.3.2",
     "@shopify/flash-list": "1.7.0",
     "@tanstack/react-query": "^5.60.0",
     "axios": "^1.7.0",
     "clsx": "^2.1.0",
     "date-fns": "^4.1.0",
-    "expo": "~52.0.0",
-    "expo-clipboard": "~7.0.0",
-    "expo-constants": "~17.0.0",
-    "expo-dev-client": "~5.0.0",
-    "expo-haptics": "~14.0.0",
-    "expo-image": "~2.0.0",
-    "expo-image-picker": "~16.0.0",
-    "expo-linking": "~7.0.0",
-    "expo-location": "~18.0.0",
-    "expo-notifications": "~0.29.0",
-    "expo-router": "~4.0.0",
-    "expo-secure-store": "~14.0.0",
-    "expo-splash-screen": "~0.29.0",
-    "expo-status-bar": "~2.0.0",
-    "expo-system-ui": "~4.0.0",
-    "expo-task-manager": "~12.0.0",
-    "expo-updates": "~0.26.0",
-    "expo-web-browser": "~14.0.0",
+    "expo": "~54.0.0",
+    "expo-clipboard": "~8.0.0",
+    "expo-constants": "~18.0.0",
+    "expo-dev-client": "~6.0.0",
+    "expo-haptics": "~15.0.0",
+    "expo-image": "~3.0.0",
+    "expo-image-picker": "~17.0.0",
+    "expo-linking": "~8.0.0",
+    "expo-location": "~19.0.0",
+    "expo-notifications": "~0.30.0",
+    "expo-router": "~5.0.0",
+    "expo-secure-store": "~15.0.0",
+    "expo-splash-screen": "~0.30.0",
+    "expo-status-bar": "~3.0.0",
+    "expo-system-ui": "~5.0.0",
+    "expo-task-manager": "~13.0.0",
+    "expo-updates": "~0.28.0",
+    "expo-web-browser": "~15.0.0",
     "lodash-es": "^4.17.21",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
     "react-hook-form": "^7.54.0",
     "@hookform/resolvers": "^3.9.0",
-    "react-native": "0.76.0",
-    "react-native-gesture-handler": "~2.20.0",
-    "react-native-maps": "1.18.0",
-    "react-native-reanimated": "~3.16.0",
-    "react-native-safe-area-context": "4.12.0",
-    "react-native-screens": "~4.0.0",
-    "react-native-svg": "15.8.0",
+    "react-native": "0.81.0",
+    "react-native-gesture-handler": "~2.24.0",
+    "react-native-maps": "1.22.0",
+    "react-native-reanimated": "~4.0.0",
+    "react-native-safe-area-context": "5.2.0",
+    "react-native-screens": "~4.8.0",
+    "react-native-svg": "15.12.0",
     "react-native-toast-message": "^2.2.0",
     "react-native-url-polyfill": "^2.0.0",
     "socket.io-client": "^4.8.0",
-    "tailwindcss": "^3.4.0",
-    "nativewind": "^4.1.0",
-    "zod": "^3.24.0",
+    "tailwindcss": "^4.0.0",
+    "nativewind": "^5.0.0",
+    "zod": "^4.0.0",
     "zustand": "^5.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.0",
     "@hey-api/openapi-ts": "^0.64.0",
     "@types/lodash-es": "^4.17.12",
-    "@types/react": "~18.3.0",
+    "@types/react": "~19.0.0",
     "typescript": "^5.7.0"
   }
 }
@@ -171,22 +171,22 @@ apps/mobile/
 
 | Category | Library | Version | Purpose |
 |----------|---------|---------|---------|
-| **Core** | `expo` | ~52.0.0 | Expo SDK |
-| **Core** | `react-native` | 0.76.0 | React Native |
-| **Core** | `react` | 18.3.1 | React (Expo SDK 52 uses React 18) |
-| **Navigation** | `expo-router` | ~4.0.0 | File-based routing |
+| **Core** | `expo` | ~54.0.0 | Expo SDK |
+| **Core** | `react-native` | 0.81.0 | React Native |
+| **Core** | `react` | 19.1.0 | React (Expo SDK 54 uses React 19) |
+| **Navigation** | `expo-router` | ~5.0.0 | File-based routing |
 | **API Client** | `@hey-api/client-fetch` | ^0.8.0 | Type-safe API client |
 | **State (Server)** | `@tanstack/react-query` | ^5.60.0 | Server state management |
 | **State (Client)** | `zustand` | ^5.0.0 | Client state management |
 | **Forms** | `react-hook-form` | ^7.54.0 | Form handling |
-| **Validation** | `zod` | ^3.24.0 | Schema validation |
-| **Maps** | `react-native-maps` | 1.18.0 | Map components |
-| **Lists** | `@shopify/flash-list` | 1.7.0 | High-performance lists |
+| **Validation** | `zod` | ^4.0.0 | Schema validation (v4 - 14x faster) |
+| **Maps** | `react-native-maps` | 1.22.0 | Map components |
+| **Lists** | `@shopify/flash-list` | 1.8.0 | High-performance lists |
 | **Bottom Sheet** | `@gorhom/bottom-sheet` | ^5.0.0 | Bottom sheet UI |
 | **Toast** | `react-native-toast-message` | ^2.2.0 | Toast notifications |
 | **Network** | `@react-native-community/netinfo` | ^11.4.0 | Network status |
-| **Auth** | `@react-native-firebase/*` | ^21.0.0 | Firebase Auth |
-| **Styling** | `nativewind` | ^4.1.0 | Tailwind for RN |
+| **Auth** | `@react-native-firebase/*` | ^22.0.0 | Firebase Auth |
+| **Styling** | `nativewind` | ^5.0.0 | Tailwind for RN |
 | **Utilities** | `lodash-es` | ^4.17.21 | Utility functions |
 | **Real-time** | `socket.io-client` | ^4.8.0 | WebSocket client |
 

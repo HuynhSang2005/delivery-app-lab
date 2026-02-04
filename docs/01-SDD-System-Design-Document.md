@@ -50,7 +50,7 @@ Logship-MVP is a logistics delivery application connecting **Users** (customers)
 │  │   (User)         │    │   (Driver)       │    │   Dashboard      │  │
 │  │                  │    │                  │    │                  │  │
 │  │  React Native    │    │  React Native    │    │  React/Next.js   │  │
-│  │  + Expo SDK 52   │    │  + Expo SDK 52   │    │  + TanStack      │  │
+│  │  + Expo SDK 54   │    │  + Expo SDK 54   │    │  + TanStack      │  │
 │  │  + Zustand       │    │  + Zustand       │    │  Query           │  │
 │  └────────┬─────────┘    └────────┬─────────┘    └────────┬─────────┘  │
 │           │                       │                       │             │
@@ -94,7 +94,7 @@ Logship-MVP is a logistics delivery application connecting **Users** (customers)
 | Backend Architecture | Monolith | Solo dev, simpler deployment |
 | Database | Neon (Serverless Postgres) | Free tier, PostGIS support, scale-to-zero |
 | Real-time | Socket.io + Redis Adapter | Room-based broadcasting, scalable |
-| Mobile Framework | React Native + Expo SDK 52 | Cross-platform, OTA updates |
+| Mobile Framework | React Native + Expo SDK 54 | Cross-platform, OTA updates |
 | State Management | Zustand + TanStack Query | Simple local state + powerful server state |
 | Authentication | Firebase Auth (OTP + Email) | Free tier, phone auth built-in |
 | Maps (Vietnam) | Goong Maps | Vietnam-optimized, competitive pricing |
@@ -489,7 +489,7 @@ Order Event                    BullMQ                         External Services
 | State (Local) | Zustand | 5.x |
 | State (Server) | TanStack Query | 5.x |
 | Maps | react-native-maps + **Goong Maps** | 1.x |
-| Location | expo-location + expo-task-manager | SDK 52 |
+| Location | expo-location + expo-task-manager | SDK 54 |
 | WebSocket | socket.io-client | 4.x |
 | Forms | React Hook Form + Zod | Latest |
 

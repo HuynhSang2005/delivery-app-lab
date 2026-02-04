@@ -189,7 +189,7 @@ apps/admin/
     "tailwindcss-animate": "^1.0.7",
     "use-debounce": "^10.0.0",
     "vaul": "^1.1.0",
-    "zod": "^3.24.0",
+    "zod": "^4.0.0",
     "zustand": "^5.0.0"
   },
   "devDependencies": {
@@ -219,7 +219,7 @@ apps/admin/
 | **Charts** | `recharts` | ^2.13.0 | Charts & graphs |
 | **Maps** | `mapbox-gl` | ^3.9.0 | Map rendering (Goong tiles) |
 | **Forms** | `react-hook-form` | ^7.54.0 | Form handling |
-| **Validation** | `zod` | ^3.24.0 | Schema validation |
+| **Validation** | `zod` | ^4.0.0 | Schema validation (v4 - 14x faster) |
 | **Animations** | `framer-motion` | ^11.15.0 | UI animations |
 | **Command Palette** | `cmdk` | ^1.0.0 | Command menu |
 | **Drawer** | `vaul` | ^1.1.0 | Drawer component |

@@ -136,6 +136,14 @@ CREATE TABLE drivers (
 CREATE INDEX idx_drivers_location ON drivers USING GIST(last_location);
 CREATE INDEX idx_drivers_status ON drivers(status) WHERE status = 'ACTIVE';
 CREATE INDEX idx_drivers_user_id ON drivers(user_id);
+
+-- Optimized index for driver matching (critical for performance)
+CREATE INDEX idx_drivers_active_location ON drivers USING GIST(last_location) 
+  WHERE status = 'ACTIVE' AND is_approved = true AND last_location IS NOT NULL;
+
+-- Index for driver approval queries
+CREATE INDEX idx_drivers_approval ON drivers(is_approved, created_at DESC) 
+  WHERE is_approved = false;
 ```
 
 ### 3.3. Addresses Table (User's saved addresses)
@@ -216,6 +224,15 @@ CREATE INDEX idx_orders_pickup_location ON orders USING GIST(pickup_location);
 
 -- Composite index for common queries
 CREATE INDEX idx_orders_status_created ON orders(status, created_at DESC);
+
+-- Additional optimized indexes
+CREATE INDEX idx_orders_user_status ON orders(user_id, status, created_at DESC);
+CREATE INDEX idx_orders_driver_status ON orders(driver_id, status) WHERE driver_id IS NOT NULL;
+CREATE INDEX idx_orders_pending ON orders(created_at) WHERE status = 'PENDING';
+
+-- Covering index for order list queries
+CREATE INDEX idx_orders_list ON orders(user_id, status, created_at DESC) 
+  INCLUDE (order_number, pickup_address, dropoff_address, price);
 ```
 
 ### 3.5. Order Tracking Table (Location history)
@@ -305,6 +322,120 @@ INSERT INTO system_config (key, value, description) VALUES
   ('BASE_PRICE', '{"amount": 10000, "currency": "VND"}', 'Base price for all orders'),
   ('MAX_MATCHING_RADIUS_KM', '{"value": 5}', 'Maximum radius to search for drivers'),
   ('DRIVER_LOCATION_UPDATE_INTERVAL_MS', '{"value": 5000}', 'How often driver sends location');
+```
+
+### 3.9. Order Status History Table (Audit Trail)
+
+```sql
+CREATE TABLE order_status_history (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  status order_status NOT NULL,
+  previous_status order_status,
+  changed_by UUID REFERENCES users(id),
+  changed_at TIMESTAMPTZ DEFAULT NOW(),
+  notes TEXT,
+  metadata JSONB -- Additional context (driver location, reason, etc.)
+);
+
+-- Indexes for audit queries
+CREATE INDEX idx_order_status_history_order_id ON order_status_history(order_id, changed_at DESC);
+CREATE INDEX idx_order_status_history_changed_at ON order_status_history(changed_at DESC);
+```
+
+### 3.10. Driver Earnings Table
+
+```sql
+CREATE TABLE driver_earnings (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  driver_id UUID NOT NULL REFERENCES drivers(user_id) ON DELETE CASCADE,
+  order_id UUID REFERENCES orders(id),
+  amount DECIMAL(10,2) NOT NULL,
+  type VARCHAR(20) NOT NULL CHECK (type IN ('ORDER', 'BONUS', 'PENALTY', 'WITHDRAWAL')),
+  status VARCHAR(20) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'COMPLETED', 'CANCELLED')),
+  description TEXT,
+  balance_after DECIMAL(10,2), -- Running balance after this transaction
+  processed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Indexes for earnings queries
+CREATE INDEX idx_driver_earnings_driver_id ON driver_earnings(driver_id, created_at DESC);
+CREATE INDEX idx_driver_earnings_type_status ON driver_earnings(driver_id, type, status) WHERE status = 'PENDING';
+CREATE INDEX idx_driver_earnings_created_at ON driver_earnings(created_at DESC);
+```
+
+### 3.11. Payment Records Table
+
+```sql
+CREATE TABLE payments (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  order_id UUID NOT NULL REFERENCES orders(id),
+  user_id UUID NOT NULL REFERENCES users(id),
+  amount DECIMAL(10,2) NOT NULL,
+  method VARCHAR(20) NOT NULL CHECK (method IN ('COD', 'BANK_TRANSFER', 'WALLET', 'CARD')),
+  status VARCHAR(20) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'REFUNDED')),
+  transaction_id VARCHAR(100), -- External transaction ID from payment provider
+  paid_at TIMESTAMPTZ,
+  failure_reason TEXT,
+  metadata JSONB, -- Payment provider response, etc.
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Indexes for payment queries
+CREATE INDEX idx_payments_order_id ON payments(order_id);
+CREATE INDEX idx_payments_user_id ON payments(user_id, created_at DESC);
+CREATE INDEX idx_payments_status ON payments(status) WHERE status IN ('PENDING', 'PROCESSING');
+CREATE INDEX idx_payments_transaction_id ON payments(transaction_id) WHERE transaction_id IS NOT NULL;
+```
+
+### 3.12. Webhook Events Table
+
+```sql
+CREATE TABLE webhook_events (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  event_type VARCHAR(50) NOT NULL,
+  payload JSONB NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'DELIVERED', 'FAILED')),
+  attempts INTEGER DEFAULT 0,
+  last_attempt_at TIMESTAMPTZ,
+  error_message TEXT,
+  delivered_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Indexes for webhook processing
+CREATE INDEX idx_webhook_events_status_created ON webhook_events(status, created_at) WHERE status = 'PENDING';
+CREATE INDEX idx_webhook_events_event_type ON webhook_events(event_type, created_at DESC);
+```
+
+### 3.13. Data Integrity Constraints
+
+```sql
+-- Orders table constraints
+ALTER TABLE orders 
+ADD CONSTRAINT chk_orders_price_positive CHECK (price > 0),
+ADD CONSTRAINT chk_orders_distance_positive CHECK (distance_km > 0),
+ADD CONSTRAINT chk_orders_weight_positive CHECK (package_weight_kg IS NULL OR package_weight_kg > 0);
+
+-- Drivers table constraints
+ALTER TABLE drivers 
+ADD CONSTRAINT chk_drivers_vehicle_plate CHECK (vehicle_plate ~ '^[0-9]{2}[A-Z][0-9]-[0-9]{4,5}$');
+
+-- Users table constraints
+ALTER TABLE users 
+ADD CONSTRAINT chk_users_phone CHECK (phone ~ '^\+84[0-9]{9,10}$');
+
+-- Soft delete columns (add to main tables)
+ALTER TABLE users ADD COLUMN deleted_at TIMESTAMPTZ;
+ALTER TABLE orders ADD COLUMN deleted_at TIMESTAMPTZ;
+ALTER TABLE drivers ADD COLUMN deleted_at TIMESTAMPTZ;
+
+-- Indexes for soft deleted records
+CREATE INDEX idx_users_active ON users(id) WHERE deleted_at IS NULL;
+CREATE INDEX idx_orders_active ON orders(id) WHERE deleted_at IS NULL;
+CREATE INDEX idx_drivers_active ON drivers(id) WHERE deleted_at IS NULL;
 ```
 
 ---
@@ -433,9 +564,124 @@ END;
 $$ LANGUAGE plpgsql;
 ```
 
+### 4.5. Order Status History Trigger
+
+```sql
+CREATE OR REPLACE FUNCTION log_order_status_change()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Only log if status actually changed
+  IF OLD.status IS DISTINCT FROM NEW.status THEN
+    INSERT INTO order_status_history (
+      order_id,
+      status,
+      previous_status,
+      changed_at
+    ) VALUES (
+      NEW.id,
+      NEW.status,
+      OLD.status,
+      NOW()
+    );
+  END IF;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_order_status_history
+  AFTER UPDATE OF status ON orders
+  FOR EACH ROW
+  EXECUTE FUNCTION log_order_status_change();
+```
+
+### 4.6. Driver Earnings Calculation Function
+
+```sql
+CREATE OR REPLACE FUNCTION calculate_driver_earnings(
+  p_driver_id UUID,
+  p_start_date TIMESTAMPTZ,
+  p_end_date TIMESTAMPTZ
+)
+RETURNS TABLE (
+  total_orders BIGINT,
+  total_earnings DECIMAL,
+  total_bonus DECIMAL,
+  total_penalty DECIMAL,
+  net_earnings DECIMAL
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    COUNT(*) FILTER (WHERE type = 'ORDER') as total_orders,
+    COALESCE(SUM(amount) FILTER (WHERE type = 'ORDER'), 0) as total_earnings,
+    COALESCE(SUM(amount) FILTER (WHERE type = 'BONUS'), 0) as total_bonus,
+    COALESCE(SUM(amount) FILTER (WHERE type = 'PENALTY'), 0) as total_penalty,
+    COALESCE(SUM(amount), 0) as net_earnings
+  FROM driver_earnings
+  WHERE driver_id = p_driver_id
+    AND created_at BETWEEN p_start_date AND p_end_date
+    AND status = 'COMPLETED';
+END;
+$$ LANGUAGE plpgsql;
+```
+
 ---
 
-## 5. Redis Data Structures
+## 5. Materialized Views for Analytics
+
+### 5.1. Daily Order Statistics
+
+```sql
+CREATE MATERIALIZED VIEW daily_order_stats AS
+SELECT 
+  DATE(created_at) as date,
+  COUNT(*) as total_orders,
+  COUNT(*) FILTER (WHERE status = 'COMPLETED') as completed_orders,
+  COUNT(*) FILTER (WHERE status = 'CANCELLED') as cancelled_orders,
+  SUM(price) FILTER (WHERE status = 'COMPLETED') as total_revenue,
+  AVG(price) FILTER (WHERE status = 'COMPLETED') as avg_order_value,
+  AVG(EXTRACT(EPOCH FROM (delivered_at - created_at))/60) 
+    FILTER (WHERE status = 'COMPLETED') as avg_delivery_time_minutes
+FROM orders
+GROUP BY DATE(created_at);
+
+CREATE UNIQUE INDEX idx_daily_stats_date ON daily_order_stats(date);
+
+-- Refresh function
+CREATE OR REPLACE FUNCTION refresh_daily_stats()
+RETURNS void AS $$
+BEGIN
+  REFRESH MATERIALIZED VIEW CONCURRENTLY daily_order_stats;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### 5.2. Driver Performance Summary
+
+```sql
+CREATE MATERIALIZED VIEW driver_performance_summary AS
+SELECT 
+  d.user_id as driver_id,
+  u.name as driver_name,
+  COUNT(o.id) FILTER (WHERE o.status = 'COMPLETED') as total_completed_orders,
+  COUNT(o.id) FILTER (WHERE o.status = 'CANCELLED') as total_cancelled_orders,
+  AVG(EXTRACT(EPOCH FROM (o.delivered_at - o.assigned_at))/60) 
+    FILTER (WHERE o.status = 'COMPLETED') as avg_delivery_time_minutes,
+  AVG(r.rating) as avg_rating,
+  d.status as current_status
+FROM drivers d
+JOIN users u ON d.user_id = u.id
+LEFT JOIN orders o ON o.driver_id = d.user_id
+LEFT JOIN driver_ratings r ON r.driver_id = d.user_id
+GROUP BY d.user_id, u.name, d.status;
+
+CREATE UNIQUE INDEX idx_driver_performance_driver_id ON driver_performance_summary(driver_id);
+```
+
+---
+
+## 6. Redis Data Structures
 
 For real-time operations, we use Redis alongside PostgreSQL:
 
@@ -483,7 +729,7 @@ EXPIRE rate_limit:<user_id>:<endpoint> 60
 
 ---
 
-## 6. Prisma Schema
+## 7. Prisma Schema
 
 ```prisma
 // prisma/schema.prisma
@@ -693,7 +939,7 @@ model SystemConfig {
 
 ---
 
-## 7. PostGIS Helper Service (NestJS)
+## 8. PostGIS Helper Service (NestJS)
 
 ```typescript
 // src/common/services/geo.service.ts
@@ -793,7 +1039,7 @@ export class GeoService {
 
 ---
 
-## 8. Migration Commands
+## 9. Migration Commands
 
 ```bash
 # Generate Prisma client
@@ -814,7 +1060,7 @@ bunx prisma studio
 
 ---
 
-## 9. Important Notes
+## 10. Important Notes
 
 ### 9.1. GEOGRAPHY vs GEOMETRY
 
@@ -846,7 +1092,7 @@ bunx prisma studio
 
 ---
 
-## 10. Redis Caching Strategy
+## 11. Redis Caching Strategy
 
 We use **Upstash Redis** alongside Neon PostgreSQL for caching and real-time operations. This section documents the caching patterns and data structures.
 
@@ -1105,7 +1351,7 @@ await redis.hset(`driver:${driverId}`, {
 
 ---
 
-## 11. Data Synchronization
+## 12. Data Synchronization
 
 ### 11.1. Redis ↔ PostgreSQL Sync
 

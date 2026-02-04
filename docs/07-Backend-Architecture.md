@@ -136,7 +136,7 @@ This document provides comprehensive technical architecture for the Logship-MVP 
     "socket.io": "^4.8.0",
     "socket.io-redis-adapter": "^8.0.0",
     "uuid": "^11.0.0",
-    "zod": "^3.24.0"
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.0",
@@ -191,7 +191,7 @@ This document provides comprehensive technical architecture for the Logship-MVP 
 | **Utilities** | `lodash` | ^4.17.21 | Utility functions |
 | **Utilities** | `uuid` | ^11.0.0 | UUID generation |
 | **Utilities** | `date-fns` | ^4.1.0 | Date formatting |
-| **Schema** | `zod` | ^3.24.0 | Schema validation |
+| **Schema** | `zod` | ^4.0.0 | Schema validation (v4 - 14x faster) |
 
 > **CRITICAL DISTINCTION:**
 > - **Neon** = Database (Serverless PostgreSQL)
@@ -270,50 +270,109 @@ apps/api/
 │   │       ├── matching.processor.ts
 │   │       └── matching.producer.ts
 │   │
-│   ├── modules/                         # Feature modules
+│   ├── modules/                         # Feature modules (Complete Structure)
 │   │   │
 │   │   ├── auth/                        # Auth Module
 │   │   │   ├── auth.module.ts
 │   │   │   ├── auth.controller.ts
 │   │   │   ├── auth.service.ts
+│   │   │   ├── auth.repository.ts       # Repository pattern
+│   │   │   ├── dto/
+│   │   │   │   ├── send-otp.dto.ts
+│   │   │   │   ├── verify-otp.dto.ts
+│   │   │   │   ├── refresh-token.dto.ts
+│   │   │   │   └── index.ts
+│   │   │   ├── entities/
+│   │   │   │   └── auth.entity.ts
+│   │   │   ├── errors/
+│   │   │   │   ├── auth.errors.ts
+│   │   │   │   └── index.ts
+│   │   │   ├── guards/
+│   │   │   │   ├── jwt-auth.guard.ts
+│   │   │   │   └── local-auth.guard.ts
 │   │   │   ├── strategies/
 │   │   │   │   ├── jwt.strategy.ts
 │   │   │   │   └── firebase.strategy.ts
-│   │   │   └── dto/
-│   │   │       ├── send-otp.dto.ts
-│   │   │       ├── verify-otp.dto.ts
-│   │   │       └── refresh-token.dto.ts
+│   │   │   └── decorators/
+│   │   │       ├── public.decorator.ts
+│   │   │       └── current-user.decorator.ts
 │   │   │
 │   │   ├── users/                       # Users Module
 │   │   │   ├── users.module.ts
 │   │   │   ├── users.controller.ts
 │   │   │   ├── users.service.ts
-│   │   │   └── dto/
+│   │   │   ├── users.repository.ts
+│   │   │   ├── dto/
+│   │   │   │   ├── create-user.dto.ts
+│   │   │   │   ├── update-user.dto.ts
+│   │   │   │   └── index.ts
+│   │   │   ├── entities/
+│   │   │   │   └── user.entity.ts
+│   │   │   └── errors/
+│   │   │       └── user.errors.ts
 │   │   │
 │   │   ├── drivers/                     # Drivers Module
 │   │   │   ├── drivers.module.ts
 │   │   │   ├── drivers.controller.ts
 │   │   │   ├── drivers.service.ts
-│   │   │   └── dto/
+│   │   │   ├── drivers.repository.ts
+│   │   │   ├── dto/
+│   │   │   │   ├── create-driver.dto.ts
+│   │   │   │   ├── update-driver.dto.ts
+│   │   │   │   └── index.ts
+│   │   │   ├── entities/
+│   │   │   │   └── driver.entity.ts
+│   │   │   ├── errors/
+│   │   │   │   └── driver.errors.ts
+│   │   │   └── pipes/
+│   │   │       └── driver-validation.pipe.ts
 │   │   │
 │   │   ├── orders/                      # Orders Module
 │   │   │   ├── orders.module.ts
 │   │   │   ├── orders.controller.ts
 │   │   │   ├── orders.service.ts
+│   │   │   ├── orders.repository.ts
+│   │   │   ├── dto/
+│   │   │   │   ├── create-order.dto.ts
+│   │   │   │   ├── update-order.dto.ts
+│   │   │   │   └── index.ts
+│   │   │   ├── entities/
+│   │   │   │   └── order.entity.ts
+│   │   │   ├── errors/
+│   │   │   │   └── order.errors.ts
 │   │   │   ├── events/
 │   │   │   │   ├── order-created.event.ts
-│   │   │   │   └── order-assigned.event.ts
-│   │   │   └── dto/
+│   │   │   │   ├── order-assigned.event.ts
+│   │   │   │   └── index.ts
+│   │   │   ├── listeners/
+│   │   │   │   └── order-event.listener.ts
+│   │   │   └── interceptors/
+│   │   │       └── order-transform.interceptor.ts
 │   │   │
 │   │   ├── chat/                        # Chat Module
 │   │   │   ├── chat.module.ts
 │   │   │   ├── chat.controller.ts
-│   │   │   └── chat.service.ts
+│   │   │   ├── chat.service.ts
+│   │   │   ├── chat.repository.ts
+│   │   │   ├── dto/
+│   │   │   │   ├── send-message.dto.ts
+│   │   │   │   └── index.ts
+│   │   │   ├── entities/
+│   │   │   │   └── message.entity.ts
+│   │   │   └── errors/
+│   │   │       └── chat.errors.ts
 │   │   │
 │   │   └── admin/                       # Admin Module
 │   │       ├── admin.module.ts
 │   │       ├── admin.controller.ts
-│   │       └── admin.service.ts
+│   │       ├── admin.service.ts
+│   │       ├── admin.repository.ts
+│   │       ├── dto/
+│   │       │   └── index.ts
+│   │       ├── entities/
+│   │       │   └── admin.entity.ts
+│   │       └── errors/
+│   │           └── admin.errors.ts
 │   │
 │   └── gateway/                         # WebSocket Gateway
 │       ├── gateway.module.ts
@@ -337,6 +396,250 @@ apps/api/
 ├── tsconfig.json
 ├── tsconfig.build.json
 └── package.json
+```
+
+---
+
+## 3.1 NestJS Module Structure Best Practices
+
+### Module Components Overview
+
+Each feature module MUST follow this structure:
+
+```
+modules/feature/
+├── feature.module.ts          # Module definition
+├── feature.controller.ts      # Route handlers
+├── feature.service.ts         # Business logic
+├── feature.repository.ts      # Database access (Repository Pattern)
+├── dto/                       # Data Transfer Objects
+│   ├── create-feature.dto.ts
+│   ├── update-feature.dto.ts
+│   └── index.ts
+├── entities/                  # Domain entities
+│   └── feature.entity.ts
+├── errors/                    # Custom errors/exceptions
+│   ├── feature.errors.ts
+│   └── index.ts
+├── guards/                    # Route guards (if needed)
+├── pipes/                     # Validation pipes (if needed)
+├── decorators/                # Custom decorators (if needed)
+├── interceptors/              # Interceptors (if needed)
+└── listeners/                 # Event listeners (if needed)
+```
+
+### Component Responsibilities
+
+| Component | Responsibility | Example |
+|-----------|---------------|---------|
+| **Controller** | Handle HTTP requests/responses | `@Controller('users')` |
+| **Service** | Business logic, orchestration | `UsersService.createUser()` |
+| **Repository** | Database access, queries | `UsersRepository.findByEmail()` |
+| **DTO** | Data validation, transformation | `CreateUserDto` with class-validator |
+| **Entity** | Domain model, type definition | `UserEntity` interface/class |
+| **Error** | Custom exceptions | `UserNotFoundError` extends `NotFoundException` |
+| **Guard** | Authorization checks | `JwtAuthGuard`, `RolesGuard` |
+| **Pipe** | Input validation/transformation | `ValidationPipe`, `ParseIntPipe` |
+| **Interceptor** | Cross-cutting concerns | `LoggingInterceptor`, `TransformInterceptor` |
+| **Decorator** | Metadata, custom logic | `@CurrentUser()`, `@Public()` |
+
+### Repository Pattern Implementation
+
+```typescript
+// users.repository.ts
+@Injectable()
+export class UsersRepository {
+  constructor(private prisma: PrismaService) {}
+
+  async findById(id: string): Promise<User | null> {
+    return this.prisma.user.findUnique({ where: { id } });
+  }
+
+  async findByEmail(email: string): Promise<User | null> {
+    return this.prisma.user.findUnique({ where: { email } });
+  }
+
+  async create(data: CreateUserDto): Promise<User> {
+    return this.prisma.user.create({ data });
+  }
+
+  async update(id: string, data: UpdateUserDto): Promise<User> {
+    return this.prisma.user.update({ where: { id }, data });
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.prisma.user.delete({ where: { id } });
+  }
+}
+```
+
+### Custom Errors Pattern
+
+```typescript
+// errors/user.errors.ts
+import { NotFoundException, ConflictException } from '@nestjs/common';
+
+export class UserNotFoundError extends NotFoundException {
+  constructor(userId: string) {
+    super(`User with ID "${userId}" not found`);
+  }
+}
+
+export class UserAlreadyExistsError extends ConflictException {
+  constructor(email: string) {
+    super(`User with email "${email}" already exists`);
+  }
+}
+
+// errors/index.ts
+export * from './user.errors';
+```
+
+### Guards Implementation
+
+```typescript
+// guards/jwt-auth.guard.ts
+@Injectable()
+export class JwtAuthGuard extends AuthGuard('jwt') {
+  canActivate(context: ExecutionContext) {
+    // Add custom logic here
+    return super.canActivate(context);
+  }
+}
+
+// guards/roles.guard.ts
+@Injectable()
+export class RolesGuard implements CanActivate {
+  constructor(private reflector: Reflector) {}
+
+  canActivate(context: ExecutionContext): boolean {
+    const roles = this.reflector.getAllAndOverride<Role[]>('roles', [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    
+    if (!roles) return true;
+    
+    const { user } = context.switchToHttp().getRequest();
+    return roles.includes(user.role);
+  }
+}
+```
+
+### Pipes Implementation
+
+```typescript
+// pipes/validation.pipe.ts
+@Injectable()
+export class ValidationPipe implements PipeTransform {
+  transform(value: any, metadata: ArgumentMetadata) {
+    // Custom validation logic
+    return value;
+  }
+}
+
+// pipes/parse-object-id.pipe.ts
+@Injectable()
+export class ParseObjectIdPipe implements PipeTransform<string, string> {
+  transform(value: string): string {
+    if (!isValidObjectId(value)) {
+      throw new BadRequestException('Invalid ObjectId');
+    }
+    return value;
+  }
+}
+```
+
+### Interceptors Implementation
+
+```typescript
+// interceptors/logging.interceptor.ts
+@Injectable()
+export class LoggingInterceptor implements NestInterceptor {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    const request = context.switchToHttp().getRequest();
+    const start = Date.now();
+    
+    return next.handle().pipe(
+      tap(() => {
+        const duration = Date.now() - start;
+        console.log(`${request.method} ${request.url} - ${duration}ms`);
+      }),
+    );
+  }
+}
+
+// interceptors/transform.interceptor.ts
+@Injectable()
+export class TransformInterceptor<T> implements NestInterceptor<T, Response<T>> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<Response<T>> {
+    return next.handle().pipe(
+      map(data => ({
+        success: true,
+        data,
+        timestamp: new Date().toISOString(),
+      })),
+    );
+  }
+}
+```
+
+### Custom Decorators
+
+```typescript
+// decorators/current-user.decorator.ts
+export const CurrentUser = createParamDecorator(
+  (data: keyof User | undefined, ctx: ExecutionContext) => {
+    const request = ctx.switchToHttp().getRequest();
+    const user = request.user;
+    return data ? user?.[data] : user;
+  },
+);
+
+// decorators/roles.decorator.ts
+export const ROLES_KEY = 'roles';
+export const Roles = (...roles: Role[]) => SetMetadata(ROLES_KEY, roles);
+
+// decorators/public.decorator.ts
+export const IS_PUBLIC_KEY = 'isPublic';
+export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
+```
+
+### Lifecycle Hooks
+
+```typescript
+@Injectable()
+export class UsersService implements OnModuleInit, OnModuleDestroy {
+  onModuleInit() {
+    // Called when module initialized
+    console.log('UsersService initialized');
+  }
+
+  onModuleDestroy() {
+    // Called when module destroyed
+    console.log('UsersService destroyed');
+  }
+}
+```
+
+### Module Definition
+
+```typescript
+// users.module.ts
+@Module({
+  imports: [PrismaModule],
+  controllers: [UsersController],
+  providers: [
+    UsersService,
+    UsersRepository,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
+  exports: [UsersService, UsersRepository],
+})
+export class UsersModule {}
 ```
 
 ---

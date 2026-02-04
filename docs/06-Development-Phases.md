@@ -25,7 +25,7 @@ This document outlines the development phases for Logship-MVP, a logistics deliv
 
 | Component | Technology |
 |-----------|------------|
-| Mobile | React Native + Expo SDK 52 |
+| Mobile | React Native + Expo SDK 54 |
 | Admin Web | Next.js 15 + Tailwind |
 | Backend | NestJS 11 + Prisma |
 | Database | Neon (Postgres + PostGIS) |
@@ -81,7 +81,7 @@ This document outlines the development phases for Logship-MVP, a logistics deliv
 
 | Task | Est. Hours | Priority |
 |------|------------|----------|
-| Initialize monorepo (pnpm workspaces or Turborepo) | 2 | High |
+| Initialize monorepo (Bun workspaces) | 2 | High |
 | Set up NestJS backend with TypeScript | 3 | High |
 | Configure Prisma with Neon database | 3 | High |
 | Enable PostGIS extension, create initial schema | 4 | High |
@@ -94,7 +94,7 @@ This document outlines the development phases for Logship-MVP, a logistics deliv
 
 | Task | Est. Hours | Priority |
 |------|------------|----------|
-| Initialize Expo project (SDK 52) | 2 | High |
+| Initialize Expo project (SDK 54) | 2 | High |
 | Configure Expo Router, TypeScript | 2 | High |
 | Set up Zustand + TanStack Query | 3 | High |
 | Initialize Next.js admin dashboard | 2 | High |

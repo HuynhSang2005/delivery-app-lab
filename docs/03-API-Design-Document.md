@@ -82,6 +82,60 @@ Authorization: Bearer <access_token>
 | 429 | RATE_LIMITED | Too many requests |
 | 500 | INTERNAL_ERROR | Server error |
 
+### 1.5. Pagination Strategy (Cursor-based)
+
+We use **cursor-based pagination** for better performance with large datasets:
+
+**Request:**
+```http
+GET /orders?limit=20&cursor=eyJpZCI6IjEyMyJ9
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [ ... ],
+  "meta": {
+    "hasMore": true,
+    "nextCursor": "eyJpZCI6IjQ1NiJ9",
+    "prevCursor": null,
+    "totalCount": 1500
+  }
+}
+```
+
+**Why Cursor-based?**
+- Better performance with large datasets (O(1) vs O(offset))
+- Stable results when data changes during pagination
+- No duplicate or missing items
+
+**Query Parameters:**
+- `limit`: Number of items per page (default: 20, max: 100)
+- `cursor`: Opaque cursor string for pagination
+- `sort`: Sort field and direction (e.g., `-created_at` for descending)
+
+### 1.6. Idempotency Keys
+
+For critical operations (create order, payment), use idempotency keys to prevent duplicates:
+
+**Request:**
+```http
+POST /orders
+Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
+```
+
+**Behavior:**
+- First request: Process normally, store response with key
+- Duplicate request (same key within 24h): Return cached response
+- Different payload with same key: Return 409 Conflict
+
+**Response Headers:**
+```http
+Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
+Idempotency-Replay: false  # true if returned from cache
+```
+
 ---
 
 ## 2. Authentication APIs
@@ -1104,11 +1158,315 @@ Roles: ADMIN
 }
 ```
 
+### 7.9. Export Orders
+
+Export orders to CSV/Excel for reporting.
+
+```http
+POST /admin/orders/export
+Authorization: Bearer <token>
+Roles: ADMIN
+```
+
+**Request Body:**
+```json
+{
+  "format": "csv", // or "xlsx"
+  "dateFrom": "2025-01-01",
+  "dateTo": "2025-01-31",
+  "status": ["COMPLETED", "CANCELLED"],
+  "fields": ["orderNumber", "createdAt", "status", "price", "driverName"]
+}
+```
+
+**Response (202 Accepted - Async):**
+```json
+{
+  "success": true,
+  "data": {
+    "jobId": "job-uuid",
+    "status": "PROCESSING",
+    "estimatedCompletionTime": "2025-02-04T11:30:00Z"
+  }
+}
+```
+
 ---
 
-## 8. WebSocket Events
+## 8. Driver Earnings APIs
 
-### 8.1. Connection
+### 8.1. Get Driver Earnings
+
+```http
+GET /drivers/me/earnings
+Authorization: Bearer <token>
+Roles: DRIVER
+```
+
+**Query Parameters:**
+- `from` (optional): Start date (ISO 8601)
+- `to` (optional): End date (ISO 8601)
+- `type` (optional): Filter by type ('ORDER', 'BONUS', 'PENALTY')
+- `cursor`, `limit`: Pagination
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "orderId": "order-uuid",
+      "amount": 45000,
+      "type": "ORDER",
+      "status": "COMPLETED",
+      "description": "Order ORD-20250115-00001",
+      "balanceAfter": 1250000,
+      "createdAt": "2025-01-15T11:30:00Z"
+    }
+  ],
+  "meta": {
+    "hasMore": false,
+    "nextCursor": null
+  }
+}
+```
+
+---
+
+### 8.2. Get Today's Earnings Summary
+
+```http
+GET /drivers/me/earnings/today
+Authorization: Bearer <token>
+Roles: DRIVER
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "completedOrders": 5,
+    "totalEarnings": 225000,
+    "totalBonus": 10000,
+    "totalPenalty": 0,
+    "netEarnings": 235000,
+    "currentBalance": 1250000
+  }
+}
+```
+
+---
+
+### 8.3. Get Driver Performance Stats
+
+```http
+GET /drivers/me/stats
+Authorization: Bearer <token>
+Roles: DRIVER
+```
+
+**Query Parameters:**
+- `period`: 'week', 'month', 'year' (default: 'month')
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "period": "month",
+    "totalOrders": 145,
+    "completedOrders": 138,
+    "cancelledOrders": 7,
+    "completionRate": 95.2,
+    "avgDeliveryTimeMinutes": 28.5,
+    "totalEarnings": 6525000,
+    "avgRating": 4.8
+  }
+}
+```
+
+---
+
+## 9. Search & Bulk Operations
+
+### 9.1. Search Orders
+
+```http
+GET /orders/search?q=ORD-20250115
+Authorization: Bearer <token>
+```
+
+**Query Parameters:**
+- `q`: Search query (order number, address, phone)
+- `status`: Filter by status
+- `dateFrom`, `dateTo`: Date range
+- `minPrice`, `maxPrice`: Price range
+- `cursor`, `limit`: Pagination
+
+---
+
+### 9.2. Bulk Get Orders
+
+Get multiple orders by IDs (useful for mobile app caching).
+
+```http
+POST /orders/bulk-get
+Authorization: Bearer <token>
+```
+
+**Request Body:**
+```json
+{
+  "orderIds": ["uuid1", "uuid2", "uuid3"],
+  "include": ["user", "driver", "tracking"]
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid1",
+      "orderNumber": "ORD-20250115-00001",
+      "status": "DELIVERING",
+      "user": { ... },
+      "driver": { ... }
+    }
+  ]
+}
+```
+
+---
+
+### 9.3. Bulk Update Driver Locations
+
+For efficient real-time tracking updates.
+
+```http
+POST /drivers/bulk-location-update
+Authorization: Bearer <token>
+Roles: DRIVER
+```
+
+**Request Body:**
+```json
+{
+  "locations": [
+    {
+      "orderId": "order-uuid",
+      "lat": 10.7285,
+      "lng": 106.7151,
+      "heading": 45.5,
+      "speed": 25.3,
+      "timestamp": "2025-02-04T10:30:00Z"
+    }
+  ]
+}
+```
+
+---
+
+## 10. Async Job APIs
+
+### 10.1. Get Job Status
+
+Check status of async operations (exports, reports).
+
+```http
+GET /jobs/:jobId/status
+Authorization: Bearer <token>
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "jobId": "job-uuid",
+    "status": "PROCESSING", // PENDING, PROCESSING, COMPLETED, FAILED
+    "progress": 45,
+    "estimatedCompletionTime": "2025-02-04T11:30:00Z",
+    "resultUrl": null, // Available when status is COMPLETED
+    "error": null
+  }
+}
+```
+
+---
+
+### 10.2. Download Job Result
+
+```http
+GET /jobs/:jobId/download
+Authorization: Bearer <token>
+```
+
+**Response:**
+- `200`: File download
+- `404`: Job not found or not completed
+- `410`: Download link expired
+
+---
+
+## 11. Webhook APIs
+
+### 11.1. Register Webhook
+
+```http
+POST /webhooks
+Authorization: Bearer <token>
+```
+
+**Request Body:**
+```json
+{
+  "url": "https://partner.com/webhook",
+  "events": ["order.created", "order.completed", "order.cancelled"],
+  "secret": "your-webhook-secret"
+}
+```
+
+**Response (201):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "webhook-uuid",
+    "url": "https://partner.com/webhook",
+    "events": ["order.created", "order.completed", "order.cancelled"],
+    "status": "ACTIVE",
+    "createdAt": "2025-02-04T10:30:00Z"
+  }
+}
+```
+
+---
+
+### 11.2. List Webhooks
+
+```http
+GET /webhooks
+Authorization: Bearer <token>
+```
+
+---
+
+### 11.3. Delete Webhook
+
+```http
+DELETE /webhooks/:id
+Authorization: Bearer <token>
+```
+
+---
+
+## 12. WebSocket Events
+
+### 12.1. Connection
 
 ```typescript
 // Client connection with auth
@@ -1128,7 +1486,7 @@ socket.on('error', (error) => {
 });
 ```
 
-### 8.2. Room Subscriptions
+### 12.2. Room Subscriptions
 
 ```typescript
 // Join order room (for tracking)
@@ -1138,7 +1496,7 @@ socket.emit('order:join', { orderId: 'uuid' });
 socket.emit('order:leave', { orderId: 'uuid' });
 ```
 
-### 8.3. Driver Location Events
+### 12.3. Driver Location Events
 
 **Driver sends location (every 5s):**
 ```typescript
@@ -1161,7 +1519,7 @@ socket.on('location:updated', (data) => {
 });
 ```
 
-### 8.4. Order Events
+### 12.4. Order Events
 
 **New order available (to drivers):**
 ```typescript
@@ -1187,7 +1545,7 @@ socket.on('order:assigned', (data) => {
 });
 ```
 
-### 8.5. Chat Events
+### 12.5. Chat Events
 
 **Send message:**
 ```typescript
@@ -1226,7 +1584,7 @@ socket.on('chat:read', (data) => {
 });
 ```
 
-### 8.6. Notification Events
+### 12.6. Notification Events
 
 ```typescript
 socket.on('notification', (notification) => {
@@ -1237,7 +1595,7 @@ socket.on('notification', (notification) => {
 
 ---
 
-## 9. Rate Limiting
+## 13. Rate Limiting
 
 | Endpoint Group | Limit | Window |
 |----------------|-------|--------|
@@ -1249,9 +1607,9 @@ socket.on('notification', (notification) => {
 
 ---
 
-## 10. Validation Rules
+## 14. Validation Rules
 
-### 10.1. Phone Number
+### 14.1. Phone Number
 
 ```typescript
 // Zod schema
@@ -1259,7 +1617,7 @@ const phoneSchema = z.string()
   .regex(/^\+84[0-9]{9,10}$/, 'Invalid Vietnamese phone number');
 ```
 
-### 10.2. Coordinates
+### 14.2. Coordinates
 
 ```typescript
 const coordinatesSchema = z.object({
@@ -1268,7 +1626,7 @@ const coordinatesSchema = z.object({
 });
 ```
 
-### 10.3. Order Creation
+### 14.3. Order Creation
 
 ```typescript
 const createOrderSchema = z.object({
@@ -1295,9 +1653,9 @@ const createOrderSchema = z.object({
 
 ---
 
-## 11. NestJS Controller Examples
+## 15. NestJS Controller Examples
 
-### 11.1. Orders Controller
+### 15.1. Orders Controller
 
 ```typescript
 // src/orders/orders.controller.ts
@@ -1351,7 +1709,7 @@ export class OrdersController {
 }
 ```
 
-### 11.2. WebSocket Gateway
+### 15.2. WebSocket Gateway
 
 ```typescript
 // src/gateway/events.gateway.ts
@@ -1447,7 +1805,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 ---
 
-## 12. OpenAPI/Swagger
+## 16. OpenAPI/Swagger
 
 Access Swagger UI at: `http://localhost:3000/api/docs`
 
@@ -1472,13 +1830,13 @@ async function bootstrap() {
 
 ---
 
-## 13. Hey-API Client Generation
+## 17. Hey-API Client Generation
 
 We use **Hey-API** (`@hey-api/openapi-ts`) to auto-generate type-safe TypeScript clients from our OpenAPI/Swagger spec.
 
 > **Detailed backend implementation**: See [07-Backend-Architecture.md](./07-Backend-Architecture.md) for NestJS Swagger configuration.
 
-### 13.1. Why Hey-API?
+### 17.1. Why Hey-API?
 
 | Feature | Hey-API | OpenAPI Generator |
 |---------|---------|-------------------|
@@ -1488,7 +1846,7 @@ We use **Hey-API** (`@hey-api/openapi-ts`) to auto-generate type-safe TypeScript
 | Zod Validation | Built-in plugin | Not supported |
 | Maintenance | Active, modern | Slow updates |
 
-### 13.2. Installation & Setup
+### 17.2. Installation & Setup
 
 ```bash
 # Install in frontend project (admin or mobile)
@@ -1537,7 +1895,7 @@ export default defineConfig({
 }
 ```
 
-### 13.3. Generated Files Structure
+### 17.3. Generated Files Structure
 
 ```
 src/lib/api/generated/
@@ -1548,7 +1906,7 @@ src/lib/api/generated/
 └── queries.gen.ts        # TanStack Query hooks
 ```
 
-### 13.4. Usage Examples
+### 17.4. Usage Examples
 
 #### Basic SDK Usage
 
@@ -1645,7 +2003,7 @@ const form = useForm({
 // Form is fully type-safe and validated against API contract
 ```
 
-### 13.5. CI/CD Integration
+### 17.5. CI/CD Integration
 
 ```yaml
 # .github/workflows/api-client.yml
@@ -1688,7 +2046,7 @@ jobs:
           file_pattern: 'apps/admin/src/lib/api/generated/*'
 ```
 
-### 13.6. Error Handling with Generated Types
+### 17.6. Error Handling with Generated Types
 
 ```typescript
 import { ApiError } from '@/lib/api/generated';
@@ -1724,7 +2082,7 @@ async function handleApiCall() {
 
 ---
 
-## 14. Rate Limiting
+## 18. Rate Limiting Details
 
 All endpoints are rate-limited to prevent abuse:
 
@@ -1744,3 +2102,68 @@ X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 95
 X-RateLimit-Reset: 1642234567
 ```
+
+---
+
+## 19. API Versioning & Deprecation
+
+### 19.1. Versioning Strategy
+
+We use **URI versioning** for API changes:
+- Current version: `/api/v1/`
+- Future versions: `/api/v2/`, `/api/v3/`, etc.
+
+**Breaking Changes Require New Version:**
+- Removing or renaming endpoints
+- Changing request/response structure
+- Changing authentication mechanism
+- Removing fields from responses
+
+**Non-Breaking Changes (Same Version):**
+- Adding new endpoints
+- Adding optional fields to requests
+- Adding fields to responses
+- Bug fixes
+
+### 19.2. Deprecation Policy
+
+When deprecating an endpoint or field:
+
+1. **Announcement**: Notify users 6 months in advance
+2. **Documentation**: Mark as deprecated in OpenAPI spec
+3. **Response Headers**: Include deprecation warnings
+4. **Sunset Date**: Provide exact removal date
+
+**Deprecation Headers:**
+```http
+Deprecation: true
+Sunset: Sat, 01 Jun 2025 00:00:00 GMT
+Link: </api/v2/users>; rel="successor-version"
+```
+
+**Response Body Warning:**
+```json
+{
+  "success": true,
+  "data": { ... },
+  "meta": {
+    "apiVersion": "v1",
+    "deprecationWarning": "This endpoint will be removed on 2025-06-01. Please migrate to /api/v2/users",
+    "documentationUrl": "https://docs.logship.app/migration/v1-to-v2"
+  }
+}
+```
+
+### 19.3. Migration Guide
+
+When upgrading to a new API version:
+
+1. Review the [API Changelog](https://docs.logship.app/changelog)
+2. Update client code to use new endpoints
+3. Test thoroughly in staging environment
+4. Update webhook URLs if necessary
+5. Monitor for errors after migration
+
+---
+
+**END OF DOCUMENT**
