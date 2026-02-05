@@ -141,7 +141,7 @@ apps/mobile/
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hook-form": "^7.54.0",
-    "@hookform/resolvers": "^3.9.0",
+    "@hookform/resolvers": "^4.0.0",
     "react-native": "0.81.0",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-maps": "1.22.0",

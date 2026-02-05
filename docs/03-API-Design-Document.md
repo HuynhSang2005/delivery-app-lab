@@ -489,6 +489,23 @@ DELETE /users/me/addresses/:id
 Authorization: Bearer <token>
 ```
 
+**Path Parameters:**
+- `id` (required): Address ID
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "message": "Address deleted successfully"
+  }
+}
+```
+
+**Errors:**
+- `404` - Address not found
+- `403` - Cannot delete default address (set another as default first)
+
 ---
 
 ## 4. Driver APIs
@@ -1030,6 +1047,45 @@ Authorization: Bearer <token>
 Roles: ADMIN
 ```
 
+**Path Parameters:**
+- `id` (required): User ID
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "name": "Nguyen Van A",
+    "phone": "+84901234567",
+    "email": "user@example.com",
+    "avatarUrl": "https://cloudinary.com/...",
+    "role": "USER",
+    "isActive": true,
+    "createdAt": "2025-01-15T10:30:00Z",
+    "updatedAt": "2025-01-15T10:30:00Z",
+    "addresses": [
+      {
+        "id": "uuid",
+        "label": "Home",
+        "addressLine": "123 Nguyen Van Linh, Quan 7, TP.HCM",
+        "lat": 10.7285,
+        "lng": 106.7151,
+        "isDefault": true
+      }
+    ],
+    "orderStats": {
+      "totalOrders": 45,
+      "completedOrders": 42,
+      "cancelledOrders": 3
+    }
+  }
+}
+```
+
+**Errors:**
+- `404` - User not found
+
 ---
 
 ### 7.3. Toggle User Status
@@ -1056,6 +1112,44 @@ Roles: ADMIN
 GET /admin/drivers/pending
 Authorization: Bearer <token>
 Roles: ADMIN
+```
+
+**Query Parameters:**
+- `status` (optional): Filter by status ('PENDING', 'APPROVED', 'REJECTED')
+- `search` (optional): Search by name or phone
+- `page`, `limit`: Pagination
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "userId": "user-uuid",
+      "name": "Nguyen Van B",
+      "phone": "+84901234568",
+      "email": "driver@example.com",
+      "avatarUrl": "https://cloudinary.com/...",
+      "vehicleType": "MOTORCYCLE",
+      "vehiclePlate": "59A1-12345",
+      "licenseNumber": "7900123456",
+      "licenseImageUrl": "https://cloudinary.com/...",
+      "vehicleImageUrl": "https://cloudinary.com/...",
+      "status": "PENDING",
+      "appliedAt": "2025-01-15T10:30:00Z",
+      "reviewedAt": null,
+      "reviewedBy": null,
+      "rejectionReason": null
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 15,
+    "totalPages": 1
+  }
+}
 ```
 
 ---
@@ -1299,11 +1393,46 @@ Authorization: Bearer <token>
 ```
 
 **Query Parameters:**
-- `q`: Search query (order number, address, phone)
-- `status`: Filter by status
-- `dateFrom`, `dateTo`: Date range
-- `minPrice`, `maxPrice`: Price range
-- `cursor`, `limit`: Pagination
+- `q` (required): Search query (order number, address, phone)
+- `status` (optional): Filter by status
+- `dateFrom`, `dateTo` (optional): Date range (ISO 8601)
+- `minPrice`, `maxPrice` (optional): Price range
+- `cursor` (optional): Pagination cursor
+- `limit` (optional): Items per page (default: 20, max: 100)
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "orderNumber": "ORD-20250115-00001",
+      "status": "COMPLETED",
+      "pickupAddress": "123 Nguyen Van Linh, Q7",
+      "dropoffAddress": "456 Le Van Viet, Q9",
+      "customerName": "Nguyen Van A",
+      "customerPhone": "+84901234567",
+      "driverName": "Tran Van B",
+      "price": 72500,
+      "createdAt": "2025-01-15T10:30:00Z",
+      "completedAt": "2025-01-15T11:15:00Z"
+    }
+  ],
+  "meta": {
+    "hasMore": false,
+    "nextCursor": null,
+    "totalCount": 1
+  }
+}
+```
+
+**Searchable Fields:**
+- Order number (exact or partial match)
+- Pickup/dropoff address
+- Customer phone number
+- Customer name
+- Driver name
 
 ---
 
@@ -1453,6 +1582,24 @@ GET /webhooks
 Authorization: Bearer <token>
 ```
 
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "webhook-uuid",
+      "url": "https://partner.com/webhook",
+      "events": ["order.created", "order.completed", "order.cancelled"],
+      "status": "ACTIVE",
+      "createdAt": "2025-02-04T10:30:00Z",
+      "lastTriggeredAt": "2025-02-04T15:45:00Z",
+      "successRate": 98.5
+    }
+  ]
+}
+```
+
 ---
 
 ### 11.3. Delete Webhook
@@ -1461,6 +1608,22 @@ Authorization: Bearer <token>
 DELETE /webhooks/:id
 Authorization: Bearer <token>
 ```
+
+**Path Parameters:**
+- `id` (required): Webhook ID
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "message": "Webhook deleted successfully"
+  }
+}
+```
+
+**Errors:**
+- `404` - Webhook not found
 
 ---
 
@@ -1595,21 +1758,9 @@ socket.on('notification', (notification) => {
 
 ---
 
-## 13. Rate Limiting
+## 13. Validation Rules
 
-| Endpoint Group | Limit | Window |
-|----------------|-------|--------|
-| Auth (OTP) | 3 requests | 5 minutes |
-| Auth (verify) | 5 requests | 5 minutes |
-| General API | 100 requests | 1 minute |
-| Location updates | 20 requests | 1 minute |
-| File uploads | 10 requests | 1 minute |
-
----
-
-## 14. Validation Rules
-
-### 14.1. Phone Number
+### 13.1. Phone Number
 
 ```typescript
 // Zod schema
@@ -1617,7 +1768,7 @@ const phoneSchema = z.string()
   .regex(/^\+84[0-9]{9,10}$/, 'Invalid Vietnamese phone number');
 ```
 
-### 14.2. Coordinates
+### 13.2. Coordinates
 
 ```typescript
 const coordinatesSchema = z.object({
@@ -1626,7 +1777,7 @@ const coordinatesSchema = z.object({
 });
 ```
 
-### 14.3. Order Creation
+### 13.3. Order Creation
 
 ```typescript
 const createOrderSchema = z.object({
@@ -1653,9 +1804,9 @@ const createOrderSchema = z.object({
 
 ---
 
-## 15. NestJS Controller Examples
+## 14. NestJS Controller Examples
 
-### 15.1. Orders Controller
+### 14.1. Orders Controller
 
 ```typescript
 // src/orders/orders.controller.ts
@@ -1709,7 +1860,7 @@ export class OrdersController {
 }
 ```
 
-### 15.2. WebSocket Gateway
+### 14.2. WebSocket Gateway
 
 ```typescript
 // src/gateway/events.gateway.ts
@@ -1805,7 +1956,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 ---
 
-## 16. OpenAPI/Swagger
+## 15. OpenAPI/Swagger
 
 Access Swagger UI at: `http://localhost:3000/api/docs`
 
@@ -1846,7 +1997,7 @@ We use **Hey-API** (`@hey-api/openapi-ts`) to auto-generate type-safe TypeScript
 | Zod Validation | Built-in plugin | Not supported |
 | Maintenance | Active, modern | Slow updates |
 
-### 17.2. Installation & Setup
+### 16.2. Installation & Setup
 
 ```bash
 # Install in frontend project (admin or mobile)
@@ -1906,7 +2057,7 @@ src/lib/api/generated/
 └── queries.gen.ts        # TanStack Query hooks
 ```
 
-### 17.4. Usage Examples
+### 16.4. Usage Examples
 
 #### Basic SDK Usage
 
@@ -2003,7 +2154,7 @@ const form = useForm({
 // Form is fully type-safe and validated against API contract
 ```
 
-### 17.5. CI/CD Integration
+### 16.5. CI/CD Integration
 
 ```yaml
 # .github/workflows/api-client.yml
@@ -2046,7 +2197,7 @@ jobs:
           file_pattern: 'apps/admin/src/lib/api/generated/*'
 ```
 
-### 17.6. Error Handling with Generated Types
+### 16.6. Error Handling with Generated Types
 
 ```typescript
 import { ApiError } from '@/lib/api/generated';
@@ -2082,7 +2233,7 @@ async function handleApiCall() {
 
 ---
 
-## 18. Rate Limiting Details
+## 17. Rate Limiting Details
 
 All endpoints are rate-limited to prevent abuse:
 
@@ -2105,9 +2256,9 @@ X-RateLimit-Reset: 1642234567
 
 ---
 
-## 19. API Versioning & Deprecation
+## 18. API Versioning & Deprecation
 
-### 19.1. Versioning Strategy
+### 18.1. Versioning Strategy
 
 We use **URI versioning** for API changes:
 - Current version: `/api/v1/`
@@ -2125,7 +2276,7 @@ We use **URI versioning** for API changes:
 - Adding fields to responses
 - Bug fixes
 
-### 19.2. Deprecation Policy
+### 18.2. Deprecation Policy
 
 When deprecating an endpoint or field:
 
@@ -2154,7 +2305,7 @@ Link: </api/v2/users>; rel="successor-version"
 }
 ```
 
-### 19.3. Migration Guide
+### 18.3. Migration Guide
 
 When upgrading to a new API version:
 

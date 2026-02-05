@@ -443,6 +443,24 @@ Driver App                          Backend                              User Ap
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
+### 4.8.1. WebSocket Events Reference
+
+The following Socket.io events are used for real-time communication:
+
+| Event | Direction | Payload | Description |
+|-------|-----------|---------|-------------|
+| `order:join` | Client → Server | `{ orderId: string }` | Join order room for tracking |
+| `order:leave` | Client → Server | `{ orderId: string }` | Leave order room |
+| `driver:location` | Client → Server | `{ orderId?, lat, lng, heading?, speed? }` | Driver location update (every 5s) |
+| `location:updated` | Server → Client | `{ orderId, driverId, lat, lng, heading?, eta? }` | Location broadcast to order room |
+| `order:new` | Server → Client | Order object | New order available for drivers |
+| `order:status` | Server → Client | `{ orderId, status, updatedAt, driverLocation? }` | Order status changed |
+| `order:assigned` | Server → Client | `{ orderId, driver: {...} }` | Driver assigned to order |
+| `chat:message` | Bidirectional | `{ orderId, content, type? }` | Chat message |
+| `chat:typing` | Bidirectional | `{ orderId }` | Typing indicator |
+| `chat:read` | Server → Client | `{ orderId, readBy, readAt }` | Messages read receipt |
+| `notification` | Server → Client | `{ id, title, body, data?, createdAt }` | Push notification via WebSocket |
+
 ### 4.9. Notification Flow
 
 ```
@@ -483,8 +501,8 @@ Order Event                    BullMQ                         External Services
 
 | Category | Technology | Version |
 |----------|------------|---------|
-| Framework | React Native | 0.76+ |
-| Platform | Expo SDK | 52 |
+| Framework | React Native | 0.81 |
+| Platform | Expo SDK | 54 |
 | Navigation | Expo Router | 4.x |
 | State (Local) | Zustand | 5.x |
 | State (Server) | TanStack Query | 5.x |
