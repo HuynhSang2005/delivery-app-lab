@@ -8,9 +8,11 @@ user-invocable: true
 # Firebase Authentication
 
 **Status**: Production Ready
-**Last Updated**: 2026-01-25
+**Last Updated**: 2026-02-09
 **Dependencies**: None (standalone skill)
-**Latest Versions**: firebase@12.8.0, firebase-admin@13.6.0
+**Latest Versions**: 
+- Web: firebase@12.8.0, firebase-admin@13.6.0
+- React Native: @react-native-firebase/app@22.0.0, @react-native-firebase/auth@22.0.0
 
 ---
 
@@ -705,8 +707,149 @@ firebase auth:import users.json
 
 ---
 
-## Package Versions (Verified 2026-01-25)
+## React Native Firebase (Phone Auth)
 
+For React Native apps using Firebase Phone Authentication with Expo:
+
+### Installation
+
+```bash
+npx expo install @react-native-firebase/app @react-native-firebase/auth
+```
+
+### Phone Authentication with Modular API (v22+)
+
+```typescript
+import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
+import { useState } from 'react';
+
+export function usePhoneAuth() {
+  const [confirm, setConfirm] = useState<FirebaseAuthTypes.ConfirmationResult | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Send OTP
+  const sendOTP = async (phoneNumber: string) => {
+    setLoading(true);
+    try {
+      // Format: +84xxxxxxxxxx for Vietnam
+      const confirmation = await auth().signInWithPhoneNumber(phoneNumber);
+      setConfirm(confirmation);
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Verify OTP
+  const verifyOTP = async (code: string) => {
+    if (!confirm) return { success: false, error: 'No confirmation result' };
+    
+    setLoading(true);
+    try {
+      const result = await confirm.confirm(code);
+      const token = await result.user.getIdToken();
+      return { success: true, user: result.user, token };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { sendOTP, verifyOTP, confirm, loading };
+}
+```
+
+### Auto-verification (Android)
+
+```typescript
+import auth from '@react-native-firebase/auth';
+import { useEffect } from 'react';
+
+export function useAutoVerify(onVerified: (token: string) => void) {
+  useEffect(() => {
+    // Android auto-verification listener
+    const unsubscribe = auth().onAuthStateChanged(async (user) => {
+      if (user) {
+        const token = await user.getIdToken();
+        onVerified(token);
+      }
+    });
+
+    return unsubscribe;
+  }, [onVerified]);
+}
+```
+
+### Secure Token Storage
+
+```typescript
+import * as SecureStore from 'expo-secure-store';
+
+export const tokenStorage = {
+  async saveToken(token: string) {
+    await SecureStore.setItemAsync('auth_token', token);
+  },
+
+  async getToken() {
+    return await SecureStore.getItemAsync('auth_token');
+  },
+
+  async removeToken() {
+    await SecureStore.deleteItemAsync('auth_token');
+  },
+};
+```
+
+### Vietnam Phone Number Format
+
+```typescript
+function formatVietnamPhone(phone: string): string {
+  // Remove all non-digits
+  const digits = phone.replace(/\D/g, '');
+  
+  // Add +84 prefix if starts with 0
+  if (digits.startsWith('0')) {
+    return `+84${digits.slice(1)}`;
+  }
+  
+  // Already has country code
+  if (digits.startsWith('84')) {
+    return `+${digits}`;
+  }
+  
+  return `+84${digits}`;
+}
+
+// Examples:
+// formatVietnamPhone('0912345678') -> '+84912345678'
+// formatVietnamPhone('912345678') -> '+84912345678'
+```
+
+### Required app.json Configuration
+
+```json
+{
+  "expo": {
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ]
+    ]
+  }
+}
+```
+
+## Package Versions (Verified 2026-02-09)
+
+### Web
 ```json
 {
   "dependencies": {
@@ -714,6 +857,17 @@ firebase auth:import users.json
   },
   "devDependencies": {
     "firebase-admin": "^13.6.0"
+  }
+}
+```
+
+### React Native
+```json
+{
+  "dependencies": {
+    "@react-native-firebase/app": "^22.0.0",
+    "@react-native-firebase/auth": "^22.0.0",
+    "expo-secure-store": "~14.2.0"
   }
 }
 ```

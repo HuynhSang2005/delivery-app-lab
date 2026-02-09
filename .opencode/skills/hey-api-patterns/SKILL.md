@@ -9,6 +9,28 @@ description: Use when generating TypeScript API clients from OpenAPI specs with 
 
 Production-ready patterns for generating type-safe API clients from OpenAPI specifications using Hey-API. Covers client generation, TanStack Query integration, Zod validation, and best practices for React/Next.js applications.
 
+## Important: ESM-Only Package
+
+**Hey-API v0.91.0+ is ESM-only.** This means:
+- Use `"type": "module"` in package.json
+- Use `.mjs` extension for config files, OR
+- Use dynamic `import()` in CommonJS files
+
+```typescript
+// openapi-ts.config.mjs (recommended)
+import { defineConfig } from '@hey-api/openapi-ts';
+
+export default defineConfig({
+  input: './openapi.json',
+  output: 'src/client',
+  plugins: [
+    '@hey-api/client-fetch',
+    '@hey-api/typescript',
+    'zod',
+  ],
+});
+```
+
 ## When to Use
 
 **Use this skill when:**
@@ -251,8 +273,8 @@ Add generation scripts to package.json:
     "build": "npm run generate:api && next build"
   },
   "devDependencies": {
-    "@hey-api/openapi-ts": "^0.64.0",
-    "@hey-api/client-fetch": "^0.8.0",
+    "@hey-api/openapi-ts": "^0.92.3",
+    "@hey-api/client-fetch": "^0.10.0",
     "@hey-api/typescript": "^0.4.0"
   }
 }
@@ -496,8 +518,8 @@ src/client/
     "zod": "^3.24.0"
   },
   "devDependencies": {
-    "@hey-api/openapi-ts": "^0.64.0",
-    "@hey-api/client-fetch": "^0.8.0",
+    "@hey-api/openapi-ts": "^0.92.3",
+    "@hey-api/client-fetch": "^0.10.0",
     "@hey-api/typescript": "^0.4.0"
   }
 }

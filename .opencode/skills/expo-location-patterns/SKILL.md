@@ -382,8 +382,8 @@ export function DriverScreen() {
 ```json
 {
   "dependencies": {
-    "expo-location": "~18.0.0",
-    "expo-task-manager": "~12.0.0"
+    "expo-location": "~18.1.0",
+    "expo-task-manager": "~13.1.0"
   }
 }
 ```

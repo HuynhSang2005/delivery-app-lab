@@ -11,14 +11,14 @@ user-invocable: true
 
 **Status**: Production Ready ✅
 **Last Verified**: 2026-01-20
-**Latest Versions**: react-hook-form@7.71.1, zod@4.3.5, @hookform/resolvers@5.2.2
+**Latest Versions**: react-hook-form@7.71.1, zod@4.3.6, @hookform/resolvers@5.2.2
 
 ---
 
 ## Quick Start
 
 ```bash
-npm install react-hook-form@7.70.0 zod@4.3.5 @hookform/resolvers@5.2.2
+npm install react-hook-form@7.71.1 zod@4.3.6 @hookform/resolvers@5.2.2
 ```
 
 **Basic Form Pattern**:
