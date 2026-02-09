@@ -6,7 +6,7 @@ Complete checklist for setting up Logship-MVP development environment.
 
 ### Required Software
 
-- [ ] **Bun** 1.2+ installed
+- [ ] **Bun** 1.3+ installed
   ```bash
   # Check version
   bun --version
@@ -492,4 +492,4 @@ After completing this checklist:
 
 **Setup Complete!** You're ready to start development. 🚀
 
-**Last Updated**: 2025-02-03
+**Last Updated**: 2026-02-09

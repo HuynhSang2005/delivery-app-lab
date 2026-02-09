@@ -25,7 +25,7 @@ We will use **Expo SDK 54** with **React Native 0.81** for mobile development.
 
 - **Cross-Platform**: Single codebase for iOS and Android
 - **Expo SDK 54**: Latest stable release with modern features
-- **Expo Router v5**: File-based routing with deep linking support
+- **Expo Router v3**: File-based routing with deep linking support
 - **OTA Updates**: EAS Update for over-the-air updates without app store review
 - **Managed Workflow**: Simplified build process with EAS Build
 - **Rich Ecosystem**: Access to Expo's library of native modules
@@ -86,7 +86,7 @@ We will use **Expo SDK 54** with **React Native 0.81** for mobile development.
 
 ## Important Note: Expo SDK Version
 
-**We use Expo SDK 54**, the latest stable release as of February 2025 with React Native 0.81 and React 19.
+**We use Expo SDK 54**, the latest stable release as of September 2025 with React Native 0.81 and React 19.
 
 ## Development Build Requirement
 
@@ -104,13 +104,13 @@ bunx eas build --profile development
 
 ## Notes
 
-- React 19.1 is used (Expo SDK 54 with React Native 0.81)
+- React 19.0 is used (Expo SDK 54 with React Native 0.81)
 - Latest React features available
 - Use `expo-dev-client` for development builds
 - Test background location on physical devices, not simulators
 
 ---
 
-**Date**: 2025-02-03
+**Date**: 2026-02-09
 **Author**: Solo Developer
 **Stakeholders**: AI Development Assistant

@@ -1,7 +1,7 @@
 # Logship-MVP: Admin Dashboard Specification
 
-**Version:** 3.0  
-**Last Updated:** February 2025  
+**Version:** 4.0  
+**Last Updated:** February 2026  
 **Framework:** React 19 / Next.js 15 (App Router)  
 **UI:** Tailwind CSS v4 + Shadcn/ui  
 **Package Manager:** Bun  
@@ -36,17 +36,17 @@ The Admin Dashboard is a web application for system administrators to manage use
 
 | Category | Technology | Version |
 |----------|------------|---------|
-| Framework | Next.js 15 (App Router) | ^15.1.0 |
+| Framework | Next.js 15 (App Router) | ^15.2.0 |
 | Language | TypeScript | ^5.7.0 |
 | React | React 19 | ^19.0.0 |
 | State (Server) | TanStack Query | ^5.60.0 |
 | State (Client) | Zustand | ^5.0.0 |
-| UI Components | Shadcn/ui + Radix UI | ^1.1.0 |
+| UI Components | Shadcn/ui + Radix UI | ^2.0.0 |
 | Styling | Tailwind CSS | ^4.0.0 |
 | Tables | TanStack Table | ^8.20.0 |
 | Charts | Recharts | ^2.13.0 |
 | Maps | Goong JS (Mapbox GL compatible) | ^3.9.0 |
-| Forms | React Hook Form + Zod | ^7.54.0 / ^3.24.0 |
+| Forms | React Hook Form + Zod | ^7.54.0 / ^3.23.8 |
 | Icons | Lucide React | ^0.460.0 |
 | Date | date-fns | ^4.1.0 |
 | API Client | Hey-API | ^0.8.0 |
@@ -171,7 +171,7 @@ apps/admin/
     "lodash-es": "^4.17.21",
     "lucide-react": "^0.475.0",
     "mapbox-gl": "^3.9.0",
-    "next": "^15.1.0",
+    "next": "^15.2.0",
     "next-themes": "^0.4.0",
     "nuqs": "^2.2.0",
     "react": "^19.0.0",
@@ -189,7 +189,7 @@ apps/admin/
     "tailwindcss-animate": "^1.0.7",
     "use-debounce": "^10.0.0",
     "vaul": "^1.1.0",
-    "zod": "^4.0.0",
+    "zod": "^4.3.6",
     "zustand": "^5.0.0"
   },
   "devDependencies": {
@@ -214,12 +214,12 @@ apps/admin/
 | **State (Server)** | `@tanstack/react-query` | ^5.60.0 | Server state management |
 | **State (Client)** | `zustand` | ^5.0.0 | Client state management |
 | **UI Components** | `@radix-ui/react-*` | ^1.1-2.1.0 | Headless UI primitives |
-| **Styling** | `tailwindcss` | ^4.0.0 | Utility-first CSS |
+| **Styling** | `tailwindcss` | ^3.4.17 | Utility-first CSS |
 | **Tables** | `@tanstack/react-table` | ^8.20.0 | Data tables |
 | **Charts** | `recharts` | ^2.13.0 | Charts & graphs |
 | **Maps** | `mapbox-gl` | ^3.9.0 | Map rendering (Goong tiles) |
 | **Forms** | `react-hook-form` | ^7.54.0 | Form handling |
-| **Validation** | `zod` | ^4.0.0 | Schema validation (v4 - 14x faster) |
+| **Validation** | `zod` | ^4.3.6 | Schema validation (Zod v4 - latest) |
 | **Animations** | `framer-motion` | ^11.15.0 | UI animations |
 | **Command Palette** | `cmdk` | ^1.0.0 | Command menu |
 | **Drawer** | `vaul` | ^1.1.0 | Drawer component |

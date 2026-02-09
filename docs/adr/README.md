@@ -14,12 +14,12 @@ An Architecture Decision Record (ADR) captures an important architectural decisi
 
 | ADR | Title | Status | Date |
 |-----|-------|--------|------|
-| [ADR-001](./ADR-001-bun-package-manager.md) | Use Bun as Package Manager | Accepted | 2025-02-03 |
-| [ADR-002](./ADR-002-nestjs-backend.md) | Use NestJS for Backend Framework | Accepted | 2025-02-03 |
-| [ADR-003](./ADR-003-neon-postgresql.md) | Use Neon Serverless PostgreSQL | Accepted | 2025-02-03 |
-| [ADR-004](./ADR-004-expo-react-native.md) | Use Expo + React Native for Mobile | Accepted | 2025-02-03 |
-| [ADR-005](./ADR-005-goong-maps.md) | Use Goong Maps for Vietnam Market | Accepted | 2025-02-03 |
-| [ADR-006](./ADR-006-bun-workspaces.md) | Use Bun Workspaces for Monorepo | Accepted | 2025-02-03 |
+| [ADR-001](./ADR-001-bun-package-manager.md) | Use Bun as Package Manager | Accepted | 2026-02-09 |
+| [ADR-002](./ADR-002-nestjs-backend.md) | Use NestJS for Backend Framework | Accepted | 2026-02-09 |
+| [ADR-003](./ADR-003-neon-postgresql.md) | Use Neon Serverless PostgreSQL | Accepted | 2026-02-09 |
+| [ADR-004](./ADR-004-expo-react-native.md) | Use Expo + React Native for Mobile | Accepted | 2026-02-09 |
+| [ADR-005](./ADR-005-goong-maps.md) | Use Goong Maps for Vietnam Market | Accepted | 2026-02-09 |
+| [ADR-006](./ADR-006-bun-workspaces.md) | Use Bun Workspaces for Monorepo | Accepted | 2026-02-09 |
 
 ## ADR Status Definitions
 

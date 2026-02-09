@@ -1,10 +1,10 @@
 # Logship-MVP: Monorepo Structure Specification
 
-**Version:** 3.0  
-**Last Updated:** February 2025  
+**Version:** 4.0  
+**Last Updated:** February 2026  
 **Package Manager:** Bun  
 **Monorepo Tool:** Bun Workspaces  
-**Runtime:** Bun 1.2.2+  
+**Runtime:** Bun 1.3.9+  
 
 > **Reference:** See [00-Unified-Tech-Stack-Spec.md](./00-Unified-Tech-Stack-Spec.md) for complete tech stack details.
 
@@ -185,7 +185,7 @@ apps/mobile/
     "@hey-api/client-fetch": "^0.8.1",
     "expo": "~54.0.0",
     "expo-router": "~5.0.0",
-    "react": "19.1.0",
+    "react": "19.0.0",
     "react-native": "0.81.0",
     "@tanstack/react-query": "^5.66.0"
   },
@@ -430,17 +430,17 @@ apps/api/
   },
   "dependencies": {
     "@logship/shared-types": "workspace:*",
-    "@nestjs/common": "^11.0.10",
-    "@nestjs/core": "^11.0.10",
-    "@nestjs/platform-express": "^11.0.10",
-    "@nestjs/swagger": "^11.0.3",
-    "@prisma/client": "^6.3.0",
-    "bullmq": "^5.40.0",
+    "@nestjs/common": "^11.1.6",
+    "@nestjs/core": "^11.1.6",
+    "@nestjs/platform-express": "^11.1.6",
+    "@nestjs/swagger": "^11.1.6",
+    "@prisma/client": "^7.3.0",
+    "bullmq": "^5.50.0",
     "ioredis": "^5.5.0"
   },
   "devDependencies": {
     "@logship/shared-config": "workspace:*",
-    "prisma": "^6.3.0",
+    "prisma": "^7.3.0",
     "typescript": "^5.7.3"
   }
 }

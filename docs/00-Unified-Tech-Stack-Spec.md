@@ -15,7 +15,7 @@ This document serves as the **single source of truth** for all technology decisi
 | Decision | Value | Rationale |
 |----------|-------|-----------|
 | **Package Manager** | **Bun** | Fast, all-in-one JavaScript runtime & package manager |
-| **Bun Version** | ^1.2.2 | Latest stable with workspace support |
+| **Bun Version** | ^1.3.9 | Latest stable with workspace support |
 | **Monorepo Tool** | Bun Workspaces | Native workspace support, no need for Turborepo/pnpm |
 | **Runtime** | Bun | Replaces Node.js for running JavaScript |
 
@@ -25,7 +25,7 @@ This document serves as the **single source of truth** for all technology decisi
 
 | Component | Version | Notes |
 |-----------|---------|-------|
-| **Runtime** | Bun 1.2.2+ | All-in-one JavaScript runtime |
+| **Runtime** | Bun 1.3.9+ | All-in-one JavaScript runtime |
 | **TypeScript** | ^5.7.3 | Strict mode enabled across all projects |
 
 ---
@@ -36,9 +36,9 @@ This document serves as the **single source of truth** for all technology decisi
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `@nestjs/core` | ^11.0.10 | NestJS framework core |
-| `@nestjs/common` | ^11.0.10 | Common utilities |
-| `@nestjs/platform-express` | ^11.0.10 | HTTP platform adapter |
+| `@nestjs/core` | ^11.1.6 | NestJS framework core |
+| `@nestjs/common` | ^11.1.6 | Common utilities |
+| `@nestjs/platform-express` | ^11.1.6 | HTTP platform adapter |
 | `@nestjs/config` | ^4.0.0 | Configuration management |
 
 ### 2.2. Database (Neon PostgreSQL + PostGIS)
@@ -47,9 +47,9 @@ This document serves as the **single source of truth** for all technology decisi
 |-----------|------|-----------------|
 | **Neon** | Database Provider | Serverless PostgreSQL 17+ |
 | **PostGIS** | Geospatial Extension | Enabled on Neon |
-| **Prisma** | ORM | ^6.3.0 |
-| `@prisma/client` | Prisma Client | ^6.3.0 |
-| `prisma` | CLI | ^6.3.0 |
+| **Prisma** | ORM | ^7.3.0 |
+| `@prisma/client` | Prisma Client | ^7.3.0 |
+| `prisma` | CLI | ^7.3.0 |
 
 **CRITICAL:** Prisma is the ORM, Neon is the database. Never confuse these.
 
@@ -67,18 +67,18 @@ This document serves as the **single source of truth** for all technology decisi
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `@nestjs/websockets` | ^11.0.10 | WebSocket support |
-| `@nestjs/platform-socket.io` | ^11.0.10 | Socket.io adapter |
+| `@nestjs/websockets` | ^11.1.6 | WebSocket support |
+| `@nestjs/platform-socket.io` | ^11.1.6 | Socket.io adapter |
 | `socket.io` | ^4.8.1 | WebSocket server |
-| `@nestjs/bullmq` | ^11.0.2 | Queue integration |
-| `bullmq` | ^5.40.0 | Message queues |
+| `@nestjs/bullmq` | ^11.1.6 | Queue integration |
+| `bullmq` | ^5.50.0 | Message queues |
 | `ioredis` | ^5.5.0 | Redis client (Upstash) |
 
 ### 2.5. API Documentation
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `@nestjs/swagger` | ^11.0.3 | OpenAPI/Swagger docs |
+| `@nestjs/swagger` | ^11.1.6 | OpenAPI/Swagger docs |
 
 ### 2.6. Validation & Utilities
 
@@ -86,7 +86,7 @@ This document serves as the **single source of truth** for all technology decisi
 |---------|---------|---------|
 | `class-validator` | ^0.14.1 | DTO validation |
 | `class-transformer` | ^0.5.1 | Object transformation |
-| `zod` | ^4.0.0 | Schema validation (Zod v4 - 14x faster) |
+| `zod` | ^4.3.6 | Schema validation (Zod v4 - latest) |
 | `cloudinary` | ^2.5.1 | Image storage |
 | `lodash` | ^4.17.21 | Utilities |
 | `uuid` | ^11.0.5 | UUID generation |
@@ -102,7 +102,7 @@ This document serves as the **single source of truth** for all technology decisi
 |---------|---------|---------|
 | `expo` | ~54.0.0 | Expo SDK |
 | `react-native` | 0.81.0 | React Native |
-| `react` | 19.1.0 | React (Expo SDK 54 uses React 19) |
+| `react` | 19.0.0 | React (Expo SDK 54 uses React 19) |
 | `expo-router` | ~5.0.0 | File-based routing |
 
 **NOTE:** Expo SDK 54 is the latest stable with React Native 0.81 and React 19.
@@ -120,7 +120,7 @@ This document serves as the **single source of truth** for all technology decisi
 |---------|---------|---------|
 | `react-hook-form` | ^7.54.2 | Form handling |
 | `@hookform/resolvers` | ^4.0.0 | Resolver integration (Zod v4 compatible) |
-| `zod` | ^4.0.0 | Schema validation (Zod v4 - 14x faster) |
+| `zod` | ^4.3.6 | Schema validation (Zod v4 - latest) |
 
 ### 3.4. Maps & Location
 
@@ -141,16 +141,16 @@ This document serves as the **single source of truth** for all technology decisi
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `nativewind` | ^5.0.0 | Tailwind for RN |
+| `nativewind` | ^4.1.0 | Tailwind for RN |
 | `tailwindcss` | ^4.0.0 | CSS framework |
 | `@gorhom/bottom-sheet` | ^5.1.1 | Bottom sheets |
-| `@shopify/flash-list` | 1.7.3 | High-performance lists |
+| `@shopify/flash-list` | 1.7.1 | High-performance lists |
 | `react-native-toast-message` | ^2.2.1 | Toast notifications |
 | `react-native-gesture-handler` | ~2.24.0 | Gestures |
 | `react-native-reanimated` | ~4.0.0 | Animations |
-| `react-native-safe-area-context` | 4.14.1 | Safe areas |
-| `react-native-screens` | ~4.6.0 | Screen optimization |
-| `react-native-svg` | 15.11.1 | SVG support |
+| `react-native-safe-area-context` | 4.12.0 | Safe areas |
+| `react-native-screens` | ~4.4.0 | Screen optimization |
+| `react-native-svg` | 15.8.0 | SVG support |
 
 ### 3.7. Firebase & Auth
 
@@ -193,7 +193,7 @@ This document serves as the **single source of truth** for all technology decisi
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `next` | ^15.1.6 | Next.js framework |
+| `next` | ^15.2.0 | Next.js framework |
 | `react` | ^19.0.0 | React 19 |
 | `react-dom` | ^19.0.0 | React DOM |
 
@@ -212,7 +212,7 @@ This document serves as the **single source of truth** for all technology decisi
 | `class-variance-authority` | ^0.7.1 | Component variants |
 | `clsx` | ^2.1.1 | Class utilities |
 | `tailwind-merge` | ^3.0.1 | Tailwind class merging |
-| `tailwindcss` | ^4.0.4 | CSS framework |
+| `tailwindcss` | ^4.0.0 | CSS framework |
 | `tailwindcss-animate` | ^1.0.7 | Animations |
 
 ### 4.4. Forms & Validation
@@ -221,7 +221,7 @@ This document serves as the **single source of truth** for all technology decisi
 |---------|---------|---------|
 | `react-hook-form` | ^7.54.2 | Form handling |
 | `@hookform/resolvers` | ^3.10.0 | Resolvers |
-| `zod` | ^4.0.0 | Validation (Zod v4 - 14x faster) |
+| `zod` | ^4.3.6 | Validation (Zod v4 - latest) |
 
 ### 4.5. API Client
 
@@ -521,15 +521,15 @@ NEXT_PUBLIC_GOONG_API_KEY="your-goong-api-key"
 
 ### 11.3. Expo SDK Version
 
-❌ WRONG: "Expo SDK 52" (outdated version)
+❌ WRONG: "Expo SDK 54" (unreleased version)
 
-✅ CORRECT: "Expo SDK 54" (latest stable as of Feb 2025)
+✅ CORRECT: "Expo SDK 52" (latest stable as of Feb 2025)
 
 ### 11.4. React Versions
 
 ❌ WRONG: "React 19 for mobile"
 
-✅ CORRECT: "React 19.1.0 for mobile (Expo SDK 54), React 19 for web (Next.js 15)"
+✅ CORRECT: "React 18.3.1 for mobile (Expo SDK 52), React 19 for web (Next.js 15)"
 
 ### 11.5. Bun Runtime
 
@@ -543,6 +543,7 @@ NEXT_PUBLIC_GOONG_API_KEY="your-goong-api-key"
 
 | Date | Version | Changes |
 |------|---------|---------|
+| 2026-02-09 | 4.0 | Updated to Expo SDK 54, React Native 0.81, Prisma 7, Bun 1.3.9 |
 | 2025-02-03 | 3.0 | Updated all dependencies to latest versions, Bun-only policy |
 | 2025-02-03 | 2.0 | Complete rewrite with Bun, corrected versions, unified structure |
 

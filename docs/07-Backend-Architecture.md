@@ -1,11 +1,11 @@
 # Logship-MVP: Backend Architecture Document
 
-**Version:** 3.0  
-**Last Updated:** February 2025  
-**Framework:** NestJS 11.x  
-**Runtime:** Bun 1.2+  
+**Version:** 4.0  
+**Last Updated:** February 2026  
+**Framework:** NestJS 11.1.x  
+**Runtime:** Bun 1.3+  
 **Database:** Neon Serverless PostgreSQL + PostGIS  
-**ORM:** Prisma 6.x  
+**ORM:** Prisma 7.x
 
 > **Reference:** See [00-Unified-Tech-Stack-Spec.md](./00-Unified-Tech-Stack-Spec.md) for complete tech stack details.
 
@@ -20,8 +20,7 @@ This document provides comprehensive technical architecture for the Logship-MVP 
 | Principle | Implementation |
 |-----------|----------------|
 | **Modular Monolith** | Feature-based modules with clear boundaries |
-| **CQRS-lite** | Separate read/write concerns for complex operations |
-| **Event-Driven** | BullMQ for async processing, Socket.io for real-time |
+| **Layered Architecture** | Controller → Service → Repository pattern |
 | **Type Safety** | End-to-end TypeScript with Hey-API client generation |
 | **Defense in Depth** | Multiple security layers (auth, validation, rate limiting) |
 
@@ -107,21 +106,21 @@ This document provides comprehensive technical architecture for the Logship-MVP 
     "db:seed": "bunx ts-node prisma/seed.ts"
   },
   "dependencies": {
-    "@nestjs/bullmq": "^11.0.0",
-    "@nestjs/common": "^11.0.0",
+    "@nestjs/bullmq": "^11.1.6",
+    "@nestjs/common": "^11.1.6",
     "@nestjs/config": "^4.0.0",
-    "@nestjs/core": "^11.0.0",
-    "@nestjs/jwt": "^11.0.0",
-    "@nestjs/passport": "^11.0.0",
-    "@nestjs/platform-express": "^11.0.0",
-    "@nestjs/platform-socket.io": "^11.0.0",
-    "@nestjs/schedule": "^5.0.0",
-    "@nestjs/swagger": "^11.0.0",
-    "@nestjs/terminus": "^11.0.0",
-    "@nestjs/throttler": "^6.0.0",
-    "@nestjs/websockets": "^11.0.0",
-    "@prisma/client": "^6.0.0",
-    "bullmq": "^5.0.0",
+    "@nestjs/core": "^11.1.6",
+    "@nestjs/jwt": "^11.1.6",
+    "@nestjs/passport": "^11.1.6",
+    "@nestjs/platform-express": "^11.1.6",
+    "@nestjs/platform-socket.io": "^11.1.6",
+    "@nestjs/schedule": "^5.0.1",
+    "@nestjs/swagger": "^11.1.6",
+    "@nestjs/terminus": "^11.0.1",
+    "@nestjs/throttler": "^6.5.0",
+    "@nestjs/websockets": "^11.1.6",
+    "@prisma/client": "^7.3.0",
+    "bullmq": "^5.50.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "cloudinary": "^2.5.0",
@@ -136,7 +135,7 @@ This document provides comprehensive technical architecture for the Logship-MVP 
     "socket.io": "^4.8.0",
     "socket.io-redis-adapter": "^8.0.0",
     "uuid": "^11.0.0",
-    "zod": "^4.0.0"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.0",
@@ -156,7 +155,7 @@ This document provides comprehensive technical architecture for the Logship-MVP 
     "eslint-plugin-prettier": "^5.0.0",
     "jest": "^29.7.0",
     "prettier": "^3.4.0",
-    "prisma": "^6.0.0",
+    "prisma": "^7.3.0",
     "ts-jest": "^29.2.0",
     "ts-node": "^10.9.0",
     "tsconfig-paths": "^4.2.0",
@@ -169,29 +168,29 @@ This document provides comprehensive technical architecture for the Logship-MVP 
 
 | Category | Library | Version | Purpose |
 |----------|---------|---------|---------|
-| **Core** | `@nestjs/*` | ^11.0.0 | NestJS framework |
-| **API Docs** | `@nestjs/swagger` | ^11.0.0 | OpenAPI/Swagger |
+| **Core** | `@nestjs/*` | ^11.1.6 | NestJS framework |
+| **API Docs** | `@nestjs/swagger` | ^11.1.6 | OpenAPI/Swagger |
 | **Validation** | `class-validator` | ^0.14.0 | DTO validation |
 | **Transform** | `class-transformer` | ^0.5.1 | Object transformation |
-| **ORM** | `@prisma/client` | ^6.0.0 | **Prisma ORM** |
-| **ORM CLI** | `prisma` | ^6.0.0 | **Prisma CLI** |
+| **ORM** | `@prisma/client` | ^7.3.0 | **Prisma ORM** |
+| **ORM CLI** | `prisma` | ^7.3.0 | **Prisma CLI** |
 | **Queue** | `bullmq` | ^5.0.0 | Message queues |
 | **Redis** | `ioredis` | ^5.4.0 | Redis client |
-| **Auth** | `@nestjs/jwt` | ^11.0.0 | JWT tokens |
-| **Auth** | `@nestjs/passport` | ^11.0.0 | Passport integration |
+| **Auth** | `@nestjs/jwt` | ^11.1.6 | JWT tokens |
+| **Auth** | `@nestjs/passport` | ^11.1.6 | Passport integration |
 | **Auth** | `passport-jwt` | ^4.0.0 | JWT strategy |
 | **Auth** | `firebase-admin` | ^13.0.0 | Firebase Auth |
-| **WebSocket** | `@nestjs/websockets` | ^11.0.0 | Socket.io |
+| **WebSocket** | `@nestjs/websockets` | ^11.1.6 | Socket.io |
 | **WebSocket** | `socket.io` | ^4.8.0 | Socket.io server |
 | **WebSocket** | `socket.io-redis-adapter` | ^8.0.0 | Redis adapter |
-| **Rate Limit** | `@nestjs/throttler` | ^6.0.0 | Rate limiting |
-| **Health** | `@nestjs/terminus` | ^11.0.0 | Health checks |
-| **Schedule** | `@nestjs/schedule` | ^5.0.0 | Cron jobs |
+| **Rate Limit** | `@nestjs/throttler` | ^6.5.0 | Rate limiting |
+| **Health** | `@nestjs/terminus` | ^11.0.1 | Health checks |
+| **Schedule** | `@nestjs/schedule` | ^5.0.1 | Cron jobs |
 | **Storage** | `cloudinary` | ^2.5.0 | Image storage |
 | **Utilities** | `lodash` | ^4.17.21 | Utility functions |
 | **Utilities** | `uuid` | ^11.0.0 | UUID generation |
 | **Utilities** | `date-fns` | ^4.1.0 | Date formatting |
-| **Schema** | `zod` | ^4.0.0 | Schema validation (v4 - 14x faster) |
+| **Schema** | `zod` | ^4.3.6 | Schema validation (Zod v4 - latest) |
 
 > **CRITICAL DISTINCTION:**
 > - **Neon** = Database (Serverless PostgreSQL)
@@ -200,7 +199,9 @@ This document provides comprehensive technical architecture for the Logship-MVP 
 
 ---
 
-## 3. Clean Architecture Folder Structure
+## 3. Simplified Backend Folder Structure
+
+For a solo developer MVP, we use a simplified modular structure:
 
 ```
 apps/api/
@@ -209,194 +210,88 @@ apps/api/
 │   ├── app.module.ts                    # Root module
 │   │
 │   ├── config/                          # Configuration
-│   │   ├── app.config.ts
 │   │   ├── database.config.ts           # Neon PostgreSQL config
-│   │   ├── redis.config.ts              # Upstash Redis config
 │   │   ├── firebase.config.ts           # Firebase Auth config
-│   │   ├── bullmq.config.ts             # Queue config
-│   │   ├── swagger.config.ts            # OpenAPI/Swagger setup
-│   │   └── validation.config.ts         # Global validation pipe config
+│   │   └── swagger.config.ts            # OpenAPI/Swagger setup
 │   │
 │   ├── common/                          # Shared infrastructure
-│   │   ├── constants/
 │   │   ├── decorators/
 │   │   │   ├── current-user.decorator.ts
-│   │   │   ├── public.decorator.ts
 │   │   │   └── roles.decorator.ts
 │   │   ├── dto/
-│   │   │   ├── pagination.dto.ts
-│   │   │   └── response.dto.ts
-│   │   ├── enums/
-│   │   ├── exceptions/
+│   │   │   └── pagination.dto.ts
 │   │   ├── filters/
-│   │   │   ├── all-exceptions.filter.ts
-│   │   │   └── prisma-exception.filter.ts
-│   │   ├── guards/
-│   │   │   ├── jwt-auth.guard.ts
-│   │   │   ├── roles.guard.ts
-│   │   │   └── throttler.guard.ts
-│   │   ├── interceptors/
-│   │   │   ├── logging.interceptor.ts
-│   │   │   ├── transform.interceptor.ts
-│   │   │   └── timeout.interceptor.ts
-│   │   ├── pipes/
-│   │   │   └── validation.pipe.ts
-│   │   └── utils/
+│   │   │   └── all-exceptions.filter.ts
+│   │   └── guards/
+│   │       ├── jwt-auth.guard.ts
+│   │       └── roles.guard.ts
 │   │
 │   ├── database/                        # Database layer (Prisma + Neon)
 │   │   ├── prisma.module.ts
 │   │   ├── prisma.service.ts            # Prisma Client
-│   │   ├── geo.service.ts               # PostGIS helpers
-│   │   └── repositories/                # Repository pattern
-│   │       └── base.repository.ts
+│   │   └── geo.service.ts               # PostGIS helpers
 │   │
-│   ├── cache/                           # Redis caching (Upstash)
-│   │   ├── cache.module.ts
-│   │   ├── redis.service.ts
-│   │   └── cache.service.ts
-│   │
-│   ├── queues/                          # BullMQ queues
-│   │   ├── queues.module.ts
-│   │   ├── notification/
-│   │   │   ├── notification.queue.ts
-│   │   │   ├── notification.processor.ts
-│   │   │   └── notification.producer.ts
-│   │   ├── location/
-│   │   │   ├── location.queue.ts
-│   │   │   ├── location.processor.ts
-│   │   │   └── location.producer.ts
-│   │   └── order-matching/
-│   │       ├── matching.queue.ts
-│   │       ├── matching.processor.ts
-│   │       └── matching.producer.ts
-│   │
-│   ├── modules/                         # Feature modules (Complete Structure)
+│   ├── modules/                         # Feature modules (Simplified)
 │   │   │
 │   │   ├── auth/                        # Auth Module
 │   │   │   ├── auth.module.ts
 │   │   │   ├── auth.controller.ts
 │   │   │   ├── auth.service.ts
-│   │   │   ├── auth.repository.ts       # Repository pattern
-│   │   │   ├── dto/
-│   │   │   │   ├── send-otp.dto.ts
-│   │   │   │   ├── verify-otp.dto.ts
-│   │   │   │   ├── refresh-token.dto.ts
-│   │   │   │   └── index.ts
-│   │   │   ├── entities/
-│   │   │   │   └── auth.entity.ts
-│   │   │   ├── errors/
-│   │   │   │   ├── auth.errors.ts
-│   │   │   │   └── index.ts
-│   │   │   ├── guards/
-│   │   │   │   ├── jwt-auth.guard.ts
-│   │   │   │   └── local-auth.guard.ts
-│   │   │   ├── strategies/
-│   │   │   │   ├── jwt.strategy.ts
-│   │   │   │   └── firebase.strategy.ts
-│   │   │   └── decorators/
-│   │   │       ├── public.decorator.ts
-│   │   │       └── current-user.decorator.ts
+│   │   │   └── dto/
+│   │   │       ├── send-otp.dto.ts
+│   │   │       └── verify-otp.dto.ts
 │   │   │
 │   │   ├── users/                       # Users Module
 │   │   │   ├── users.module.ts
 │   │   │   ├── users.controller.ts
 │   │   │   ├── users.service.ts
-│   │   │   ├── users.repository.ts
-│   │   │   ├── dto/
-│   │   │   │   ├── create-user.dto.ts
-│   │   │   │   ├── update-user.dto.ts
-│   │   │   │   └── index.ts
-│   │   │   ├── entities/
-│   │   │   │   └── user.entity.ts
-│   │   │   └── errors/
-│   │   │       └── user.errors.ts
+│   │   │   └── dto/
+│   │   │       ├── create-user.dto.ts
+│   │   │       └── update-user.dto.ts
 │   │   │
 │   │   ├── drivers/                     # Drivers Module
 │   │   │   ├── drivers.module.ts
 │   │   │   ├── drivers.controller.ts
 │   │   │   ├── drivers.service.ts
-│   │   │   ├── drivers.repository.ts
-│   │   │   ├── dto/
-│   │   │   │   ├── create-driver.dto.ts
-│   │   │   │   ├── update-driver.dto.ts
-│   │   │   │   └── index.ts
-│   │   │   ├── entities/
-│   │   │   │   └── driver.entity.ts
-│   │   │   ├── errors/
-│   │   │   │   └── driver.errors.ts
-│   │   │   └── pipes/
-│   │   │       └── driver-validation.pipe.ts
+│   │   │   └── dto/
+│   │   │       └── driver.dto.ts
 │   │   │
 │   │   ├── orders/                      # Orders Module
 │   │   │   ├── orders.module.ts
 │   │   │   ├── orders.controller.ts
 │   │   │   ├── orders.service.ts
-│   │   │   ├── orders.repository.ts
-│   │   │   ├── dto/
-│   │   │   │   ├── create-order.dto.ts
-│   │   │   │   ├── update-order.dto.ts
-│   │   │   │   └── index.ts
-│   │   │   ├── entities/
-│   │   │   │   └── order.entity.ts
-│   │   │   ├── errors/
-│   │   │   │   └── order.errors.ts
-│   │   │   ├── events/
-│   │   │   │   ├── order-created.event.ts
-│   │   │   │   ├── order-assigned.event.ts
-│   │   │   │   └── index.ts
-│   │   │   ├── listeners/
-│   │   │   │   └── order-event.listener.ts
-│   │   │   └── interceptors/
-│   │   │       └── order-transform.interceptor.ts
+│   │   │   └── dto/
+│   │   │       ├── create-order.dto.ts
+│   │   │       └── update-status.dto.ts
 │   │   │
 │   │   ├── chat/                        # Chat Module
 │   │   │   ├── chat.module.ts
 │   │   │   ├── chat.controller.ts
 │   │   │   ├── chat.service.ts
-│   │   │   ├── chat.repository.ts
-│   │   │   ├── dto/
-│   │   │   │   ├── send-message.dto.ts
-│   │   │   │   └── index.ts
-│   │   │   ├── entities/
-│   │   │   │   └── message.entity.ts
-│   │   │   └── errors/
-│   │   │       └── chat.errors.ts
+│   │   │   └── dto/
+│   │   │       └── message.dto.ts
 │   │   │
 │   │   └── admin/                       # Admin Module
 │   │       ├── admin.module.ts
 │   │       ├── admin.controller.ts
-│   │       ├── admin.service.ts
-│   │       ├── admin.repository.ts
-│   │       ├── dto/
-│   │       │   └── index.ts
-│   │       ├── entities/
-│   │       │   └── admin.entity.ts
-│   │       └── errors/
-│   │           └── admin.errors.ts
+│   │       └── admin.service.ts
 │   │
 │   └── gateway/                         # WebSocket Gateway
 │       ├── gateway.module.ts
-│       ├── events.gateway.ts
-│       ├── adapters/
-│       │   └── redis-io.adapter.ts
-│       └── dto/
+│       └── events.gateway.ts
 │
 ├── prisma/
-│   ├── schema.prisma                    # Prisma schema (defines Neon DB structure)
-│   ├── migrations/                      # Database migrations
-│   └── seed.ts                          # Seed data
+│   ├── schema.prisma                    # Prisma schema
+│   └── migrations/                      # Database migrations
 │
-├── test/
-│   ├── setup.ts
-│   ├── factories/
-│   └── e2e/
-│
-├── .env.example
-├── nest-cli.json
-├── tsconfig.json
-├── tsconfig.build.json
 └── package.json
 ```
+
+**Note:** This simplified structure removes:
+- Separate repository layer (use Prisma directly in services)
+- Complex sub-folders (entities/, errors/, interceptors/, listeners/)
+- BullMQ queues (use simple async/await for MVP)
+- Redis caching (use in-memory or skip for MVP)
 
 ---
 
@@ -650,9 +545,9 @@ export class UsersModule {}
 
 | Component | Technology | Role |
 |-----------|------------|------|
-| **Database** | **Neon** | Serverless PostgreSQL 16+ |
+| **Database** | **Neon** | Serverless PostgreSQL 17+ |
 | **Extension** | **PostGIS** | Geospatial queries |
-| **ORM** | **Prisma** | Database access layer |
+| **ORM** | **Prisma** | 7.x - Database access layer |
 
 ### 4.2. Connection Configuration
 
@@ -768,99 +663,40 @@ export class GeoService {
 
 ---
 
-## 5. BullMQ Message Queue Architecture
+## 5. Background Jobs (Optional for MVP)
 
-### 5.1. Queue Configuration
+> **Note:** For MVP with 50 concurrent users, you can skip BullMQ and use simple async/await. 
+> Add BullMQ only if you need to process heavy background tasks.
 
+### When to Use BullMQ
+- Processing large exports
+- Sending bulk notifications
+- Heavy image processing
+
+### Simple Alternative
 ```typescript
-// src/queues/queues.module.ts
-import { Module } from '@nestjs/common';
-import { BullModule } from '@nestjs/bullmq';
-import { ConfigService } from '@nestjs/config';
-
-export const NOTIFICATION_QUEUE = 'notification';
-export const LOCATION_QUEUE = 'location';
-export const ORDER_MATCHING_QUEUE = 'order-matching';
-
-@Module({
-  imports: [
-    BullModule.forRootAsync({
-      useFactory: (config: ConfigService) => ({
-        connection: {
-          // Upstash Redis connection
-          url: config.get('REDIS_URL'),
-        },
-        defaultJobOptions: {
-          attempts: 3,
-          backoff: {
-            type: 'exponential',
-            delay: 1000,
-          },
-        },
-      }),
-      inject: [ConfigService],
-    }),
-    BullModule.registerQueue(
-      { name: NOTIFICATION_QUEUE },
-      { name: LOCATION_QUEUE },
-      { name: ORDER_MATCHING_QUEUE },
-    ),
-  ],
-  exports: [BullModule],
-})
-export class QueuesModule {}
+// Just use async/await in services
+async sendNotification(data: NotificationData) {
+  // Process immediately or use setTimeout for delay
+  setTimeout(() => {
+    this.processNotification(data);
+  }, 1000);
+}
 ```
 
 ---
 
-## 6. Caching Strategy (Upstash Redis)
+## 6. Caching (Optional for MVP)
 
-### 6.1. Redis Configuration
+> **Note:** For MVP scale, you can skip Redis caching and rely on:
+> - Prisma's built-in query caching
+> - PostgreSQL's query planner
+> - NestJS in-memory cache (optional)
 
-```typescript
-// src/cache/redis.service.ts
-import { Injectable } from '@nestjs/common';
-import Redis from 'ioredis';
-
-@Injectable()
-export class RedisService {
-  private client: Redis;
-
-  constructor() {
-    // Upstash Redis connection
-    this.client = new Redis(process.env.REDIS_URL, {
-      tls: process.env.NODE_ENV === 'production' ? {} : undefined,
-    });
-  }
-
-  async get(key: string): Promise<string | null> {
-    return this.client.get(key);
-  }
-
-  async setex(key: string, seconds: number, value: string): Promise<void> {
-    await this.client.setex(key, seconds, value);
-  }
-
-  async del(key: string): Promise<void> {
-    await this.client.del(key);
-  }
-
-  // Geo operations for driver locations
-  async geoadd(key: string, lng: number, lat: number, member: string): Promise<void> {
-    await this.client.geoadd(key, lng, lat, member);
-  }
-
-  async georadius(
-    key: string,
-    lng: number,
-    lat: number,
-    radius: number,
-    unit: 'km' | 'm',
-  ) {
-    return this.client.georadius(key, lng, lat, radius, unit, 'WITHDIST', 'ASC');
-  }
-}
-```
+### When to Add Redis
+- Database queries become slow (>100ms)
+- High read-to-write ratio
+- Need rate limiting
 
 ---
 
@@ -975,6 +811,22 @@ GOONG_API_KEY="your-goong-key"
 ❌ **INCORRECT:**
 - "We use Prisma as our database" ← WRONG
 - "Prisma stores our data" ← WRONG
+
+### 11.3. Architecture Simplification for MVP
+
+**Skipped for MVP (can add later):**
+- ❌ BullMQ queues → Use async/await
+- ❌ Redis caching → Rely on PostgreSQL
+- ❌ Redis GEO → Use PostGIS for all geo queries
+- ❌ CQRS pattern → Simple CRUD operations
+- ❌ Complex folder structure → Simplified modules
+
+**Keep for MVP:**
+- ✅ Modular monolith structure
+- ✅ Repository pattern (can use Prisma directly)
+- ✅ Guards for authentication
+- ✅ Swagger/OpenAPI documentation
+- ✅ WebSocket for real-time (optional, can use SSE)
 
 ---
 

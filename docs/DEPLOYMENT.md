@@ -24,7 +24,7 @@ This guide covers deploying Logship-MVP to production environments.
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐           │
-│  │   Railway    │  │    Vercel    │  │  Expo EAS    │           │
+│  │     VPS      │  │    Vercel    │  │  Expo EAS    │           │
 │  │  (Backend)   │  │    (Admin)   │  │   (Mobile)   │           │
 │  │              │  │              │  │              │           │
 │  │  NestJS API  │  │  Next.js 15  │  │  React Native│           │
@@ -46,7 +46,7 @@ This guide covers deploying Logship-MVP to production environments.
 
 1. Database (Neon) - Already provisioned
 2. Redis (Upstash) - Already provisioned
-3. Backend API (Railway/Render)
+3. Backend API (VPS - DigitalOcean/AWS/Hetzner)
 4. Admin Dashboard (Vercel)
 5. Mobile App (Expo EAS)
 
@@ -56,7 +56,7 @@ This guide covers deploying Logship-MVP to production environments.
 
 - [Neon](https://neon.tech/) - Database (already set up)
 - [Upstash](https://upstash.com/) - Redis (already set up)
-- [Railway](https://railway.app/) or [Render](https://render.com/) - Backend hosting
+- **VPS Provider** (DigitalOcean/AWS/Hetzner) - Backend hosting
 - [Vercel](https://vercel.com/) - Admin dashboard hosting
 - [Expo](https://expo.dev/) - Mobile app builds
 - [Cloudinary](https://cloudinary.com/) - Image storage
@@ -136,53 +136,86 @@ rediss://default:pass@host.upstash.io:6379
 
 ## Backend Deployment
 
-### Option A: Railway (Recommended)
+### VPS Deployment (Recommended)
 
-#### Step 1: Create Project
+We use a VPS (Virtual Private Server) for backend deployment to have full control over the environment and reduce costs.
+
+#### Recommended VPS Providers
+
+| Provider | Plan | Price | Specs |
+|----------|------|-------|-------|
+| **DigitalOcean** | Basic Droplet | $4-6/month | 1GB RAM, 1 vCPU, 25GB SSD |
+| **AWS Lightsail** | Nano | $3.50/month | 512MB RAM, 1 vCPU, 20GB SSD |
+| **Hetzner Cloud** | CX11 | €4.51/month | 2GB RAM, 1 vCPU, 20GB SSD |
+| **Vultr** | Cloud Compute | $2.50/month | 512MB RAM, 1 vCPU, 10GB SSD |
+
+#### Step 1: Provision VPS
+
+1. Sign up with your preferred VPS provider
+2. Create a new Ubuntu 22.04 LTS server
+3. Note the server IP address
+4. Add your SSH key for secure access
+
+#### Step 2: Server Setup
 
 ```bash
-# Login to Railway
-railway login
+# SSH into your server
+ssh root@your-server-ip
 
-# Create new project
-railway init
+# Update system
+apt update && apt upgrade -y
 
-# Name: logship-api-production
+# Install Bun
+curl -fsSL https://bun.sh/install | bash
+source ~/.bashrc
+
+# Install PM2 globally
+bun install -g pm2
+
+# Install Git
+apt install git -y
+
+# Create app directory
+mkdir -p /var/www/logship-api
+cd /var/www/logship-api
 ```
 
-#### Step 2: Add PostgreSQL (or use Neon)
+#### Step 3: Deploy Application
 
 ```bash
-# Option 1: Use Railway's PostgreSQL
-railway add --database postgres
+# Clone repository
+git clone https://github.com/yourusername/logship-mvp.git .
 
-# Option 2: Use Neon (recommended)
-# Add DATABASE_URL as environment variable manually
-```
+# Install dependencies
+bun install
 
-#### Step 3: Deploy
-
-```bash
-# From project root
+# Generate Prisma Client
 cd apps/api
+bunx prisma generate
 
-# Link to Railway project
-railway link
+# Run migrations
+bunx prisma migrate deploy
 
-# Deploy
-railway up
+# Build application
+bun run build
 
-# Or with GitHub integration:
-# 1. Connect GitHub repo in Railway dashboard
-# 2. Select branch (main)
-# 3. Auto-deploy on push
+# Start with PM2
+pm2 start dist/main.js --name logship-api
+
+# Save PM2 config
+pm2 save
+pm2 startup
 ```
 
 #### Step 4: Environment Variables
 
-In Railway Dashboard → Variables:
+Create `.env` file in `/var/www/logship-api/apps/api/`:
 
 ```env
+# Server
+NODE_ENV=production
+PORT=3000
+
 # Database
 DATABASE_URL=postgresql://user:pass@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require
 
@@ -210,42 +243,65 @@ GOONG_API_KEY=your-goong-api-key
 CORS_ORIGINS=https://admin.logship.app,https://app.logship.app
 ```
 
-#### Step 5: Domain Setup
+#### Step 5: Setup Nginx (Reverse Proxy)
 
 ```bash
-# In Railway Dashboard
-domain → Generate Domain
-# Or use custom domain
-domain → Custom Domain → Add your domain
+# Install Nginx
+apt install nginx -y
+
+# Create Nginx config
+cat > /etc/nginx/sites-available/logship-api << 'EOF'
+server {
+    listen 80;
+    server_name api.logship.app;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+EOF
+
+# Enable site
+ln -s /etc/nginx/sites-available/logship-api /etc/nginx/sites-enabled/
+nginx -t
+systemctl restart nginx
 ```
 
-### Option B: Render
+#### Step 6: SSL Certificate (Let's Encrypt)
 
-#### Step 1: Create Web Service
+```bash
+# Install Certbot
+apt install certbot python3-certbot-nginx -y
 
-1. Go to [Render Dashboard](https://dashboard.render.com/)
-2. Click "New +" → "Web Service"
-3. Connect your GitHub repository
-4. Select branch: `main`
+# Obtain SSL certificate
+certbot --nginx -d api.logship.app
 
-#### Step 2: Configure Service
-
-```yaml
-# Render configuration
-Name: logship-api
-Root Directory: apps/api
-Build Command: bun install && bun run build
-Start Command: bun run start
-Plan: Starter ($7/month) or higher
+# Auto-renewal is set up automatically
 ```
 
-#### Step 3: Environment Variables
+#### Step 7: Domain Setup
 
-Same as Railway (see above)
+Point your domain to the VPS IP:
+```
+Type    Name              Value                      TTL
+A       api.logship.app   <VPS_IP>                   Auto
+```
 
-#### Step 4: Deploy
+### Alternative: Render (Not Recommended)
 
-Render automatically deploys on push to main branch.
+While Render is an option, we recommend using a VPS for better control and cost-effectiveness.
+
+#### Step 1: Create Web Service (Skip - Use VPS Instead)
+
+We recommend following the VPS deployment guide above for better performance and cost savings.
 
 ## Admin Dashboard Deployment
 
@@ -487,9 +543,12 @@ EXPO_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abcdef
 
 ## Post-Deployment Checklist
 
-### Backend Verification
+### Backend Verification (VPS)
 
 - [ ] API responds to health check endpoint
+- [ ] PM2 process running (`pm2 status`)
+- [ ] Nginx serving requests
+- [ ] SSL certificate valid
 - [ ] Database connection working
 - [ ] Redis connection working
 - [ ] Firebase Auth working
@@ -498,6 +557,8 @@ EXPO_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abcdef
 - [ ] Swagger docs accessible at `/api/docs`
 - [ ] Rate limiting active
 - [ ] CORS configured correctly
+- [ ] Auto-restart on crash (PM2)
+- [ ] Log rotation configured
 
 ### Admin Dashboard Verification
 
@@ -537,15 +598,24 @@ EXPO_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abcdef
 
 ## Rollback Procedures
 
-### Backend Rollback
+### Backend Rollback (VPS)
 
 ```bash
-# Railway
-railway rollback
+# SSH into VPS
+ssh root@your-server-ip
 
-# Or redeploy previous version
+# Navigate to app directory
+cd /var/www/logship-api/apps/api
+
+# Pull previous version
 git revert HEAD
-git push origin main
+git pull origin main
+
+# Rebuild and restart
+bun run build
+pm2 restart logship-api
+
+# Or restore from backup if needed
 ```
 
 ### Admin Dashboard Rollback
@@ -626,4 +696,4 @@ See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for common issues and solutions.
 
 ---
 
-**Last Updated**: 2025-02-03
+**Last Updated**: 2026-02-09

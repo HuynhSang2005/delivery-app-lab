@@ -18,7 +18,7 @@ The project is developed by a solo developer with AI assistance, so developer pr
 
 ## Decision
 
-We will use **NestJS 11** as the backend framework.
+We will use **NestJS 11.1.x** as the backend framework.
 
 ## Consequences
 
@@ -88,13 +88,13 @@ We will use **NestJS 11** as the backend framework.
 
 ## Notes
 
-- NestJS 11 is the latest version as of February 2025
+- NestJS 11.1.x is the latest version as of February 2026
 - We use the Express adapter (default) for HTTP platform
 - Swagger/OpenAPI is automatically generated from decorators
 - BullMQ is used for background job processing
 
 ---
 
-**Date**: 2025-02-03
+**Date**: 2026-02-09
 **Author**: Solo Developer
 **Stakeholders**: AI Development Assistant

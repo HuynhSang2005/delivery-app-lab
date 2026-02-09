@@ -94,7 +94,7 @@ Logship-MVP is a logistics delivery application connecting **Users** (customers)
 | Backend Architecture | Monolith | Solo dev, simpler deployment |
 | Database | Neon (Serverless Postgres) | Free tier, PostGIS support, scale-to-zero |
 | Real-time | Socket.io + Redis Adapter | Room-based broadcasting, scalable |
-| Mobile Framework | React Native + Expo SDK 54 | Cross-platform, OTA updates |
+| Mobile Framework |  React Native + Expo SDK 54   | Cross-platform, OTA updates |
 | State Management | Zustand + TanStack Query | Simple local state + powerful server state |
 | Authentication | Firebase Auth (OTP + Email) | Free tier, phone auth built-in |
 | Maps (Vietnam) | Goong Maps | Vietnam-optimized, competitive pricing |
@@ -501,15 +501,15 @@ Order Event                    BullMQ                         External Services
 
 | Category | Technology | Version |
 |----------|------------|---------|
-| Framework | React Native | 0.81 |
+| Framework | React Native | 0.81.0 |
 | Platform | Expo SDK | 54 |
-| Navigation | Expo Router | 4.x |
+| Navigation | Expo Router | 5.x |
 | State (Local) | Zustand | 5.x |
 | State (Server) | TanStack Query | 5.x |
 | Maps | react-native-maps + **Goong Maps** | 1.x |
-| Location | expo-location + expo-task-manager | SDK 54 |
+| Location | expo-location + expo-task-manager | SDK 52 |
 | WebSocket | socket.io-client | 4.x |
-| Forms | React Hook Form + Zod | Latest |
+| Forms | React Hook Form + Zod | 3.23.8 |
 
 ### 5.2. Frontend (Web Admin)
 
@@ -534,7 +534,7 @@ Order Event                    BullMQ                         External Services
 | Validation | class-validator + Zod | Latest |
 | Auth | Passport + JWT + Firebase Admin | Latest |
 | API Docs | Swagger/OpenAPI | Latest |
-| **Message Queue** | **@nestjs/bullmq** | 11.x |
+| **Message Queue** | **@nestjs/bullmq** | 11.1.x |
 | API Client Gen | **Hey-API** | Latest |
 
 ### 5.4. Database & Infrastructure

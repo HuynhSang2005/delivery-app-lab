@@ -17,7 +17,7 @@ Key requirements:
 
 ## Decision
 
-We will use **Bun** (version 1.2+) as the package manager and runtime for the entire project.
+We will use **Bun** (version 1.3+) as the package manager and runtime for the entire project.
 
 ## Consequences
 
@@ -87,6 +87,6 @@ For developers familiar with npm:
 
 ---
 
-**Date**: 2025-02-03
+**Date**: 2026-02-09
 **Author**: Solo Developer
 **Stakeholders**: AI Development Assistant
