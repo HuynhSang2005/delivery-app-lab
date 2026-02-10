@@ -1,0 +1,6 @@
+{
+  "dependencies": {},
+  "devDependencies": {
+    "@neondatabase/mcp-server-neon": "^0.6.5"
+  }
+}
