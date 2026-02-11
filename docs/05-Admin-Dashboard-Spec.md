@@ -46,10 +46,10 @@ The Admin Dashboard is a web application for system administrators to manage use
 | Tables | TanStack Table | ^8.20.0 |
 | Charts | Recharts | ^2.13.0 |
 | Maps | Goong JS (Mapbox GL compatible) | ^3.9.0 |
-| Forms | React Hook Form + Zod | ^7.54.0 / ^3.23.8 |
+| Forms | React Hook Form + Zod | ^7.54.2 / ^4.3.6 |
 | Icons | Lucide React | ^0.460.0 |
 | Date | date-fns | ^4.1.0 |
-| API Client | Hey-API | ^0.8.0 |
+| API Client | Hey-API | ^0.10.0 |
 | Package Manager | Bun | ^1.2.0 |
 
 ---
@@ -132,7 +132,7 @@ apps/admin/
     "lint": "bunx next lint"
   },
   "dependencies": {
-    "@hey-api/client-fetch": "^0.8.0",
+    "@hey-api/client-fetch": "^0.10.0",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.0",
     "@radix-ui/react-avatar": "^1.1.0",
@@ -174,11 +174,11 @@ apps/admin/
     "next": "^15.2.0",
     "next-themes": "^0.4.0",
     "nuqs": "^2.2.0",
-    "react": "^19.0.0",
-    "react-day-picker": "^9.4.0",
-    "react-dom": "^19.0.0",
-    "react-error-boundary": "^4.1.0",
-    "react-hook-form": "^7.54.0",
+    "react": "^19.1.0",
+    "react-day-picker": "^9.5.1",
+    "react-dom": "^19.1.0",
+    "react-error-boundary": "^5.0.0",
+    "react-hook-form": "^7.54.2",
     "@hookform/resolvers": "^4.0.0",
     "react-resizable-panels": "^2.1.0",
     "recharts": "^2.13.0",
@@ -193,7 +193,7 @@ apps/admin/
     "zustand": "^5.0.0"
   },
   "devDependencies": {
-    "@hey-api/openapi-ts": "^0.64.0",
+    "@hey-api/openapi-ts": "^0.92.3",
     "@types/lodash-es": "^4.17.12",
     "@types/mapbox-gl": "^3.4.0",
     "@types/node": "^20.0.0",
@@ -208,9 +208,10 @@ apps/admin/
 
 | Category | Library | Version | Purpose |
 |----------|---------|---------|---------|
-| **Framework** | `next` | ^15.1.0 | Next.js 15 App Router |
-| **React** | `react` | ^19.0.0 | React 19 |
-| **API Client** | `@hey-api/client-fetch` | ^0.8.0 | Type-safe API client |
+| **Framework** | `next` | ^15.2.0 | Next.js 15 App Router |
+| **React** | `react` | ^19.1.0 | React 19 |
+| **React DOM** | `react-dom` | ^19.1.0 | React DOM |
+| **API Client** | `@hey-api/client-fetch` | ^0.10.0 | Type-safe API client |
 | **State (Server)** | `@tanstack/react-query` | ^5.60.0 | Server state management |
 | **State (Client)** | `zustand` | ^5.0.0 | Client state management |
 | **UI Components** | `@radix-ui/react-*` | ^1.1-2.1.0 | Headless UI primitives |

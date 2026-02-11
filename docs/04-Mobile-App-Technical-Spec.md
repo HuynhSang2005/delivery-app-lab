@@ -23,19 +23,19 @@ This document specifies the technical implementation for Logship-MVP mobile appl
 
 > **Note:** Both apps share the same codebase with conditional rendering based on user role.
 
-### 1.2. Why Expo SDK 52?
+### 1.2. Why Expo SDK 54?
 
 | Feature | Benefit |
 |---------|---------|
-| Expo Router v3 | File-based routing, deep linking |
+| Expo Router v4 | File-based routing, deep linking |
 | expo-location | Foreground/background location tracking |
 | expo-task-manager | Background tasks for driver location |
 | EAS Build | Cloud builds for iOS/Android |
 | EAS Update | OTA updates without app store review |
-| React Native 0.76 | Latest stable React Native |
-| React 18.3 | Latest React 18 version |
+| React Native 0.81 | Latest stable React Native |
+| React 19.1 | Latest React 19 version |
 
-> **Note:** Expo SDK 52 is the latest stable release with React Native 0.76 and React 18.3.
+> **Note:** Expo SDK 54 is the latest stable release with React Native 0.81 and React 19.1.
 
 ---
 
@@ -109,17 +109,17 @@ apps/mobile/
   },
   "dependencies": {
     "@gorhom/bottom-sheet": "^5.0.0",
-    "@hey-api/client-fetch": "^0.8.0",
+    "@hey-api/client-fetch": "^0.10.0",
     "@react-native-community/netinfo": "^11.4.0",
     "@react-native-firebase/app": "^22.0.0",
     "@react-native-firebase/auth": "^22.0.0",
     "@react-native-masked-view/masked-view": "^0.3.2",
-    "@shopify/flash-list": "1.7.0",
+    "@shopify/flash-list": "1.7.1",
     "@tanstack/react-query": "^5.60.0",
     "axios": "^1.7.0",
     "clsx": "^2.1.0",
     "date-fns": "^4.1.0",
-    "expo": "~52.0.0",
+    "expo": "~54.0.0",
     "expo-clipboard": "~8.0.0",
     "expo-constants": "~18.0.0",
     "expo-dev-client": "~6.0.0",
@@ -138,28 +138,28 @@ apps/mobile/
     "expo-updates": "~0.28.0",
     "expo-web-browser": "~15.0.0",
     "lodash-es": "^4.17.21",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
     "react-hook-form": "^7.54.0",
-    "@hookform/resolvers": "^3.10.0",
-    "react-native": "0.76.7",
+    "@hookform/resolvers": "^4.0.0",
+    "react-native": "0.81.0",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-maps": "1.22.0",
     "react-native-reanimated": "~4.0.0",
-    "react-native-safe-area-context": "5.2.0",
+    "react-native-safe-area-context": "4.12.0",
     "react-native-screens": "~4.8.0",
     "react-native-svg": "15.12.0",
     "react-native-toast-message": "^2.2.0",
     "react-native-url-polyfill": "^2.0.0",
     "socket.io-client": "^4.8.0",
-    "tailwindcss": "^3.4.17",
+    "tailwindcss": "^4.0.0",
     "nativewind": "^4.1.0",
     "zod": "^4.3.6",
     "zustand": "^5.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.0",
-    "@hey-api/openapi-ts": "^0.64.0",
+    "@hey-api/openapi-ts": "^0.92.3",
     "@types/lodash-es": "^4.17.12",
     "@types/react": "~19.0.0",
     "typescript": "^5.7.0"
@@ -173,9 +173,9 @@ apps/mobile/
 |----------|---------|---------|---------|
 | **Core** | `expo` | ~54.0.0 | Expo SDK |
 | **Core** | `react-native` | 0.81.0 | React Native |
-| **Core** | `react` | 19.0.0 | React (Expo SDK 54 uses React 19) |
+| **Core** | `react` | 19.1.0 | React (Expo SDK 54 uses React 19.1) |
 | **Navigation** | `expo-router` | ~5.0.0 | File-based routing |
-| **API Client** | `@hey-api/client-fetch` | ^0.8.0 | Type-safe API client |
+| **API Client** | `@hey-api/client-fetch` | ^0.10.0 | Type-safe API client |
 | **State (Server)** | `@tanstack/react-query` | ^5.60.0 | Server state management |
 | **State (Client)** | `zustand` | ^5.0.0 | Client state management |
 | **Forms** | `react-hook-form` | ^7.54.0 | Form handling |
@@ -415,12 +415,12 @@ Location services are critical for Logship-MVP, enabling:
 
 ```json
 {
-  "expo-location": "~18.0.4",
-  "expo-task-manager": "~12.0.0"
+  "expo-location": "~19.0.0",
+  "expo-task-manager": "~13.0.0"
 }
 ```
 
-**Note:** `expo-location ~18.0.4` is compatible with Expo SDK 52. Version 19.x is NOT compatible.
+**Note:** `expo-location ~19.0.0` is compatible with Expo SDK 54.
 
 ### 6.3. App Configuration
 

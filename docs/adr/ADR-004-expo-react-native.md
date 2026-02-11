@@ -104,7 +104,7 @@ bunx eas build --profile development
 
 ## Notes
 
-- React 19.0 is used (Expo SDK 54 with React Native 0.81)
+- React 19.1 is used (Expo SDK 54 with React Native 0.81)
 - Latest React features available
 - Use `expo-dev-client` for development builds
 - Test background location on physical devices, not simulators

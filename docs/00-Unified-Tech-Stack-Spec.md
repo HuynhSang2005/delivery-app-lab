@@ -1,6 +1,6 @@
 # Logship-MVP: Unified Tech Stack Specification
 
-**Version:** 3.0  
+**Version:** 5.0  
 **Last Updated:** February 2025  
 **Status:** Single Source of Truth for All Documentation
 
@@ -84,9 +84,8 @@ This document serves as the **single source of truth** for all technology decisi
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `class-validator` | ^0.14.1 | DTO validation |
-| `class-transformer` | ^0.5.1 | Object transformation |
 | `zod` | ^4.3.6 | Schema validation (Zod v4 - latest) |
+| `nestjs-zod` | ^4.0.0 | Zod integration for NestJS DTOs |
 | `cloudinary` | ^2.5.1 | Image storage |
 | `lodash` | ^4.17.21 | Utilities |
 | `uuid` | ^11.0.5 | UUID generation |
@@ -102,7 +101,7 @@ This document serves as the **single source of truth** for all technology decisi
 |---------|---------|---------|
 | `expo` | ~54.0.0 | Expo SDK |
 | `react-native` | 0.81.0 | React Native |
-| `react` | 19.0.0 | React (Expo SDK 54 uses React 19) |
+| `react` | 19.1.0 | React (Expo SDK 54 uses React 19.1) |
 | `expo-router` | ~5.0.0 | File-based routing |
 
 **NOTE:** Expo SDK 54 is the latest stable with React Native 0.81 and React 19.
@@ -134,8 +133,8 @@ This document serves as the **single source of truth** for all technology decisi
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `@hey-api/client-fetch` | ^0.8.1 | Type-safe API client |
-| `@hey-api/openapi-ts` | ^0.64.4 | Code generation (dev) |
+| `@hey-api/client-fetch` | ^0.10.0 | Type-safe API client |
+| `@hey-api/openapi-ts` | ^0.92.3 | Code generation (dev) |
 
 ### 3.6. UI Components
 
@@ -194,8 +193,8 @@ This document serves as the **single source of truth** for all technology decisi
 | Package | Version | Purpose |
 |---------|---------|---------|
 | `next` | ^15.2.0 | Next.js framework |
-| `react` | ^19.0.0 | React 19 |
-| `react-dom` | ^19.0.0 | React DOM |
+| `react` | ^19.1.0 | React 19 |
+| `react-dom` | ^19.1.0 | React DOM |
 
 ### 4.2. State Management
 
@@ -220,15 +219,15 @@ This document serves as the **single source of truth** for all technology decisi
 | Package | Version | Purpose |
 |---------|---------|---------|
 | `react-hook-form` | ^7.54.2 | Form handling |
-| `@hookform/resolvers` | ^3.10.0 | Resolvers |
+| `@hookform/resolvers` | ^4.0.0 | Resolvers |
 | `zod` | ^4.3.6 | Validation (Zod v4 - latest) |
 
 ### 4.5. API Client
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `@hey-api/client-fetch` | ^0.8.1 | Type-safe client |
-| `@hey-api/openapi-ts` | ^0.64.4 | Code generation (dev) |
+| `@hey-api/client-fetch` | ^0.10.0 | Type-safe client |
+| `@hey-api/openapi-ts` | ^0.92.3 | Code generation (dev) |
 
 ### 4.6. Tables & Data
 
@@ -521,15 +520,15 @@ NEXT_PUBLIC_GOONG_API_KEY="your-goong-api-key"
 
 ### 11.3. Expo SDK Version
 
-❌ WRONG: "Expo SDK 54" (unreleased version)
+❌ WRONG: "Expo SDK 52" (older version)
 
-✅ CORRECT: "Expo SDK 52" (latest stable as of Feb 2025)
+✅ CORRECT: "Expo SDK 54" (latest stable as of Feb 2026)
 
 ### 11.4. React Versions
 
-❌ WRONG: "React 19 for mobile"
+❌ WRONG: "React 18.3.1 for mobile (Expo SDK 52)"
 
-✅ CORRECT: "React 18.3.1 for mobile (Expo SDK 52), React 19 for web (Next.js 15)"
+✅ CORRECT: "React 19.1.0 for mobile (Expo SDK 54), React 19.1.0 for web (Next.js 15)"
 
 ### 11.5. Bun Runtime
 
@@ -543,6 +542,7 @@ NEXT_PUBLIC_GOONG_API_KEY="your-goong-api-key"
 
 | Date | Version | Changes |
 |------|---------|---------|
+| 2026-02-10 | 5.0 | Updated to General Delivery App, Expo SDK 54, React 19.1.0, Hey-API 0.92.3 |
 | 2026-02-09 | 4.0 | Updated to Expo SDK 54, React Native 0.81, Prisma 7, Bun 1.3.9 |
 | 2025-02-03 | 3.0 | Updated all dependencies to latest versions, Bun-only policy |
 | 2025-02-03 | 2.0 | Complete rewrite with Bun, corrected versions, unified structure |
