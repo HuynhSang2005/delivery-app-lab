@@ -51,7 +51,7 @@ src/
     └── events.gateway.ts  # Socket.io
 ```
 
-## Feature Module Pattern
+## Feature Module Pattern with Repository Pattern
 
 ```typescript
 // modules/orders/orders.module.ts
@@ -68,7 +68,10 @@ src/
   controllers: [OrdersController],
   providers: [
     OrdersService,
-    OrdersRepository,
+    {
+      provide: ORDERS_REPOSITORY,
+      useClass: OrdersRepository,
+    },
     OrderMatchingProcessor,
   ],
   exports: [OrdersService],
@@ -213,12 +216,28 @@ export class EventsGateway {
 export class SharedModule {}
 ```
 
-### Feature Module with Repository
+### Feature Module with Repository Pattern
 
+**Repository Interface:**
 ```typescript
-// modules/users/users.repository.ts
+// modules/users/repositories/users.repository.interface.ts
+export interface IUsersRepository {
+  findById(id: string): Promise<User | null>;
+  findByPhone(phone: string): Promise<User | null>;
+  findAll(options: PaginationOptions): Promise<User[]>;
+  create(data: CreateUserDto): Promise<User>;
+  update(id: string, data: UpdateUserDto): Promise<User>;
+  delete(id: string): Promise<void>;
+}
+
+export const USERS_REPOSITORY = Symbol('USERS_REPOSITORY');
+```
+
+**Repository Implementation:**
+```typescript
+// modules/users/repositories/users.repository.ts
 @Injectable()
-export class UsersRepository {
+export class UsersRepository implements IUsersRepository {
   constructor(private prisma: PrismaService) {}
 
   async findById(id: string): Promise<User | null> {
@@ -228,20 +247,77 @@ export class UsersRepository {
   async findByPhone(phone: string): Promise<User | null> {
     return this.prisma.user.findUnique({ where: { phone } });
   }
-}
 
-// modules/users/users.service.ts
-@Injectable()
-export class UsersService {
-  constructor(private repo: UsersRepository) {}
+  async findAll(options: PaginationOptions): Promise<User[]> {
+    return this.prisma.user.findMany({
+      skip: options.skip,
+      take: options.take,
+    });
+  }
 
-  async getUser(id: string): Promise<User> {
-    const user = await this.repo.findById(id);
-    if (!user) throw new NotFoundException('User not found');
-    return user;
+  async create(data: CreateUserDto): Promise<User> {
+    return this.prisma.user.create({ data });
+  }
+
+  async update(id: string, data: UpdateUserDto): Promise<User> {
+    return this.prisma.user.update({ where: { id }, data });
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.prisma.user.delete({ where: { id } });
   }
 }
 ```
+
+**Module Configuration:**
+```typescript
+// modules/users/users.module.ts
+@Module({
+  imports: [DatabaseModule],
+  controllers: [UsersController],
+  providers: [
+    UsersService,
+    {
+      provide: USERS_REPOSITORY,
+      useClass: UsersRepository,
+    },
+  ],
+  exports: [UsersService],
+})
+export class UsersModule {}
+```
+
+**Service Usage:**
+```typescript
+// modules/users/users.service.ts
+@Injectable()
+export class UsersService {
+  constructor(
+    @Inject(USERS_REPOSITORY)
+    private usersRepository: IUsersRepository,
+  ) {}
+
+  async getUser(id: string): Promise<User> {
+    const user = await this.usersRepository.findById(id);
+    if (!user) throw new NotFoundException('User not found');
+    return user;
+  }
+
+  async createUser(data: CreateUserDto): Promise<User> {
+    const existing = await this.usersRepository.findByPhone(data.phone);
+    if (existing) {
+      throw new ConflictException('Phone already exists');
+    }
+    return this.usersRepository.create(data);
+  }
+}
+```
+
+**Benefits of Repository Pattern:**
+- Testability: Easy to mock repository interfaces
+- Flexibility: Can swap database implementations
+- Complex Queries: Centralize PostGIS queries in repository
+- SOLID: Follows Dependency Inversion Principle
 
 ## Anti-Patterns to Avoid
 
@@ -249,6 +325,8 @@ export class UsersService {
 2. **Don't over-engineer**: No need for DDD/Clean Architecture for MVP
 3. **Don't share business logic**: Each module owns its domain
 4. **Don't bypass module boundaries**: Import modules, not services directly
+5. **Don't use Prisma directly in services**: Always use Repository Pattern for data access
+6. **Don't skip repository interfaces**: Interface-based DI enables testing and flexibility
 
 ## Resources
 

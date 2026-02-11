@@ -465,6 +465,72 @@ class OrderRepository:
         order._events.clear()
 ```
 
+## NestJS Repository Pattern
+
+For NestJS applications, use the Repository Pattern with interface-based DI:
+
+```typescript
+// Repository Interface
+export interface IUsersRepository {
+  findById(id: string): Promise<User | null>;
+  findAll(options: PaginationOptions): Promise<User[]>;
+  create(data: CreateUserDto): Promise<User>;
+  update(id: string, data: UpdateUserDto): Promise<User>;
+  delete(id: string): Promise<void>;
+}
+
+export const USERS_REPOSITORY = Symbol('USERS_REPOSITORY');
+
+// Repository Implementation
+@Injectable()
+export class UsersRepository implements IUsersRepository {
+  constructor(private prisma: PrismaService) {}
+
+  async findById(id: string): Promise<User | null> {
+    return this.prisma.user.findUnique({ where: { id } });
+  }
+
+  async create(data: CreateUserDto): Promise<User> {
+    return this.prisma.user.create({ data });
+  }
+
+  // ... other methods
+}
+
+// Module Configuration
+@Module({
+  providers: [
+    UsersService,
+    {
+      provide: USERS_REPOSITORY,
+      useClass: UsersRepository,
+    },
+  ],
+})
+export class UsersModule {}
+
+// Service Usage
+@Injectable()
+export class UsersService {
+  constructor(
+    @Inject(USERS_REPOSITORY)
+    private usersRepository: IUsersRepository,
+  ) {}
+
+  async findById(id: string): Promise<User> {
+    const user = await this.usersRepository.findById(id);
+    if (!user) throw new NotFoundException('User not found');
+    return user;
+  }
+}
+```
+
+**Benefits:**
+- Testability: Mock repository interfaces in unit tests
+- Flexibility: Swap database implementations without changing business logic
+- SOLID: Follows Dependency Inversion Principle
+- PostGIS: Centralize complex geospatial queries in repositories
+
 ## Resources
 
 - **references/clean-architecture-guide.md**: Detailed layer breakdown
@@ -472,6 +538,7 @@ class OrderRepository:
 - **references/ddd-tactical-patterns.md**: Entities, value objects, aggregates
 - **assets/clean-architecture-template/**: Complete project structure
 - **assets/ddd-examples/**: Domain modeling examples
+- **nestjs-modular-monolith**: NestJS-specific modular architecture with Repository Pattern
 
 ## Best Practices
 
