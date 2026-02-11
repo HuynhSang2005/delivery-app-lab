@@ -95,6 +95,8 @@ Logship-MVP is a logistics delivery application connecting **Users** (customers)
 | Database | Neon (Serverless Postgres) | Free tier, PostGIS support, scale-to-zero |
 | Real-time | Socket.io + Redis Adapter | Room-based broadcasting, scalable |
 | Mobile Framework |  React Native + Expo SDK 54   | Cross-platform, OTA updates |
+| Mobile Framework |  React Native 0.81.0   | Latest stable |
+| Mobile Framework |  React 19.1.0   | Latest React |
 | State Management | Zustand + TanStack Query | Simple local state + powerful server state |
 | Authentication | Firebase Auth (OTP + Email) | Free tier, phone auth built-in |
 | Maps (Vietnam) | Goong Maps | Vietnam-optimized, competitive pricing |
@@ -509,7 +511,7 @@ Order Event                    BullMQ                         External Services
 | Maps | react-native-maps + **Goong Maps** | 1.x |
 | Location | expo-location + expo-task-manager | SDK 52 |
 | WebSocket | socket.io-client | 4.x |
-| Forms | React Hook Form + Zod | 3.23.8 |
+| Forms | React Hook Form + Zod | ^7.54.2 / ^4.3.6 |
 
 ### 5.2. Frontend (Web Admin)
 
@@ -528,10 +530,11 @@ Order Event                    BullMQ                         External Services
 
 | Category | Technology | Version |
 |----------|------------|---------|
-| Framework | NestJS | 11.x |
-| ORM | Prisma | 6.x |
+| Framework | NestJS | 11.1.6 |
+| ORM | Prisma | 7.3.0 |
+| **Data Access** | **Repository Pattern** | Interface-based |
 | WebSocket | @nestjs/websockets + Socket.io | 4.x |
-| Validation | class-validator + Zod | Latest |
+| Validation | Zod v4 + nestjs-zod | ^4.3.6 / ^4.0.0 |
 | Auth | Passport + JWT + Firebase Admin | Latest |
 | API Docs | Swagger/OpenAPI | Latest |
 | **Message Queue** | **@nestjs/bullmq** | 11.1.x |
@@ -571,7 +574,7 @@ Order Event                    BullMQ                         External Services
 ### 6.3. API Security
 
 - Rate limiting (100 req/min per user)
-- Input validation with Zod/class-validator
+- Input validation with Zod v4 + nestjs-zod
 - SQL injection prevention (Prisma parameterized queries)
 - CORS configured for known origins
 
@@ -599,7 +602,7 @@ This MVP is designed for **50 concurrent users**. For scaling beyond:
 | [04-Mobile-App-Technical-Spec.md](./04-Mobile-App-Technical-Spec.md) | React Native + Expo, Goong Maps |
 | [05-Admin-Dashboard-Spec.md](./05-Admin-Dashboard-Spec.md) | Web admin panel, TanStack Table |
 | [06-Development-Phases.md](./06-Development-Phases.md) | Timeline & milestones |
-| [07-Backend-Architecture.md](./07-Backend-Architecture.md) | **BullMQ, Caching, Security, Hey-API** |
+| [07-Backend-Architecture.md](./07-Backend-Architecture.md) | **Repository Pattern, Modular Monolith, Security** |
 
 ---
 
@@ -613,6 +616,7 @@ This MVP is designed for **50 concurrent users**. For scaling beyond:
 | OTA | Over-The-Air updates (Expo feature) |
 | RBAC | Role-Based Access Control |
 | COD | Cash On Delivery |
+| **Repository Pattern** | **Abstract data access layer with interfaces** |
 | BullMQ | Redis-based message queue for Node.js background jobs |
 | Hey-API | Tool to generate TypeScript clients from OpenAPI specs |
 | Goong Maps | Vietnam-optimized map service (geocoding, routing, tiles) |

@@ -1981,13 +1981,13 @@ async function bootstrap() {
 
 ---
 
-## 17. Hey-API Client Generation
+## 16. Hey-API Client Generation
 
 We use **Hey-API** (`@hey-api/openapi-ts`) to auto-generate type-safe TypeScript clients from our OpenAPI/Swagger spec.
 
 > **Detailed backend implementation**: See [07-Backend-Architecture.md](./07-Backend-Architecture.md) for NestJS Swagger configuration.
 
-### 17.1. Why Hey-API?
+### 16.1. Why Hey-API?
 
 | Feature | Hey-API | OpenAPI Generator |
 |---------|---------|-------------------|
@@ -2001,10 +2001,10 @@ We use **Hey-API** (`@hey-api/openapi-ts`) to auto-generate type-safe TypeScript
 
 ```bash
 # Install in frontend project (admin or mobile)
-bun add @hey-api/client-fetch @tanstack/react-query
+bun add @hey-api/client-fetch@0.10.0 @tanstack/react-query@5.66.0
 
 # Dev dependency for code generation
-bun add -d @hey-api/openapi-ts
+bun add -d @hey-api/openapi-ts@0.92.3
 ```
 
 **Configuration file (`hey-api.config.ts`):**
@@ -2046,7 +2046,7 @@ export default defineConfig({
 }
 ```
 
-### 17.3. Generated Files Structure
+### 16.3. Generated Files Structure
 
 ```
 src/lib/api/generated/

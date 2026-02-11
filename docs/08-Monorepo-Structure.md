@@ -182,15 +182,15 @@ apps/mobile/
   },
   "dependencies": {
     "@logship/shared-types": "workspace:*",
-    "@hey-api/client-fetch": "^0.8.1",
+    "@hey-api/client-fetch": "^0.10.0",
     "expo": "~54.0.0",
     "expo-router": "~5.0.0",
-    "react": "19.0.0",
+    "react": "19.1.0",
     "react-native": "0.81.0",
     "@tanstack/react-query": "^5.66.0"
   },
   "devDependencies": {
-    "@hey-api/openapi-ts": "^0.64.4",
+    "@hey-api/openapi-ts": "^0.92.3",
     "@logship/shared-config": "workspace:*",
     "typescript": "^5.7.3"
   }
@@ -257,14 +257,14 @@ apps/admin/
   },
   "dependencies": {
     "@logship/shared-types": "workspace:*",
-    "@hey-api/client-fetch": "^0.8.1",
+    "@hey-api/client-fetch": "^0.10.0",
     "next": "^15.1.6",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "@tanstack/react-query": "^5.66.0"
   },
   "devDependencies": {
-    "@hey-api/openapi-ts": "^0.64.4",
+    "@hey-api/openapi-ts": "^0.92.3",
     "@logship/shared-config": "workspace:*",
     "tailwindcss": "^4.0.4",
     "typescript": "^5.7.3"

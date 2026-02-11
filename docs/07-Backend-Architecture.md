@@ -121,13 +121,12 @@ This document provides comprehensive technical architecture for the Logship-MVP 
     "@nestjs/websockets": "^11.1.6",
     "@prisma/client": "^7.3.0",
     "bullmq": "^5.50.0",
-    "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.0",
     "cloudinary": "^2.5.0",
     "date-fns": "^4.1.0",
     "firebase-admin": "^13.0.0",
     "ioredis": "^5.4.0",
     "lodash": "^4.17.21",
+    "nestjs-zod": "^4.0.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.0",
     "reflect-metadata": "^0.2.0",
@@ -170,8 +169,8 @@ This document provides comprehensive technical architecture for the Logship-MVP 
 |----------|---------|---------|---------|
 | **Core** | `@nestjs/*` | ^11.1.6 | NestJS framework |
 | **API Docs** | `@nestjs/swagger` | ^11.1.6 | OpenAPI/Swagger |
-| **Validation** | `class-validator` | ^0.14.0 | DTO validation |
-| **Transform** | `class-transformer` | ^0.5.1 | Object transformation |
+| **Validation** | `zod` | ^4.3.6 | Schema validation (Zod v4) |
+| **Validation** | `nestjs-zod` | ^4.0.0 | Zod integration for NestJS |
 | **ORM** | `@prisma/client` | ^7.3.0 | **Prisma ORM** |
 | **ORM CLI** | `prisma` | ^7.3.0 | **Prisma CLI** |
 | **Queue** | `bullmq` | ^5.0.0 | Message queues |
@@ -199,9 +198,9 @@ This document provides comprehensive technical architecture for the Logship-MVP 
 
 ---
 
-## 3. Simplified Backend Folder Structure
+## 3. Backend Folder Structure with Repository Pattern
 
-For a solo developer MVP, we use a simplified modular structure:
+We use a modular structure with Repository Pattern for data access abstraction:
 
 ```
 apps/api/
@@ -214,71 +213,120 @@ apps/api/
 │   │   ├── firebase.config.ts           # Firebase Auth config
 │   │   └── swagger.config.ts            # OpenAPI/Swagger setup
 │   │
-│   ├── common/                          # Shared infrastructure
+│   ├── common/                          # Shared infrastructure (@Global)
 │   │   ├── decorators/
 │   │   │   ├── current-user.decorator.ts
-│   │   │   └── roles.decorator.ts
-│   │   ├── dto/
-│   │   │   └── pagination.dto.ts
+│   │   │   ├── roles.decorator.ts
+│   │   │   └── public.decorator.ts
 │   │   ├── filters/
+│   │   │   ├── zod-exception.filter.ts
 │   │   │   └── all-exceptions.filter.ts
-│   │   └── guards/
-│   │       ├── jwt-auth.guard.ts
-│   │       └── roles.guard.ts
+│   │   ├── guards/
+│   │   │   ├── jwt-auth.guard.ts
+│   │   │   └── roles.guard.ts
+│   │   ├── interceptors/
+│   │   │   ├── logging.interceptor.ts
+│   │   │   └── transform.interceptor.ts
+│   │   └── pipes/
+│   │       └── validation.pipe.ts
 │   │
 │   ├── database/                        # Database layer (Prisma + Neon)
-│   │   ├── prisma.module.ts
+│   │   ├── database.module.ts
 │   │   ├── prisma.service.ts            # Prisma Client
 │   │   └── geo.service.ts               # PostGIS helpers
 │   │
-│   ├── modules/                         # Feature modules (Simplified)
-│   │   │
-│   │   ├── auth/                        # Auth Module
-│   │   │   ├── auth.module.ts
-│   │   │   ├── auth.controller.ts
-│   │   │   ├── auth.service.ts
-│   │   │   └── dto/
-│   │   │       ├── send-otp.dto.ts
-│   │   │       └── verify-otp.dto.ts
-│   │   │
-│   │   ├── users/                       # Users Module
-│   │   │   ├── users.module.ts
-│   │   │   ├── users.controller.ts
-│   │   │   ├── users.service.ts
-│   │   │   └── dto/
-│   │   │       ├── create-user.dto.ts
-│   │   │       └── update-user.dto.ts
-│   │   │
-│   │   ├── drivers/                     # Drivers Module
-│   │   │   ├── drivers.module.ts
-│   │   │   ├── drivers.controller.ts
-│   │   │   ├── drivers.service.ts
-│   │   │   └── dto/
-│   │   │       └── driver.dto.ts
-│   │   │
-│   │   ├── orders/                      # Orders Module
-│   │   │   ├── orders.module.ts
-│   │   │   ├── orders.controller.ts
-│   │   │   ├── orders.service.ts
-│   │   │   └── dto/
-│   │   │       ├── create-order.dto.ts
-│   │   │       └── update-status.dto.ts
-│   │   │
-│   │   ├── chat/                        # Chat Module
-│   │   │   ├── chat.module.ts
-│   │   │   ├── chat.controller.ts
-│   │   │   ├── chat.service.ts
-│   │   │   └── dto/
-│   │   │       └── message.dto.ts
-│   │   │
-│   │   └── admin/                       # Admin Module
-│   │       ├── admin.module.ts
-│   │       ├── admin.controller.ts
-│   │       └── admin.service.ts
+│   ├── infrastructure/                  # External services
+│   │   ├── firebase/
+│   │   │   ├── firebase.module.ts
+│   │   │   ├── firebase.service.ts
+│   │   │   └── firebase.types.ts
+│   │   ├── redis/
+│   │   │   ├── redis.module.ts
+│   │   │   └── redis.service.ts
+│   │   ├── cloudinary/
+│   │   │   ├── cloudinary.module.ts
+│   │   │   └── cloudinary.service.ts
+│   │   └── queues/
+│   │       ├── queues.module.ts
+│   │       └── processors/
+│   │           ├── notification.processor.ts
+│   │           └── order-matching.processor.ts
 │   │
-│   └── gateway/                         # WebSocket Gateway
-│       ├── gateway.module.ts
-│       └── events.gateway.ts
+│   ├── gateway/                         # WebSocket Gateway
+│   │   ├── gateway.module.ts
+│   │   └── events.gateway.ts
+│   │
+│   └── modules/                         # Feature modules with Repository Pattern
+│       │
+│       ├── auth/                        # Auth Module
+│       │   ├── auth.module.ts
+│       │   ├── auth.controller.ts
+│       │   ├── auth.service.ts
+│       │   ├── dto/
+│       │   │   ├── login.dto.ts
+│       │   │   └── register.dto.ts
+│       │   └── interfaces/
+│       │       └── auth.interface.ts
+│       │
+│       ├── users/                       # Users Module
+│       │   ├── users.module.ts
+│       │   ├── users.controller.ts
+│       │   ├── users.service.ts
+│       │   ├── dto/
+│       │   │   ├── create-user.dto.ts
+│       │   │   └── update-user.dto.ts
+│       │   ├── repositories/
+│       │   │   ├── users.repository.ts
+│       │   │   └── users.repository.interface.ts
+│       │   └── interfaces/
+│       │       └── user.interface.ts
+│       │
+│       ├── drivers/                     # Drivers Module
+│       │   ├── drivers.module.ts
+│       │   ├── drivers.controller.ts
+│       │   ├── drivers.service.ts
+│       │   ├── dto/
+│       │   │   ├── create-driver.dto.ts
+│       │   │   └── update-location.dto.ts
+│       │   ├── repositories/
+│       │   │   ├── drivers.repository.ts
+│       │   │   └── drivers.repository.interface.ts
+│       │   └── interfaces/
+│       │       └── driver.interface.ts
+│       │
+│       ├── orders/                      # Orders Module
+│       │   ├── orders.module.ts
+│       │   ├── orders.controller.ts
+│       │   ├── orders.service.ts
+│       │   ├── dto/
+│       │   │   ├── create-order.dto.ts
+│       │   │   └── update-status.dto.ts
+│       │   ├── repositories/
+│       │   │   ├── orders.repository.ts
+│       │   │   └── orders.repository.interface.ts
+│       │   └── interfaces/
+│       │       └── order.interface.ts
+│       │
+│       ├── chat/                        # Chat Module
+│       │   ├── chat.module.ts
+│       │   ├── chat.controller.ts
+│       │   ├── chat.service.ts
+│       │   ├── dto/
+│       │   │   ├── create-message.dto.ts
+│       │   │   └── create-conversation.dto.ts
+│       │   ├── repositories/
+│       │   │   ├── chat.repository.ts
+│       │   │   └── chat.repository.interface.ts
+│       │   └── interfaces/
+│       │       └── chat.interface.ts
+│       │
+│       └── admin/                       # Admin Module
+│           ├── admin.module.ts
+│           ├── admin.controller.ts
+│           ├── admin.service.ts
+│           ├── dto/
+│           └── repositories/
+│               └── admin.repository.ts
 │
 ├── prisma/
 │   ├── schema.prisma                    # Prisma schema
@@ -287,11 +335,12 @@ apps/api/
 └── package.json
 ```
 
-**Note:** This simplified structure removes:
-- Separate repository layer (use Prisma directly in services)
-- Complex sub-folders (entities/, errors/, interceptors/, listeners/)
-- BullMQ queues (use simple async/await for MVP)
-- Redis caching (use in-memory or skip for MVP)
+**Key Features:**
+- **Repository Pattern**: Each feature module has repositories/ folder with interface + implementation
+- **Dependency Inversion**: Services depend on repository interfaces, not concrete implementations
+- **Testability**: Easy to mock repositories for unit testing
+- **Flexibility**: Can swap database implementations without affecting business logic
+- **PostGIS Support**: Complex geospatial queries centralized in repositories
 
 ---
 
@@ -299,28 +348,24 @@ apps/api/
 
 ### Module Components Overview
 
-Each feature module MUST follow this structure:
+Each feature module MUST follow this structure with Repository Pattern:
 
 ```
 modules/feature/
-├── feature.module.ts          # Module definition
-├── feature.controller.ts      # Route handlers
-├── feature.service.ts         # Business logic
-├── feature.repository.ts      # Database access (Repository Pattern)
-├── dto/                       # Data Transfer Objects
+├── feature.module.ts                    # Module definition
+├── feature.controller.ts                # Route handlers
+├── feature.service.ts                   # Business logic
+├── dto/                                 # Data Transfer Objects
 │   ├── create-feature.dto.ts
 │   ├── update-feature.dto.ts
 │   └── index.ts
-├── entities/                  # Domain entities
-│   └── feature.entity.ts
-├── errors/                    # Custom errors/exceptions
-│   ├── feature.errors.ts
-│   └── index.ts
-├── guards/                    # Route guards (if needed)
-├── pipes/                     # Validation pipes (if needed)
-├── decorators/                # Custom decorators (if needed)
-├── interceptors/              # Interceptors (if needed)
-└── listeners/                 # Event listeners (if needed)
+├── repositories/                        # Repository Pattern
+│   ├── feature.repository.ts            # Implementation
+│   └── feature.repository.interface.ts  # Interface
+├── interfaces/                          # Domain interfaces
+│   └── feature.interface.ts
+└── errors/                              # Custom errors (optional)
+    └── feature.errors.ts
 ```
 
 ### Component Responsibilities
@@ -330,7 +375,7 @@ modules/feature/
 | **Controller** | Handle HTTP requests/responses | `@Controller('users')` |
 | **Service** | Business logic, orchestration | `UsersService.createUser()` |
 | **Repository** | Database access, queries | `UsersRepository.findByEmail()` |
-| **DTO** | Data validation, transformation | `CreateUserDto` with class-validator |
+| **DTO** | Data validation, transformation | `CreateUserDto` with Zod schema |
 | **Entity** | Domain model, type definition | `UserEntity` interface/class |
 | **Error** | Custom exceptions | `UserNotFoundError` extends `NotFoundException` |
 | **Guard** | Authorization checks | `JwtAuthGuard`, `RolesGuard` |
@@ -340,18 +385,51 @@ modules/feature/
 
 ### Repository Pattern Implementation
 
+#### Interface Definition
+
 ```typescript
-// users.repository.ts
+// repositories/users.repository.interface.ts
+export interface IUsersRepository {
+  findById(id: string): Promise<User | null>;
+  findByPhone(phone: string): Promise<User | null>;
+  findByFirebaseUid(firebaseUid: string): Promise<User | null>;
+  findAll(options: PaginationOptions): Promise<User[]>;
+  create(data: CreateUserDto): Promise<User>;
+  update(id: string, data: UpdateUserDto): Promise<User>;
+  delete(id: string): Promise<void>;
+  count(): Promise<number>;
+}
+
+// Token for Dependency Injection
+export const USERS_REPOSITORY = Symbol('USERS_REPOSITORY');
+```
+
+#### Repository Implementation
+
+```typescript
+// repositories/users.repository.ts
 @Injectable()
-export class UsersRepository {
+export class UsersRepository implements IUsersRepository {
   constructor(private prisma: PrismaService) {}
 
   async findById(id: string): Promise<User | null> {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
-  async findByEmail(email: string): Promise<User | null> {
-    return this.prisma.user.findUnique({ where: { email } });
+  async findByPhone(phone: string): Promise<User | null> {
+    return this.prisma.user.findUnique({ where: { phone } });
+  }
+
+  async findByFirebaseUid(firebaseUid: string): Promise<User | null> {
+    return this.prisma.user.findUnique({ where: { firebaseUid } });
+  }
+
+  async findAll(options: PaginationOptions): Promise<User[]> {
+    return this.prisma.user.findMany({
+      skip: options.skip,
+      take: options.take,
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   async create(data: CreateUserDto): Promise<User> {
@@ -364,6 +442,61 @@ export class UsersRepository {
 
   async delete(id: string): Promise<void> {
     await this.prisma.user.delete({ where: { id } });
+  }
+
+  async count(): Promise<number> {
+    return this.prisma.user.count();
+  }
+}
+```
+
+#### Module Configuration
+
+```typescript
+// users.module.ts
+@Module({
+  imports: [DatabaseModule],
+  controllers: [UsersController],
+  providers: [
+    UsersService,
+    {
+      provide: USERS_REPOSITORY,
+      useClass: UsersRepository,
+    },
+  ],
+  exports: [UsersService],
+})
+export class UsersModule {}
+```
+
+#### Service Usage
+
+```typescript
+// users.service.ts
+@Injectable()
+export class UsersService {
+  constructor(
+    @Inject(USERS_REPOSITORY)
+    private usersRepository: IUsersRepository,
+    private firebaseService: FirebaseService,
+  ) {}
+
+  async findById(id: string): Promise<User> {
+    const user = await this.usersRepository.findById(id);
+    if (!user) {
+      throw new UserNotFoundError(id);
+    }
+    return user;
+  }
+
+  async createUser(data: CreateUserDto): Promise<User> {
+    // Business logic
+    const existing = await this.usersRepository.findByPhone(data.phone);
+    if (existing) {
+      throw new UserAlreadyExistsError(data.phone);
+    }
+
+    return this.usersRepository.create(data);
   }
 }
 ```
@@ -612,52 +745,106 @@ enum UserRole {
 }
 ```
 
-### 4.4. PostGIS Geospatial Queries
+### 4.4. PostGIS Geospatial Queries in Repository Pattern
+
+Geospatial queries are centralized in the Drivers Repository:
 
 ```typescript
-// src/database/geo.service.ts
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from './prisma.service';
+// modules/drivers/repositories/drivers.repository.interface.ts
+export interface IDriversRepository {
+  findById(id: string): Promise<Driver | null>;
+  findByUserId(userId: string): Promise<Driver | null>;
+  findNearestDrivers(
+    lat: number,
+    lng: number,
+    radius: number,
+    limit: number,
+  ): Promise<Driver[]>;
+  findActiveDrivers(): Promise<Driver[]>;
+  create(data: CreateDriverDto): Promise<Driver>;
+  updateLocation(
+    driverId: string,
+    lat: number,
+    lng: number,
+  ): Promise<Driver>;
+  updateStatus(
+    driverId: string,
+    status: DriverStatus,
+  ): Promise<Driver>;
+}
 
+export const DRIVERS_REPOSITORY = Symbol('DRIVERS_REPOSITORY');
+```
+
+```typescript
+// modules/drivers/repositories/drivers.repository.ts
 @Injectable()
-export class GeoService {
-  constructor(private prisma: PrismaService) {}
+export class DriversRepository implements IDriversRepository {
+  constructor(
+    private prisma: PrismaService,
+    private geoService: GeoService,
+  ) {}
+
+  async findById(id: string): Promise<Driver | null> {
+    return this.prisma.driver.findUnique({
+      where: { id },
+      include: { user: true },
+    });
+  }
 
   /**
    * Find nearest active drivers using PostGIS
-   * Runs on Neon PostgreSQL with PostGIS extension
+   * Centralized geospatial query in Repository
    */
   async findNearestDrivers(
     lat: number,
     lng: number,
-    radiusMeters: number = 5000,
-    limit: number = 5,
-  ) {
-    // Raw query using PostGIS functions
+    radius: number = 5000,
+    limit: number = 10,
+  ): Promise<Driver[]> {
     return this.prisma.$queryRaw`
       SELECT 
-        d.id,
-        d.user_id,
-        u.name,
-        u.phone,
+        d.*, 
+        u.name, 
+        u.phone, 
+        u.avatar_url,
         ST_Distance(
-          d.last_location, 
+          d.current_location,
           ST_MakePoint(${lng}, ${lat})::geography
-        ) as distance_meters
+        ) as distance
       FROM drivers d
       JOIN users u ON d.user_id = u.id
       WHERE d.status = 'ACTIVE'
         AND d.is_approved = true
-        AND d.last_location IS NOT NULL
+        AND d.is_online = true
         AND ST_DWithin(
-          d.last_location, 
+          d.current_location,
           ST_MakePoint(${lng}, ${lat})::geography,
-          ${radiusMeters}
+          ${radius}
         )
-      ORDER BY d.last_location <-> ST_MakePoint(${lng}, ${lat})::geography
+      ORDER BY distance
       LIMIT ${limit}
     `;
   }
+
+  async updateLocation(
+    driverId: string,
+    lat: number,
+    lng: number,
+  ): Promise<Driver> {
+    return this.prisma.driver.update({
+      where: { id: driverId },
+      data: {
+        currentLocation: {
+          type: 'Point',
+          coordinates: [lng, lat],
+        },
+        lastLocationAt: new Date(),
+      },
+    });
+  }
+
+  // ... other methods
 }
 ```
 
@@ -725,6 +912,167 @@ export function setupSwagger(app: INestApplication) {
 }
 ```
 
+### 7.2. Zod + OpenAPI Integration
+
+We use **nestjs-zod** for DTO validation with automatic OpenAPI schema generation.
+
+#### DTO with Zod Schema
+
+```typescript
+// src/modules/users/dto/create-user.dto.ts
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
+import { extendApi } from '@anatine/zod-openapi';
+
+// Define Zod schema
+export const CreateUserSchema = z.object({
+  phone: z.string().regex(/^\+84[0-9]{9,10}$/, 'Invalid Vietnamese phone number'),
+  name: z.string().min(2).max(100).optional(),
+  email: z.string().email().optional(),
+});
+
+// Extend with OpenAPI metadata (optional)
+export const CreateUserSchemaOpenApi = extendApi(CreateUserSchema, {
+  title: 'Create User Request',
+  description: 'Request body for creating a new user',
+});
+
+// Create DTO class using nestjs-zod
+export class CreateUserDto extends createZodDto(CreateUserSchemaOpenApi) {}
+
+// Export type for TypeScript usage
+export type CreateUserDtoType = z.infer<typeof CreateUserSchema>;
+```
+
+#### Controller with Swagger Decorators
+
+```typescript
+// src/modules/users/users.controller.ts
+import { Controller, Post, Body } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { CreateUserDto } from './dto/create-user.dto';
+
+@ApiTags('Users')
+@Controller('users')
+export class UsersController {
+  @Post()
+  @ApiOperation({ summary: 'Create a new user' })
+  @ApiResponse({ status: 201, description: 'User created successfully' })
+  @ApiResponse({ status: 400, description: 'Validation error' })
+  async create(@Body() createUserDto: CreateUserDto) {
+    // Zod validation happens automatically via nestjs-zod
+    return this.usersService.create(createUserDto);
+  }
+}
+```
+
+#### Zod Validation Pipe Setup
+
+```typescript
+// src/main.ts
+import { NestFactory } from '@nestjs/core';
+import { ZodValidationPipe } from 'nestjs-zod';
+import { AppModule } from './app.module';
+import { setupSwagger } from './config/swagger.config';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  
+  // Use ZodValidationPipe globally for automatic Zod validation
+  app.useGlobalPipes(new ZodValidationPipe());
+  
+  // Setup Swagger/OpenAPI
+  setupSwagger(app);
+  
+  await app.listen(3000);
+}
+bootstrap();
+```
+
+#### Zod Exception Filter
+
+```typescript
+// src/common/filters/zod-exception.filter.ts
+import { ExceptionFilter, Catch, ArgumentsHost, HttpStatus } from '@nestjs/common';
+import { ZodValidationException } from 'nestjs-zod';
+import { Response } from 'express';
+
+@Catch(ZodValidationException)
+export class ZodExceptionFilter implements ExceptionFilter {
+  catch(exception: ZodValidationException, host: ArgumentsHost) {
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse<Response>();
+    const zodError = exception.getZodError();
+
+    response.status(HttpStatus.BAD_REQUEST).json({
+      success: false,
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: 'Request validation failed',
+        details: zodError.errors.map(err => ({
+          path: err.path.join('.'),
+          message: err.message,
+        })),
+      },
+      timestamp: new Date().toISOString(),
+    });
+  }
+}
+```
+
+Register the filter in your app module:
+
+```typescript
+// src/app.module.ts
+import { Module } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
+import { ZodExceptionFilter } from './common/filters/zod-exception.filter';
+
+@Module({
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: ZodExceptionFilter,
+    },
+  ],
+})
+export class AppModule {}
+```
+
+### 7.3. Hey-API Configuration with Zod
+
+```typescript
+// hey-api.config.ts (in frontend project)
+import { defineConfig } from '@hey-api/openapi-ts';
+
+export default defineConfig({
+  client: '@hey-api/client-fetch',
+  input: 'http://localhost:3000/api/docs-json',
+  output: {
+    format: 'prettier',
+    path: 'src/lib/api/generated',
+  },
+  plugins: [
+    '@hey-api/sdk',
+    '@hey-api/typescript',
+    {
+      name: '@hey-api/zod',
+      output: 'zod',
+    },
+    {
+      name: '@tanstack/react-query',
+      output: 'queries',
+    },
+  ],
+});
+```
+
+This configuration:
+1. Generates TypeScript types from OpenAPI spec
+2. Generates Zod schemas for runtime validation
+3. Generates TanStack Query hooks for data fetching
+4. All types are derived from your Zod schemas automatically
+
 ---
 
 ## 8. Environment Variables
@@ -759,7 +1107,198 @@ GOONG_API_KEY="your-goong-key"
 
 ---
 
-## 9. Commands Reference
+## 9. Testing Architecture
+
+### 9.1. AI-Agent Driven Testing Strategy
+
+This backend uses **AI-Agent driven testing** where AI assistants generate, execute, and maintain tests alongside feature development.
+
+#### Testing Layers
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      TESTING PYRAMID                             │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│                    ┌──────────────┐                             │
+│                    │   E2E Tests  │  ← Critical flows only      │
+│                    │   (~10%)     │    (AI-Agent generates      │
+│                    └──────┬───────┘     after feature stable)   │
+│                           │                                     │
+│              ┌────────────┴────────────┐                       │
+│              │   Integration Tests     │  ← Module interactions │
+│              │        (~20%)           │    (Optional for MVP)  │
+│              └────────────┬────────────┘                       │
+│                           │                                     │
+│     ┌─────────────────────┴─────────────────────┐              │
+│     │              Unit Tests                    │  ← Primary  │
+│     │                 (~70%)                     │    focus    │
+│     │  - Services (mocked dependencies)          │             │
+│     │  - Controllers (mocked services)           │             │
+│     │  - DTOs (validation)                       │             │
+│     └───────────────────────────────────────────┘              │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### AI-Agent Testing Workflow
+
+**Phase 1: Explore & Understand**
+```typescript
+// AI-Agent reads implementation
+@Injectable()
+export class OrdersService {
+  constructor(
+    private prisma: PrismaService,
+    private geoService: GeoService,
+  ) {}
+
+  async create(dto: CreateOrderDto, userId: string): Promise<Order> {
+    // Business logic here
+  }
+}
+
+// AI-Agent identifies:
+// - Dependencies: PrismaService, GeoService
+// - Test scenarios: Create order, validation, error cases
+// - Mock strategy: mockDeep<PrismaService>(), mockDeep<GeoService>()
+```
+
+**Phase 2: Generate Tests**
+```typescript
+// AI-Agent generates: orders.service.spec.ts
+describe('OrdersService', () => {
+  let service: OrdersService;
+  let prisma: DeepMockProxy<PrismaService>;
+  let geoService: DeepMockProxy<GeoService>;
+
+  beforeEach(async () => {
+    const module = await Test.createTestingModule({
+      providers: [
+        OrdersService,
+        { provide: PrismaService, useValue: mockDeep<PrismaService>() },
+        { provide: GeoService, useValue: mockDeep<GeoService>() },
+      ],
+    }).compile();
+
+    service = module.get(OrdersService);
+    prisma = module.get(PrismaService);
+    geoService = module.get(GeoService);
+  });
+
+  describe('create', () => {
+    it('should create order with valid data', async () => {
+      // Test implementation
+    });
+
+    it('should calculate price using geoService', async () => {
+      // Test implementation
+    });
+
+    it('should throw if pickup location is invalid', async () => {
+      // Test implementation
+    });
+  });
+});
+```
+
+**Phase 3: Execute & Validate**
+```bash
+# AI-Agent runs tests
+bun run typecheck              # 1. TypeScript validation
+bun run test orders.service    # 2. Run specific tests
+bun run test:cov               # 3. Check coverage
+```
+
+**Phase 4: Iterate**
+- Fix failing tests
+- Add missing test cases
+- Re-run until all pass
+
+### 9.2. Test File Organization
+
+```
+apps/api/
+├── src/
+│   └── modules/
+│       └── orders/
+│           ├── orders.module.ts
+│           ├── orders.controller.ts
+│           ├── orders.service.ts
+│           ├── orders.controller.spec.ts     # Controller tests
+│           ├── orders.service.spec.ts        # Service tests
+│           └── dto/
+│               ├── create-order.dto.ts
+│               └── create-order.dto.spec.ts  # DTO validation tests
+│
+├── test/                                     # E2E tests
+│   ├── jest-e2e.json
+│   ├── app.e2e-spec.ts
+│   ├── auth.e2e-spec.ts
+│   └── orders.e2e-spec.ts
+│
+└── jest.config.js                            # Jest configuration
+```
+
+### 9.3. Testing Tools & Libraries
+
+| Tool | Purpose | Usage |
+|------|---------|-------|
+| **Jest** | Test runner | `bun run test` |
+| **@nestjs/testing** | NestJS test utilities | `Test.createTestingModule()` |
+| **jest-mock-extended** | Deep mocking | `mockDeep<PrismaService>()` |
+| **Supertest** | HTTP assertions | E2E testing |
+| **@golevelup/ts-jest** | Testing utilities | `createMock()` helper |
+
+### 9.4. Mocking Strategy
+
+```typescript
+// Mock external services
+const mockPrisma = mockDeep<PrismaService>();
+const mockFirebase = mockDeep<FirebaseAdminService>();
+const mockGeo = mockDeep<GeoService>();
+
+// Mock return values
+mockPrisma.order.create.mockResolvedValue(mockOrder);
+mockGeo.calculateDistance.mockReturnValue(5000); // 5km
+
+// Mock implementations
+mockPrisma.$transaction.mockImplementation(async (callback) => {
+  return callback(mockPrisma);
+});
+```
+
+### 9.5. Test Coverage Targets
+
+| Layer | Target | Priority |
+|-------|--------|----------|
+| Services | 80%+ | HIGH |
+| Controllers | 70%+ | MEDIUM |
+| DTOs | 50%+ | LOW |
+| Overall | 75%+ | HIGH |
+
+### 9.6. AI-Agent Testing Commands
+
+```bash
+# Generate tests for module
+"Generate unit tests for OrdersService"
+
+# Run specific tests
+bun run test -- orders.service
+
+# Run with coverage
+bun run test:cov -- --collectCoverageFrom="src/modules/orders/**/*.ts"
+
+# Watch mode for development
+bun run test:watch -- orders
+
+# E2E tests
+bun run test:e2e
+```
+
+---
+
+## 10. Commands Reference
 
 | Command | Description |
 |---------|-------------|
@@ -770,7 +1309,10 @@ GOONG_API_KEY="your-goong-key"
 | `bun run db:generate` | Generate Prisma Client |
 | `bun run db:migrate` | Run database migrations |
 | `bun run db:studio` | Open Prisma Studio |
-| `bun run test` | Run tests |
+| `bun run test` | Run unit tests |
+| `bun run test:watch` | Run tests in watch mode |
+| `bun run test:cov` | Run tests with coverage |
+| `bun run test:e2e` | Run E2E tests |
 | `bun run lint` | Run ESLint |
 
 ---
