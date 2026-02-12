@@ -3,7 +3,7 @@
 **Version:** 1.0  
 **Last Updated:** February 10, 2026  
 **Status:** 🟡 In Progress  
-**Target:** NestJS 11.1.6 + Prisma 7.3.0 + PostgreSQL + Redis  
+**Target:** NestJS 11.1.13 + Prisma 7.4.0 + PostgreSQL + Redis  
 
 ---
 
@@ -205,7 +205,7 @@ src/
 
 ### 3.3. Database Schema
 
-**See:** [02-Database-Design-Document.md](../../02-Database-Design-Document.md)
+**See:** [02-Database-Design-Document.md](../../../02-Database-Design-Document.md)
 
 **Key Tables:**
 - `users` - Customers, drivers, admins
@@ -272,7 +272,7 @@ src/
   - **Expected:** Complete schema with all tables
   - **File:** `prisma/schema.prisma`
   - **Verify:** `bunx prisma validate` passes
-  - **Reference:** [02-Database-Design-Document.md](../../02-Database-Design-Document.md)
+  - **Reference:** [02-Database-Design-Document.md](../../../02-Database-Design-Document.md)
   - **Time:** 3 hours
 
 - [ ] 1.2.3. Run initial migration
@@ -1183,10 +1183,10 @@ Before completing a feature, AI-Agent must:
 - [Firebase Admin SDK](https://firebase.google.com/docs/admin/setup)
 
 ### Project Docs
-- [00-Unified-Tech-Stack-Spec.md](../../00-Unified-Tech-Stack-Spec.md)
-- [02-Database-Design-Document.md](../../02-Database-Design-Document.md)
-- [03-API-Design-Document.md](../../03-API-Design-Document.md)
-- [07-Backend-Architecture.md](../../07-Backend-Architecture.md)
+- [00-Unified-Tech-Stack-Spec.md](../../../00-Unified-Tech-Stack-Spec.md)
+- [02-Database-Design-Document.md](../../../02-Database-Design-Document.md)
+- [03-API-Design-Document.md](../../../03-API-Design-Document.md)
+- [07-Backend-Architecture.md](../../../07-Backend-Architecture.md)
 
 ### Tools
 - **Prisma Studio:** `bun run db:studio`

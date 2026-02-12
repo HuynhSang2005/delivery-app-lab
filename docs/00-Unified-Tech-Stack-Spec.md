@@ -1,7 +1,7 @@
 # Logship-MVP: Unified Tech Stack Specification
 
 **Version:** 5.0  
-**Last Updated:** February 2025  
+**Last Updated:** February 2026  
 **Status:** Single Source of Truth for All Documentation
 
 ---
@@ -26,7 +26,7 @@ This document serves as the **single source of truth** for all technology decisi
 | Component | Version | Notes |
 |-----------|---------|-------|
 | **Runtime** | Bun 1.3.9+ | All-in-one JavaScript runtime |
-| **TypeScript** | ^5.7.3 | Strict mode enabled across all projects |
+| **TypeScript** | ^5.9.3 | Strict mode enabled across all projects |
 
 ---
 
@@ -36,9 +36,9 @@ This document serves as the **single source of truth** for all technology decisi
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `@nestjs/core` | ^11.1.6 | NestJS framework core |
-| `@nestjs/common` | ^11.1.6 | Common utilities |
-| `@nestjs/platform-express` | ^11.1.6 | HTTP platform adapter |
+| `@nestjs/core` | ^11.1.13 | NestJS framework core |
+| `@nestjs/common` | ^11.1.13 | Common utilities |
+| `@nestjs/platform-express` | ^11.1.13 | HTTP platform adapter |
 | `@nestjs/config` | ^4.0.0 | Configuration management |
 
 ### 2.2. Database (Neon PostgreSQL + PostGIS)
@@ -47,9 +47,9 @@ This document serves as the **single source of truth** for all technology decisi
 |-----------|------|-----------------|
 | **Neon** | Database Provider | Serverless PostgreSQL 17+ |
 | **PostGIS** | Geospatial Extension | Enabled on Neon |
-| **Prisma** | ORM | ^7.3.0 |
-| `@prisma/client` | Prisma Client | ^7.3.0 |
-| `prisma` | CLI | ^7.3.0 |
+| **Prisma** | ORM | ^7.4.0 |
+| `@prisma/client` | Prisma Client | ^7.4.0 |
+| `prisma` | CLI | ^7.4.0 |
 
 **CRITICAL:** Prisma is the ORM, Neon is the database. Never confuse these.
 
@@ -67,10 +67,10 @@ This document serves as the **single source of truth** for all technology decisi
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `@nestjs/websockets` | ^11.1.6 | WebSocket support |
-| `@nestjs/platform-socket.io` | ^11.1.6 | Socket.io adapter |
+| `@nestjs/websockets` | ^11.1.13 | WebSocket support |
+| `@nestjs/platform-socket.io` | ^11.1.13 | Socket.io adapter |
 | `socket.io` | ^4.8.1 | WebSocket server |
-| `@nestjs/bullmq` | ^11.1.6 | Queue integration |
+| `@nestjs/bullmq` | ^11.1.13 | Queue integration |
 | `bullmq` | ^5.50.0 | Message queues |
 | `ioredis` | ^5.5.0 | Redis client (Upstash) |
 
@@ -78,7 +78,7 @@ This document serves as the **single source of truth** for all technology decisi
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `@nestjs/swagger` | ^11.1.6 | OpenAPI/Swagger docs |
+| `@nestjs/swagger` | ^11.1.13 | OpenAPI/Swagger docs |
 
 ### 2.6. Validation & Utilities
 
@@ -100,11 +100,11 @@ This document serves as the **single source of truth** for all technology decisi
 | Package | Version | Purpose |
 |---------|---------|---------|
 | `expo` | ~54.0.0 | Expo SDK |
-| `react-native` | 0.81.0 | React Native |
-| `react` | 19.1.0 | React (Expo SDK 54 uses React 19.1) |
+| `react-native` | 0.84.0 | React Native |
+| `react` | 19.2.4 | React (Expo SDK 54 uses React 19.2) |
 | `expo-router` | ~5.0.0 | File-based routing |
 
-**NOTE:** Expo SDK 54 is the latest stable with React Native 0.81 and React 19.
+**NOTE:** Expo SDK 54 is the latest stable with React Native 0.84.0 and React 19.2.4.
 
 ### 3.2. State Management
 
@@ -141,9 +141,9 @@ This document serves as the **single source of truth** for all technology decisi
 | Package | Version | Purpose |
 |---------|---------|---------|
 | `nativewind` | ^4.1.0 | Tailwind for RN |
-| `tailwindcss` | ^4.0.0 | CSS framework |
+| `tailwindcss` | ^4.1.18 | CSS framework |
 | `@gorhom/bottom-sheet` | ^5.1.1 | Bottom sheets |
-| `@shopify/flash-list` | 1.7.1 | High-performance lists |
+| `@shopify/flash-list` | 2.2.2 | High-performance lists |
 | `react-native-toast-message` | ^2.2.1 | Toast notifications |
 | `react-native-gesture-handler` | ~2.24.0 | Gestures |
 | `react-native-reanimated` | ~4.0.0 | Animations |
@@ -192,9 +192,9 @@ This document serves as the **single source of truth** for all technology decisi
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `next` | ^15.2.0 | Next.js framework |
-| `react` | ^19.1.0 | React 19 |
-| `react-dom` | ^19.1.0 | React DOM |
+| `next` | ^16.1.6 | Next.js framework |
+| `react` | ^19.2.4 | React 19 |
+| `react-dom` | ^19.2.4 | React DOM |
 
 ### 4.2. State Management
 
@@ -211,7 +211,7 @@ This document serves as the **single source of truth** for all technology decisi
 | `class-variance-authority` | ^0.7.1 | Component variants |
 | `clsx` | ^2.1.1 | Class utilities |
 | `tailwind-merge` | ^3.0.1 | Tailwind class merging |
-| `tailwindcss` | ^4.0.0 | CSS framework |
+| `tailwindcss` | ^4.1.18 | CSS framework |
 | `tailwindcss-animate` | ^1.0.7 | Animations |
 
 ### 4.4. Forms & Validation
@@ -320,7 +320,7 @@ This document serves as the **single source of truth** for all technology decisi
     "packages/*"
   ],
   "devDependencies": {
-    "typescript": "^5.7.3"
+    "typescript": "^5.9.3"
   }
 }
 ```
@@ -331,7 +331,7 @@ This document serves as the **single source of truth** for all technology decisi
 logship-mvp/
 ├── apps/
 │   ├── mobile/          # React Native + Expo SDK 54
-│   ├── admin/           # Next.js 15
+│   ├── admin/           # Next.js 16
 │   └── api/             # NestJS 11
 ├── packages/
 │   ├── shared-types/    # Shared TypeScript types
@@ -351,7 +351,7 @@ logship-mvp/
 1. **Bun ONLY** - No npm, no pnpm, no yarn, no npx
 2. **Expo SDK 54** - Latest stable with React Native 0.81
 3. **React 19 for Mobile** - Expo SDK 54 uses React 19
-4. **React 19 for Web** - Next.js 15 uses React 19
+4. **React 19 for Web** - Next.js 16 uses React 19
 5. **Prisma is ORM, Neon is Database** - Never confuse these
 6. **Goong Maps for Vietnam** - Not Google Maps
 
@@ -528,7 +528,7 @@ NEXT_PUBLIC_GOONG_API_KEY="your-goong-api-key"
 
 ❌ WRONG: "React 18.3.1 for mobile (Expo SDK 52)"
 
-✅ CORRECT: "React 19.1.0 for mobile (Expo SDK 54), React 19.1.0 for web (Next.js 15)"
+✅ CORRECT: "React 19.2.4 for mobile (Expo SDK 54), React 19.2.4 for web (Next.js 16)"
 
 ### 11.5. Bun Runtime
 
@@ -542,7 +542,7 @@ NEXT_PUBLIC_GOONG_API_KEY="your-goong-api-key"
 
 | Date | Version | Changes |
 |------|---------|---------|
-| 2026-02-10 | 5.0 | Updated to General Delivery App, Expo SDK 54, React 19.1.0, Hey-API 0.92.3 |
+| 2026-02-10 | 5.0 | Updated to General Delivery App, Expo SDK 54, React 19.2.4, Hey-API 0.92.3 |
 | 2026-02-09 | 4.0 | Updated to Expo SDK 54, React Native 0.81, Prisma 7, Bun 1.3.9 |
 | 2025-02-03 | 3.0 | Updated all dependencies to latest versions, Bun-only policy |
 | 2025-02-03 | 2.0 | Complete rewrite with Bun, corrected versions, unified structure |

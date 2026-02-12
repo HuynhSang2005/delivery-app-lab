@@ -17,7 +17,7 @@ The project is developed by a solo developer, so efficiency and ease of developm
 
 ## Decision
 
-We will use **Expo SDK 54** with **React Native 0.81** for mobile development.
+We will use **Expo SDK 54** with **React Native 0.84.0** for mobile development.
 
 ## Consequences
 
@@ -86,7 +86,7 @@ We will use **Expo SDK 54** with **React Native 0.81** for mobile development.
 
 ## Important Note: Expo SDK Version
 
-**We use Expo SDK 54**, the latest stable release as of September 2025 with React Native 0.81 and React 19.
+**We use Expo SDK 54**, the latest stable release as of September 2025 with React Native 0.84.0 and React 19.
 
 ## Development Build Requirement
 
@@ -104,7 +104,7 @@ bunx eas build --profile development
 
 ## Notes
 
-- React 19.1 is used (Expo SDK 54 with React Native 0.81)
+- React 19.2.4 is used (Expo SDK 54 with React Native 0.84.0)
 - Latest React features available
 - Use `expo-dev-client` for development builds
 - Test background location on physical devices, not simulators

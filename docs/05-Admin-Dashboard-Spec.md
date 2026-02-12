@@ -1,8 +1,8 @@
 # Logship-MVP: Admin Dashboard Specification
 
-**Version:** 4.0  
-**Last Updated:** February 2026  
-**Framework:** React 19 / Next.js 15 (App Router)  
+**Version:** 5.0  
+**Last Updated:** February 2026
+**Framework:** React 19 / Next.js 16 (App Router)  
 **UI:** Tailwind CSS v4 + Shadcn/ui  
 **Package Manager:** Bun  
 
@@ -36,21 +36,23 @@ The Admin Dashboard is a web application for system administrators to manage use
 
 | Category | Technology | Version |
 |----------|------------|---------|
-| Framework | Next.js 15 (App Router) | ^15.2.0 |
-| Language | TypeScript | ^5.7.0 |
-| React | React 19 | ^19.0.0 |
+| Framework | Next.js 16 (App Router) | ^16.1.6 |
+| Language | TypeScript | ^5.9.3 |
+| React | React 19 | ^19.2.4 |
 | State (Server) | TanStack Query | ^5.60.0 |
 | State (Client) | Zustand | ^5.0.0 |
 | UI Components | Shadcn/ui + Radix UI | ^2.0.0 |
-| Styling | Tailwind CSS | ^4.0.0 |
+| Styling | Tailwind CSS | ^4.1.18 |
 | Tables | TanStack Table | ^8.20.0 |
 | Charts | Recharts | ^2.13.0 |
 | Maps | Goong JS (Mapbox GL compatible) | ^3.9.0 |
-| Forms | React Hook Form + Zod | ^7.54.2 / ^4.3.6 |
+| Forms | React Hook Form + Zod | ^7.71.1 / ^4.3.6 |
 | Icons | Lucide React | ^0.460.0 |
 | Date | date-fns | ^4.1.0 |
 | API Client | Hey-API | ^0.10.0 |
-| Package Manager | Bun | ^1.2.0 |
+| Package Manager | Bun | ^1.3.9 |
+
+> **⚠️ BREAKING CHANGES (Next.js 16):** Turbopack is now default, async request APIs required, middleware renamed to proxy, and more. See [Next.js 16 Migration Guide](#12-nextjs-16-migration-guide) below.
 
 ---
 
@@ -128,9 +130,10 @@ apps/admin/
     "build": "bunx next build",
     "start": "bunx next start",
     "generate:api": "bunx openapi-ts",
-    "typecheck": "bunx tsc --noEmit",
-    "lint": "bunx next lint"
+    "typecheck": "bunx tsc --noEmit"
   },
+  
+> **⚠️ BREAKING CHANGE:** `next lint` command has been removed in Next.js 16. Use `bunx eslint` directly or configure lint script as `"lint": "bunx eslint ."`.
   "dependencies": {
     "@hey-api/client-fetch": "^0.10.0",
     "@radix-ui/react-accordion": "^1.2.0",
@@ -170,13 +173,13 @@ apps/admin/
     "input-otp": "^1.4.0",
     "lodash-es": "^4.17.21",
     "lucide-react": "^0.475.0",
-    "mapbox-gl": "^3.9.0",
-    "next": "^15.2.0",
+    "mapbox-gl": "^3.10.0",
+    "next": "^16.1.6",
     "next-themes": "^0.4.0",
     "nuqs": "^2.2.0",
-    "react": "^19.1.0",
+    "react": "^19.2.4",
     "react-day-picker": "^9.5.1",
-    "react-dom": "^19.1.0",
+    "react-dom": "^19.2.4",
     "react-error-boundary": "^5.0.0",
     "react-hook-form": "^7.54.2",
     "@hookform/resolvers": "^4.0.0",
@@ -185,7 +188,7 @@ apps/admin/
     "socket.io-client": "^4.8.0",
     "sonner": "^1.7.0",
     "tailwind-merge": "^2.5.0",
-    "tailwindcss": "^4.0.0",
+    "tailwindcss": "^4.1.18",
     "tailwindcss-animate": "^1.0.7",
     "use-debounce": "^10.0.0",
     "vaul": "^1.1.0",
@@ -197,9 +200,9 @@ apps/admin/
     "@types/lodash-es": "^4.17.12",
     "@types/mapbox-gl": "^3.4.0",
     "@types/node": "^20.0.0",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "typescript": "^5.7.0"
+    "@types/react": "^19.2.4",
+    "@types/react-dom": "^19.2.4",
+    "typescript": "^5.9.3"
   }
 }
 ```
@@ -208,26 +211,26 @@ apps/admin/
 
 | Category | Library | Version | Purpose |
 |----------|---------|---------|---------|
-| **Framework** | `next` | ^15.2.0 | Next.js 15 App Router |
-| **React** | `react` | ^19.1.0 | React 19 |
-| **React DOM** | `react-dom` | ^19.1.0 | React DOM |
+| **Framework** | `next` | ^16.1.6 | Next.js 16 App Router |
+| **React** | `react` | ^19.2.4 | React 19 |
+| **React DOM** | `react-dom` | ^19.2.4 | React DOM |
 | **API Client** | `@hey-api/client-fetch` | ^0.10.0 | Type-safe API client |
 | **State (Server)** | `@tanstack/react-query` | ^5.60.0 | Server state management |
 | **State (Client)** | `zustand` | ^5.0.0 | Client state management |
 | **UI Components** | `@radix-ui/react-*` | ^1.1-2.1.0 | Headless UI primitives |
-| **Styling** | `tailwindcss` | ^3.4.17 | Utility-first CSS |
+| **Styling** | `tailwindcss` | ^4.1.18 | Utility-first CSS |
 | **Tables** | `@tanstack/react-table` | ^8.20.0 | Data tables |
 | **Charts** | `recharts` | ^2.13.0 | Charts & graphs |
-| **Maps** | `mapbox-gl` | ^3.9.0 | Map rendering (Goong tiles) |
-| **Forms** | `react-hook-form` | ^7.54.0 | Form handling |
+| **Maps** | `mapbox-gl` | ^3.10.0 | Map rendering (Goong tiles) |
+| **Forms** | `react-hook-form` | ^7.71.1 | Form handling |
 | **Validation** | `zod` | ^4.3.6 | Schema validation (Zod v4 - latest) |
-| **Animations** | `framer-motion` | ^11.15.0 | UI animations |
+| **Animations** | `framer-motion` | ^12.4.2 | UI animations |
 | **Command Palette** | `cmdk` | ^1.0.0 | Command menu |
 | **Drawer** | `vaul` | ^1.1.0 | Drawer component |
 | **URL State** | `nuqs` | ^2.2.0 | Query string state |
 | **Debounce** | `use-debounce` | ^10.0.0 | Debounce hooks |
 | **Themes** | `next-themes` | ^0.4.0 | Dark/light mode |
-| **Error Handling** | `react-error-boundary` | ^4.1.0 | Error boundaries |
+| **Error Handling** | `react-error-boundary` | ^5.0.0 | Error boundaries |
 | **Real-time** | `socket.io-client` | ^4.8.0 | WebSocket client |
 
 > **Note:** We use `mapbox-gl` as the rendering library since Goong JS tiles are Mapbox GL compatible.
@@ -369,7 +372,7 @@ export { client };
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -387,6 +390,8 @@ export default function DashboardLayout({
   );
 }
 ```
+
+> **⚠️ BREAKING CHANGE (Next.js 16):** Layout components can now be async. This enables using async APIs like cookies() and headers() directly in layouts.
 
 ### 7.2. Sidebar Component
 
@@ -489,9 +494,258 @@ NEXT_PUBLIC_GOONG_API_KEY=your-api-key
 | `bun run typecheck` | TypeScript type check |
 | `bun run lint` | Run ESLint |
 
+### 7.3. Async Request APIs (Next.js 16)
+
+> **⚠️ BREAKING CHANGE:** In Next.js 16, `cookies()`, `headers()`, `params`, and `searchParams` are now async and must be awaited.
+
+#### Old Pattern (Next.js 15 and earlier)
+
+```typescript
+// app/users/[id]/page.tsx
+export default function UserPage({ 
+  params 
+}: { 
+  params: { id: string } 
+}) {
+  // params was synchronous
+  const { id } = params;
+  return <div>User {id}</div>;
+}
+
+// Using cookies
+import { cookies } from 'next/headers';
+
+export default function Page() {
+  const cookieStore = cookies();
+  const token = cookieStore.get('token');
+  // ...
+}
+```
+
+#### New Pattern (Next.js 16)
+
+```typescript
+// app/users/[id]/page.tsx
+export default async function UserPage({ 
+  params 
+}: { 
+  params: Promise<{ id: string }> 
+}) {
+  // params is now async - must await
+  const { id } = await params;
+  return <div>User {id}</div>;
+}
+
+// Using cookies
+import { cookies } from 'next/headers';
+
+export default async function Page() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('token');
+  // ...
+}
+```
+
+#### SearchParams Example
+
+```typescript
+// app/search/page.tsx
+export default async function SearchPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const params = await searchParams;
+  const query = params.q;
+  
+  return <div>Search results for: {query}</div>;
+}
+```
+
+### 7.4. proxy.ts (Replaces middleware.ts)
+
+> **⚠️ BREAKING CHANGE:** `middleware.ts` has been renamed to `proxy.ts` in Next.js 16.
+
+```typescript
+// proxy.ts (root of app directory)
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+export async function proxy(request: NextRequest) {
+  // Check authentication
+  const token = request.cookies.get('auth-token');
+  
+  if (!token && request.nextUrl.pathname.startsWith('/dashboard')) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+  
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ['/dashboard/:path*', '/api/protected/:path*'],
+};
+```
+
+### 7.4. next.config.ts (Next.js 16)
+
+> **⚠️ BREAKING CHANGES:** 
+> - `experimental.turbopack` is now just `turbopack`
+> - `experimental.ppr` is now `cacheComponents`
+> - `serverRuntimeConfig`/`publicRuntimeConfig` removed (use env vars)
+
+```typescript
+// next.config.ts
+import type { NextConfig } from 'next';
+
+const nextConfig: NextConfig = {
+  // Turbopack is now the default (replaces Webpack)
+  turbopack: {
+    // Turbopack configuration
+    resolveExtensions: ['.tsx', '.ts', '.jsx', '.js'],
+  },
+  
+  // PPR renamed to cacheComponents
+  cacheComponents: true,
+  
+  // React Compiler is now stable
+  reactCompiler: true,
+  
+  // Environment variables (replaces runtimeConfig)
+  env: {
+    CUSTOM_KEY: process.env.CUSTOM_KEY,
+  },
+  
+  // New caching APIs
+  experimental: {
+    // Other experimental features
+  },
+};
+
+export default nextConfig;
+```
+
+### 7.5. New Caching APIs (Next.js 16)
+
+Next.js 16 introduces new caching APIs:
+
+```typescript
+import { updateTag, refresh } from 'next/cache';
+
+// Invalidate cache by tag
+export async function updateUser() {
+  'use server';
+  // ... update user logic
+  
+  // Invalidate all cached data with this tag
+  updateTag('user-data');
+}
+
+// Refresh page data
+export async function refreshData() {
+  'use server';
+  refresh();
+}
+```
+
 ---
 
-## 10. Related Documents
+## 11. Next.js 16 Migration Guide
+
+### Breaking Changes Summary
+
+| Feature | Old (Next.js 15) | New (Next.js 16) |
+|---------|------------------|------------------|
+| Build Tool | Webpack (default) | Turbopack (default) |
+| Request APIs | Synchronous | Async (must await) |
+| Middleware | `middleware.ts` | `proxy.ts` |
+| PPR Config | `experimental.ppr` | `cacheComponents` |
+| Lint Command | `next lint` | Removed (use ESLint directly) |
+| Runtime Config | `serverRuntimeConfig` | Removed (use env vars) |
+| React Compiler | Experimental | Stable |
+
+### Migration Checklist
+
+- [ ] Rename `middleware.ts` to `proxy.ts`
+- [ ] Update `proxy` function to be async if using cookies/headers
+- [ ] Update all page components to handle async `params` and `searchParams`
+- [ ] Update all usages of `cookies()` and `headers()` to await them
+- [ ] Update `next.config.ts`:
+  - [ ] Move `experimental.turbopack` to `turbopack`
+  - [ ] Rename `experimental.ppr` to `cacheComponents`
+  - [ ] Remove `serverRuntimeConfig`/`publicRuntimeConfig`
+- [ ] Update package.json scripts (remove `next lint`)
+- [ ] Test thoroughly with Turbopack (now default)
+
+### Before/After Examples
+
+#### Page with Params
+
+**Before:**
+```typescript
+export default function Page({ params }: { params: { slug: string } }) {
+  return <div>{params.slug}</div>;
+}
+```
+
+**After:**
+```typescript
+export default async function Page({ 
+  params 
+}: { 
+  params: Promise<{ slug: string }> 
+}) {
+  const { slug } = await params;
+  return <div>{slug}</div>;
+}
+```
+
+#### Middleware/Proxy
+
+**Before (middleware.ts):**
+```typescript
+export function middleware(request: NextRequest) {
+  return NextResponse.next();
+}
+```
+
+**After (proxy.ts):**
+```typescript
+export async function proxy(request: NextRequest) {
+  return NextResponse.next();
+}
+```
+
+#### next.config.ts
+
+**Before:**
+```typescript
+const nextConfig = {
+  experimental: {
+    turbopack: {},
+    ppr: true,
+  },
+  serverRuntimeConfig: {
+    secret: process.env.SECRET,
+  },
+};
+```
+
+**After:**
+```typescript
+const nextConfig = {
+  turbopack: {},
+  cacheComponents: true,
+  reactCompiler: true,
+  env: {
+    secret: process.env.SECRET,
+  },
+};
+```
+
+---
+
+## 12. Related Documents
 
 | Document | Description |
 |----------|-------------|
@@ -504,7 +758,7 @@ NEXT_PUBLIC_GOONG_API_KEY=your-api-key
 
 ---
 
-## 11. Testing Checklist
+## 13. Testing Checklist
 
 - [ ] Login with admin credentials
 - [ ] View dashboard stats and charts

@@ -21,7 +21,7 @@ Single source of truth for all technology decisions.
 - Package manager (Bun)
 - Backend stack (NestJS, Prisma, etc.)
 - Mobile stack (Expo SDK 54, React Native)
-- Admin stack (Next.js 15, Tailwind)
+- Admin stack (Next.js 16, Tailwind)
 - Infrastructure (Neon, Redis, Firebase)
 - Version consistency rules
 - Common mistakes to avoid
@@ -246,6 +246,7 @@ Architecture Decision Records explaining "why" choices were made.
 | [ADR-004](./adr/ADR-004-expo-react-native.md) | Use Expo + React Native for Mobile | Accepted |
 | [ADR-005](./adr/ADR-005-goong-maps.md) | Use Goong Maps for Vietnam Market | Accepted |
 | [ADR-006](./adr/ADR-006-bun-workspaces.md) | Use Bun Workspaces for Monorepo | Accepted |
+| [ADR-007](./adr/ADR-007-repository-pattern.md) | Use Repository Pattern for Data Access | Accepted |
 
 **When to read:** When questioning architectural decisions
 

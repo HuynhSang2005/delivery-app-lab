@@ -23,7 +23,7 @@ Common issues and solutions for Logship-MVP development.
 ### Issue: Bun install fails
 
 **Symptoms:**
-```
+```text
 error: Failed to install
 ```
 
@@ -49,7 +49,7 @@ error: Failed to install
 ### Issue: TypeScript errors after updating packages
 
 **Symptoms:**
-```
+```text
 TS2345: Argument of type 'X' is not assignable to parameter of type 'Y'
 ```
 
@@ -73,7 +73,7 @@ TS2345: Argument of type 'X' is not assignable to parameter of type 'Y'
 ### Issue: Prisma migrate fails
 
 **Symptoms:**
-```
+```text
 Error: P3005: The database schema is not empty
 ```
 
@@ -90,10 +90,130 @@ Error: P3005: The database schema is not empty
 
 ---
 
+### Issue: Prisma 7 ESM errors
+
+**Symptoms:**
+```text
+Error [ERR_REQUIRE_ESM]: require() of ES Module not supported
+```
+
+**Solutions:**
+1. Add `"type": "module"` to package.json:
+   ```json
+   {
+     "name": "@logship/api",
+     "type": "module"
+   }
+   ```
+
+2. Use `.js` extension for imports:
+   ```typescript
+   import { prisma } from './prisma/client.js';
+   ```
+
+3. Update tsconfig.json for ESM:
+   ```json
+   {
+     "compilerOptions": {
+       "module": "ESNext",
+       "moduleResolution": "bundler"
+     }
+   }
+   ```
+
+---
+
+### Issue: Prisma 7 driver adapter errors
+
+**Symptoms:**
+```text
+Error: No driver adapter provided
+```
+
+**Solutions:**
+1. Install driver adapter:
+   ```bash
+   bun add @prisma/adapter-pg
+   ```
+
+2. Update PrismaClient instantiation:
+   ```typescript
+   import { PrismaClient } from '../generated/prisma/client';
+   import { PrismaPg } from '@prisma/adapter-pg';
+   
+   const adapter = new PrismaPg({
+     connectionString: process.env.DATABASE_URL,
+   });
+   
+   export const prisma = new PrismaClient({ adapter });
+   ```
+
+3. Ensure `prisma.config.ts` exists:
+   ```typescript
+   import 'dotenv/config'
+   import { defineConfig, env } from 'prisma/config'
+   
+   export default defineConfig({
+     schema: 'prisma/schema.prisma',
+     datasource: {
+       url: env('DATABASE_URL'),
+     },
+   })
+   ```
+
+---
+
+### Issue: Prisma 7 environment variables not loading
+
+**Symptoms:**
+```text
+Error: DATABASE_URL is not defined
+```
+
+**Solutions:**
+1. Import dotenv in prisma.config.ts:
+   ```typescript
+   import 'dotenv/config'
+   ```
+
+2. Ensure .env file exists in project root or api directory
+
+3. Load dotenv in entry files:
+   ```typescript
+   // main.ts
+   import 'dotenv/config';
+   ```
+
+---
+
+### Issue: Prisma 7 seed not running automatically
+
+**Symptoms:**
+```text
+Seed script not executed after migration
+```
+
+**Solutions:**
+1. Run seed manually (Prisma 7 no longer auto-seeds):
+   ```bash
+   bunx prisma db seed
+   ```
+
+2. Configure seed in package.json:
+   ```json
+   {
+     "prisma": {
+       "seed": "bunx ts-node prisma/seed.ts"
+     }
+   }
+   ```
+
+---
+
 ### Issue: PostGIS functions not working
 
 **Symptoms:**
-```
+```text
 ERROR: function st_distance(unknown, unknown) does not exist
 ```
 
@@ -113,7 +233,7 @@ ERROR: function st_distance(unknown, unknown) does not exist
 ### Issue: Neon connection timeout
 
 **Symptoms:**
-```
+```text
 Error: P1001: Can't reach database server
 ```
 
@@ -134,12 +254,14 @@ Error: P1001: Can't reach database server
 ### Issue: Expo Go crashes on startup
 
 **Symptoms:**
+```text
 App crashes immediately after opening
+```
 
 **Solutions:**
 1. Clear Expo cache:
    ```bash
-   npx expo start --clear
+   bunx expo start --clear
    ```
 
 2. Reinstall node_modules:
@@ -155,7 +277,9 @@ App crashes immediately after opening
 ### Issue: Background location not working
 
 **Symptoms:**
+```text
 Location updates stop when app is in background
+```
 
 **Solutions:**
 1. Use development build (not Expo Go):
@@ -183,7 +307,9 @@ Location updates stop when app is in background
 ### Issue: Maps not showing (Goong Maps)
 
 **Symptoms:**
+```text
 Blank map or tiles not loading
+```
 
 **Solutions:**
 1. Verify API keys in .env:
@@ -209,7 +335,7 @@ Blank map or tiles not loading
 ### Issue: NestJS won't start
 
 **Symptoms:**
-```
+```text
 Error: Cannot find module '@nestjs/core'
 ```
 
@@ -232,10 +358,93 @@ Error: Cannot find module '@nestjs/core'
 
 ---
 
+### Issue: Next.js 16 async params errors
+
+**Symptoms:**
+```text
+Error: params should be awaited
+```
+
+**Solutions:**
+1. Make page component async and await params:
+   ```typescript
+   export default async function Page({ 
+     params 
+   }: { 
+     params: Promise<{ slug: string }> 
+   }) {
+     const { slug } = await params;
+     return <div>{slug}</div>;
+   }
+   ```
+
+2. Await cookies() and headers():
+   ```typescript
+   import { cookies } from 'next/headers';
+   
+   export default async function Page() {
+     const cookieStore = await cookies();
+     const token = cookieStore.get('token');
+     // ...
+   }
+   ```
+
+---
+
+### Issue: Next.js 16 middleware not working
+
+**Symptoms:**
+```text
+middleware.ts not being executed
+```
+
+**Solutions:**
+1. Rename `middleware.ts` to `proxy.ts`:
+   ```typescript
+   // proxy.ts
+   import { NextResponse } from 'next/server';
+   import type { NextRequest } from 'next/server';
+   
+   export async function proxy(request: NextRequest) {
+     return NextResponse.next();
+   }
+   ```
+
+2. Ensure proxy.ts is in the root of app directory
+
+---
+
+### Issue: Next.js 16 Turbopack errors
+
+**Symptoms:**
+```text
+Error: Module not found with Turbopack
+```
+
+**Solutions:**
+1. Check for webpack-specific configurations and update for Turbopack:
+   ```typescript
+   // next.config.ts
+   const nextConfig = {
+     turbopack: {
+       resolveExtensions: ['.tsx', '.ts', '.jsx', '.js'],
+     },
+   };
+   ```
+
+2. Some webpack plugins may need alternatives for Turbopack
+
+3. Force webpack if needed (not recommended):
+   ```bash
+   bunx next dev --webpack
+   ```
+
+---
+
 ### Issue: Firebase Auth verification fails
 
 **Symptoms:**
-```
+```text
 Error: Firebase ID token has incorrect "aud" (audience) claim
 ```
 
@@ -255,7 +464,7 @@ Error: Firebase ID token has incorrect "aud" (audience) claim
 ### Issue: WebSocket connection fails
 
 **Symptoms:**
-```
+```text
 Error: Connection refused
 ```
 
@@ -277,7 +486,7 @@ Error: Connection refused
 ### Issue: Build fails on Vercel
 
 **Symptoms:**
-```
+```text
 Error: Command "bun run build" exited with 1
 ```
 
@@ -303,7 +512,9 @@ Error: Command "bun run build" exited with 1
 ### Issue: EAS Build fails
 
 **Symptoms:**
+```text
 Build fails with native module errors
+```
 
 **Solutions:**
 1. Update EAS CLI:
@@ -326,7 +537,7 @@ Build fails with native module errors
 ### Issue: Environment variables not loading
 
 **Symptoms:**
-```
+```text
 Error: DATABASE_URL is not defined
 ```
 
@@ -345,7 +556,9 @@ Error: DATABASE_URL is not defined
 ### Issue: Git hooks not running
 
 **Symptoms:**
+```text
 Pre-commit hooks don't execute
+```
 
 **Solutions:**
 1. Install husky:
@@ -376,7 +589,7 @@ bunx prisma migrate reset
 
 # Clear all caches
 bun pm cache rm
-npx expo start --clear
+bunx expo start --clear
 ```
 
 ### Check Versions
@@ -385,8 +598,43 @@ npx expo start --clear
 # Check all versions
 bun --version
 node --version
-npx expo --version
+bunx expo --version
 bunx prisma --version
+bunx next --version
+```
+
+### Prisma 7 Verification
+
+```bash
+# Verify Prisma 7 installation
+bunx prisma --version
+# Should show: prisma 7.4.0 or higher
+
+# Check generated client
+ls apps/api/generated/prisma/
+# Should contain: client.d.ts, client.js, etc.
+
+# Verify ESM configuration
+cat apps/api/package.json | grep '"type"'
+# Should show: "type": "module"
+```
+
+### Next.js 16 Verification
+
+```bash
+# Verify Next.js 16 installation
+bunx next --version
+# Should show: 16.x.x
+
+# Check Turbopack is running
+# Look for "Turbopack" in dev server output
+
+# Verify proxy.ts exists
+ls apps/admin/proxy.ts
+
+# Check async APIs are awaited
+grep -r "await cookies()" apps/admin/
+grep -r "await headers()" apps/admin/
 ```
 
 ### Verify Environment

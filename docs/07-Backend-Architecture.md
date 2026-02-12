@@ -1,7 +1,7 @@
 # Logship-MVP: Backend Architecture Document
 
-**Version:** 4.0  
-**Last Updated:** February 2026  
+**Version:** 5.0  
+**Last Updated:** February 2026
 **Framework:** NestJS 11.1.x  
 **Runtime:** Bun 1.3+  
 **Database:** Neon Serverless PostgreSQL + PostGIS  
@@ -106,20 +106,20 @@ This document provides comprehensive technical architecture for the Logship-MVP 
     "db:seed": "bunx ts-node prisma/seed.ts"
   },
   "dependencies": {
-    "@nestjs/bullmq": "^11.1.6",
-    "@nestjs/common": "^11.1.6",
+    "@nestjs/bullmq": "^11.1.13",
+    "@nestjs/common": "^11.1.13",
     "@nestjs/config": "^4.0.0",
-    "@nestjs/core": "^11.1.6",
-    "@nestjs/jwt": "^11.1.6",
-    "@nestjs/passport": "^11.1.6",
-    "@nestjs/platform-express": "^11.1.6",
-    "@nestjs/platform-socket.io": "^11.1.6",
+    "@nestjs/core": "^11.1.13",
+    "@nestjs/jwt": "^11.1.13",
+    "@nestjs/passport": "^11.1.13",
+    "@nestjs/platform-express": "^11.1.13",
+    "@nestjs/platform-socket.io": "^11.1.13",
     "@nestjs/schedule": "^5.0.1",
-    "@nestjs/swagger": "^11.1.6",
+    "@nestjs/swagger": "^11.1.13",
     "@nestjs/terminus": "^11.0.1",
     "@nestjs/throttler": "^6.5.0",
-    "@nestjs/websockets": "^11.1.6",
-    "@prisma/client": "^7.3.0",
+    "@nestjs/websockets": "^11.1.13",
+    "@prisma/client": "^7.4.0",
     "bullmq": "^5.50.0",
     "cloudinary": "^2.5.0",
     "date-fns": "^4.1.0",
@@ -154,11 +154,11 @@ This document provides comprehensive technical architecture for the Logship-MVP 
     "eslint-plugin-prettier": "^5.0.0",
     "jest": "^29.7.0",
     "prettier": "^3.4.0",
-    "prisma": "^7.3.0",
+    "prisma": "^7.4.0",
     "ts-jest": "^29.2.0",
     "ts-node": "^10.9.0",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.9.3"
   }
 }
 ```
@@ -167,19 +167,19 @@ This document provides comprehensive technical architecture for the Logship-MVP 
 
 | Category | Library | Version | Purpose |
 |----------|---------|---------|---------|
-| **Core** | `@nestjs/*` | ^11.1.6 | NestJS framework |
-| **API Docs** | `@nestjs/swagger` | ^11.1.6 | OpenAPI/Swagger |
+| **Core** | `@nestjs/*` | ^11.1.13 | NestJS framework |
+| **API Docs** | `@nestjs/swagger` | ^11.1.13 | OpenAPI/Swagger |
 | **Validation** | `zod` | ^4.3.6 | Schema validation (Zod v4) |
 | **Validation** | `nestjs-zod` | ^4.0.0 | Zod integration for NestJS |
-| **ORM** | `@prisma/client` | ^7.3.0 | **Prisma ORM** |
-| **ORM CLI** | `prisma` | ^7.3.0 | **Prisma CLI** |
+| **ORM** | `@prisma/client` | ^7.4.0 | **Prisma ORM** |
+| **ORM CLI** | `prisma` | ^7.4.0 | **Prisma CLI** |
 | **Queue** | `bullmq` | ^5.0.0 | Message queues |
 | **Redis** | `ioredis` | ^5.4.0 | Redis client |
-| **Auth** | `@nestjs/jwt` | ^11.1.6 | JWT tokens |
-| **Auth** | `@nestjs/passport` | ^11.1.6 | Passport integration |
+| **Auth** | `@nestjs/jwt` | ^11.1.13 | JWT tokens |
+| **Auth** | `@nestjs/passport` | ^11.1.13 | Passport integration |
 | **Auth** | `passport-jwt` | ^4.0.0 | JWT strategy |
 | **Auth** | `firebase-admin` | ^13.0.0 | Firebase Auth |
-| **WebSocket** | `@nestjs/websockets` | ^11.1.6 | Socket.io |
+| **WebSocket** | `@nestjs/websockets` | ^11.1.13 | Socket.io |
 | **WebSocket** | `socket.io` | ^4.8.0 | Socket.io server |
 | **WebSocket** | `socket.io-redis-adapter` | ^8.0.0 | Redis adapter |
 | **Rate Limit** | `@nestjs/throttler` | ^6.5.0 | Rate limiting |
@@ -345,6 +345,8 @@ apps/api/
 ---
 
 ## 3.1 NestJS Module Structure Best Practices
+
+> **Architecture Decision:** This project uses the Repository Pattern for all data access. See [ADR-007: Repository Pattern](../adr/ADR-007-repository-pattern.md) for the rationale.
 
 ### Module Components Overview
 
@@ -680,7 +682,9 @@ export class UsersModule {}
 |-----------|------------|------|
 | **Database** | **Neon** | Serverless PostgreSQL 17+ |
 | **Extension** | **PostGIS** | Geospatial queries |
-| **ORM** | **Prisma** | 7.x - Database access layer |
+| **ORM** | **Prisma** | 7.4.0 - Database access layer |
+
+> **⚠️ BREAKING CHANGE (Prisma 7.4.0):** Prisma 7 introduces significant changes including ESM support requirement, driver adapters, and new configuration file. See [Prisma 7 Migration Guide](#48-prisma-7-migration-guide) below.
 
 ### 4.2. Connection Configuration
 
@@ -709,18 +713,20 @@ DATABASE_URL="postgresql://user:pass@ep-xxx-pooler.region.aws.neon.tech/neondb?s
 DATABASE_URL_DIRECT="postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=require"
 ```
 
-### 4.3. Prisma Schema Example
+### 4.3. Prisma Schema Example (Prisma 7.4.0)
+
+> **⚠️ BREAKING CHANGE:** Prisma 7.4.0 requires new schema format with output path and removes datasource URL (moved to `prisma.config.ts`).
 
 ```prisma
 // prisma/schema.prisma
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../generated/prisma"
 }
 
 datasource db {
   provider   = "postgresql"
-  url        = env("DATABASE_URL")
   extensions = [postgis]
 }
 
@@ -745,7 +751,67 @@ enum UserRole {
 }
 ```
 
-### 4.4. PostGIS Geospatial Queries in Repository Pattern
+### 4.4. Prisma Configuration File (Prisma 7.4.0)
+
+> **⚠️ NEW REQUIREMENT:** Prisma 7.4.0 requires `prisma.config.ts` file for datasource configuration.
+
+```typescript
+// prisma.config.ts
+import 'dotenv/config'
+import { defineConfig, env } from 'prisma/config'
+
+export default defineConfig({
+  schema: 'prisma/schema.prisma',
+  datasource: {
+    url: env('DATABASE_URL'),
+  },
+})
+```
+
+### 4.5. PrismaClient with Driver Adapter (Prisma 7.4.0)
+
+> **⚠️ BREAKING CHANGE:** Prisma 7 requires driver adapters for database connections.
+
+```typescript
+// src/database/prisma.service.ts
+import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { PrismaClient } from '../../generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+
+@Injectable()
+export class PrismaService implements OnModuleInit, OnModuleDestroy {
+  public readonly client: PrismaClient;
+
+  constructor() {
+    // Create driver adapter for PostgreSQL
+    const adapter = new PrismaPg({
+      connectionString: process.env.DATABASE_URL,
+    });
+
+    this.client = new PrismaClient({
+      adapter,
+      log: process.env.NODE_ENV === 'development' 
+        ? ['query', 'info', 'warn', 'error'] 
+        : ['error'],
+    });
+  }
+
+  async onModuleInit() {
+    await this.client.$connect();
+  }
+
+  async onModuleDestroy() {
+    await this.client.$disconnect();
+  }
+}
+```
+
+**Required dependency:**
+```bash
+bun add @prisma/adapter-pg
+```
+
+### 4.6. PostGIS Geospatial Queries in Repository Pattern
 
 Geospatial queries are centralized in the Drivers Repository:
 
@@ -847,6 +913,98 @@ export class DriversRepository implements IDriversRepository {
   // ... other methods
 }
 ```
+
+### 4.7. ESM Configuration (Prisma 7.4.0)
+
+> **⚠️ BREAKING CHANGE:** Prisma 7 requires ESM support.
+
+```json
+// package.json
+{
+  "name": "@logship/api",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "bunx nest build",
+    "dev": "bunx nest start --watch",
+    "db:generate": "bunx prisma generate",
+    "db:migrate": "bunx prisma migrate dev",
+    "db:studio": "bunx prisma studio"
+  }
+}
+```
+
+### 4.8. Prisma 7 Migration Guide
+
+#### Before (Prisma 6.x)
+
+```prisma
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+```
+
+```typescript
+// Old PrismaClient instantiation
+import { PrismaClient } from '@prisma/client';
+export const prisma = new PrismaClient();
+```
+
+#### After (Prisma 7.4.0)
+
+```prisma
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+```
+
+```typescript
+// prisma.config.ts
+import 'dotenv/config'
+import { defineConfig, env } from 'prisma/config'
+
+export default defineConfig({
+  schema: 'prisma/schema.prisma',
+  datasource: {
+    url: env('DATABASE_URL'),
+  },
+})
+```
+
+```typescript
+// New PrismaClient instantiation with driver adapter
+import { PrismaClient } from '../generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL,
+});
+
+export const prisma = new PrismaClient({ adapter });
+```
+
+#### Migration Checklist
+
+- [ ] Add `"type": "module"` to package.json
+- [ ] Update generator block with `output` path
+- [ ] Remove `url` from datasource block
+- [ ] Create `prisma.config.ts` file
+- [ ] Install `@prisma/adapter-pg` package
+- [ ] Update all PrismaClient imports to use generated path
+- [ ] Add driver adapter to PrismaClient instantiation
+- [ ] Run `bunx prisma generate` to regenerate client
 
 ---
 

@@ -27,7 +27,7 @@ This guide covers deploying Logship-MVP to production environments.
 │  │     VPS      │  │    Vercel    │  │  Expo EAS    │           │
 │  │  (Backend)   │  │    (Admin)   │  │   (Mobile)   │           │
 │  │              │  │              │  │              │           │
-│  │  NestJS API  │  │  Next.js 15  │  │  React Native│           │
+│  │  NestJS API  │  │  Next.js 16  │  │  React Native│           │
 │  │  WebSocket   │  │              │  │  + Expo SDK  │           │
 │  └──────┬───────┘  └──────────────┘  └──────────────┘           │
 │         │                                                       │

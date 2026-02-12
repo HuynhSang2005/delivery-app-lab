@@ -20,6 +20,7 @@ An Architecture Decision Record (ADR) captures an important architectural decisi
 | [ADR-004](./ADR-004-expo-react-native.md) | Use Expo + React Native for Mobile | Accepted | 2026-02-09 |
 | [ADR-005](./ADR-005-goong-maps.md) | Use Goong Maps for Vietnam Market | Accepted | 2026-02-09 |
 | [ADR-006](./ADR-006-bun-workspaces.md) | Use Bun Workspaces for Monorepo | Accepted | 2026-02-09 |
+| [ADR-007](./ADR-007-repository-pattern.md) | Use Repository Pattern for Data Access | Accepted | 2026-02-11 |
 
 ## ADR Status Definitions
 

@@ -4,7 +4,9 @@
 **Last Updated:** February 2026  
 **Database:** Neon Serverless PostgreSQL 17+  
 **Extension:** PostGIS 3.4+  
-**ORM:** Prisma 7.3.0  
+**ORM:** Prisma 7.4.0
+
+> **⚠️ BREAKING CHANGES (Prisma 7.4.0):** ESM support required, driver adapters mandatory, new `prisma.config.ts` file replaces datasource URL in schema. See [Prisma 7 Migration Guide](#10-prisma-7-migration-guide) below.  
 
 ---
 
@@ -476,20 +478,64 @@ INSERT INTO system_config (config_key, config_value, description) VALUES
 
 ---
 
-## 4. Prisma Schema
+## 4. Prisma Schema (Prisma 7.4.0)
+
+> **⚠️ BREAKING CHANGES:** Prisma 7.4.0 requires:
+> - `output` path in generator block
+> - Removal of `url` from datasource (moved to `prisma.config.ts`)
+> - Driver adapter for database connections
 
 ```prisma
 // prisma/schema.prisma
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../generated/prisma"
 }
 
 datasource db {
   provider   = "postgresql"
-  url        = env("DATABASE_URL")
   extensions = [postgis]
 }
+```
+
+### 4.1. Prisma Configuration File (New in 7.4.0)
+
+> **⚠️ NEW REQUIREMENT:** Prisma 7.4.0 requires `prisma.config.ts` file.
+
+```typescript
+// prisma.config.ts
+import 'dotenv/config'
+import { defineConfig, env } from 'prisma/config'
+
+export default defineConfig({
+  schema: 'prisma/schema.prisma',
+  datasource: {
+    url: env('DATABASE_URL'),
+  },
+})
+```
+
+### 4.2. PrismaClient with Driver Adapter
+
+> **⚠️ BREAKING CHANGE:** Prisma 7 requires driver adapters.
+
+```typescript
+// prisma/client.ts
+import { PrismaClient } from '../generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL,
+});
+
+export const prisma = new PrismaClient({ adapter });
+```
+
+**Required dependency:**
+```bash
+bun add @prisma/adapter-pg
+```
 
 // Enums
 enum UserRole {
@@ -1053,7 +1099,7 @@ CREATE SCHEMA IF NOT EXISTS delivery;
 -- Seed system_config
 ```
 
-### 8.2. Prisma Migration
+### 8.2. Prisma Migration (Prisma 7.4.0)
 
 ```bash
 # Generate migration
@@ -1064,6 +1110,141 @@ bunx prisma migrate deploy
 
 # Generate Prisma Client
 bunx prisma generate
+```
+
+> **⚠️ NOTE:** Prisma 7.4.0 does NOT automatically run seed during migrations. Run seed manually:
+```bash
+bunx prisma db seed
+```
+
+**Seed script configuration in package.json:**
+```json
+{
+  "prisma": {
+    "seed": "bunx ts-node prisma/seed.ts"
+  }
+}
+```
+
+---
+
+## 10. Prisma 7 Migration Guide
+
+### Breaking Changes Summary
+
+| Feature | Old (Prisma 6.x) | New (Prisma 7.4.0) |
+|---------|------------------|---------------------|
+| Module System | CommonJS | ESM ("type": "module") |
+| Generator | `prisma-client-js` | `prisma-client` |
+| Output Path | Optional | Required |
+| Datasource URL | In schema.prisma | In prisma.config.ts |
+| Client Import | `@prisma/client` | Generated path |
+| Connection | Direct | Driver adapter required |
+| Auto Seed | During migration | Manual only |
+| Env Loading | Automatic | Use dotenv |
+
+### Migration Checklist
+
+- [ ] Add `"type": "module"` to package.json
+- [ ] Update generator block:
+  - Change `provider = "prisma-client-js"` to `provider = "prisma-client"`
+  - Add `output = "../generated/prisma"`
+- [ ] Update datasource block:
+  - Remove `url = env("DATABASE_URL")`
+- [ ] Create `prisma.config.ts` file with datasource URL
+- [ ] Install driver adapter: `bun add @prisma/adapter-pg`
+- [ ] Update PrismaClient instantiation with adapter
+- [ ] Update all imports from `@prisma/client` to generated path
+- [ ] Add `import 'dotenv/config'` to entry points
+- [ ] Update seed script configuration (no auto-seed)
+
+### Before/After Examples
+
+#### Schema
+
+**Before:**
+```prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+```
+
+**After:**
+```prisma
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+```
+
+#### Configuration File
+
+**New file: prisma.config.ts**
+```typescript
+import 'dotenv/config'
+import { defineConfig, env } from 'prisma/config'
+
+export default defineConfig({
+  schema: 'prisma/schema.prisma',
+  datasource: {
+    url: env('DATABASE_URL'),
+  },
+})
+```
+
+#### Client Instantiation
+
+**Before:**
+```typescript
+import { PrismaClient } from '@prisma/client';
+export const prisma = new PrismaClient();
+```
+
+**After:**
+```typescript
+import { PrismaClient } from '../generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL,
+});
+
+export const prisma = new PrismaClient({ adapter });
+```
+
+#### package.json
+
+**Before:**
+```json
+{
+  "name": "@logship/api",
+  "scripts": {
+    "db:seed": "bunx ts-node prisma/seed.ts"
+  }
+}
+```
+
+**After:**
+```json
+{
+  "name": "@logship/api",
+  "type": "module",
+  "scripts": {
+    "db:seed": "bunx ts-node prisma/seed.ts"
+  },
+  "prisma": {
+    "seed": "bunx ts-node prisma/seed.ts"
+  }
+}
 ```
 
 ---

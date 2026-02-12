@@ -1,7 +1,7 @@
 # Logship-MVP: API Design Document
 
-**Version:** 3.0  
-**Last Updated:** February 2025  
+**Version:** 5.0  
+**Last Updated:** February 2026
 **Backend Framework:** NestJS 11.x  
 **API Format:** REST + WebSocket (Socket.io)  
 

@@ -1,7 +1,7 @@
 # Logship-MVP: System Design Document (SDD)
 
-**Version:** 3.0  
-**Last Updated:** February 2025  
+**Version:** 5.0  
+**Last Updated:** February 2026
 **Author:** Solo Developer  
 **Project:** Logistics Delivery App - Mobile-first React Native, Web Admin Dashboard, NestJS Backend  
 **Purpose:** Learning project for CV/Portfolio demonstration  
@@ -95,8 +95,8 @@ Logship-MVP is a logistics delivery application connecting **Users** (customers)
 | Database | Neon (Serverless Postgres) | Free tier, PostGIS support, scale-to-zero |
 | Real-time | Socket.io + Redis Adapter | Room-based broadcasting, scalable |
 | Mobile Framework |  React Native + Expo SDK 54   | Cross-platform, OTA updates |
-| Mobile Framework |  React Native 0.81.0   | Latest stable |
-| Mobile Framework |  React 19.1.0   | Latest React |
+| Mobile Framework |  React Native 0.84.0   | Latest stable |
+| Mobile Framework |  React 19.2.4   | Latest React |
 | State Management | Zustand + TanStack Query | Simple local state + powerful server state |
 | Authentication | Firebase Auth (OTP + Email) | Free tier, phone auth built-in |
 | Maps (Vietnam) | Goong Maps | Vietnam-optimized, competitive pricing |
@@ -445,7 +445,7 @@ Driver App                          Backend                              User Ap
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 4.8.1. WebSocket Events Reference
+### 4.9. WebSocket Events Reference
 
 The following Socket.io events are used for real-time communication:
 
@@ -503,13 +503,13 @@ Order Event                    BullMQ                         External Services
 
 | Category | Technology | Version |
 |----------|------------|---------|
-| Framework | React Native | 0.81.0 |
+| Framework | React Native | 0.84.0 |
 | Platform | Expo SDK | 54 |
 | Navigation | Expo Router | 5.x |
 | State (Local) | Zustand | 5.x |
 | State (Server) | TanStack Query | 5.x |
 | Maps | react-native-maps + **Goong Maps** | 1.x |
-| Location | expo-location + expo-task-manager | SDK 52 |
+| Location | expo-location + expo-task-manager | SDK 54 |
 | WebSocket | socket.io-client | 4.x |
 | Forms | React Hook Form + Zod | ^7.54.2 / ^4.3.6 |
 
@@ -517,7 +517,7 @@ Order Event                    BullMQ                         External Services
 
 | Category | Technology |
 |----------|------------|
-| Framework | Next.js 15 (App Router) |
+| Framework | Next.js 16 (App Router) |
 | State | TanStack Query v5 |
 | UI Components | Tailwind CSS v4 + Shadcn/ui |
 | Tables | TanStack Table v8 |
@@ -530,8 +530,8 @@ Order Event                    BullMQ                         External Services
 
 | Category | Technology | Version |
 |----------|------------|---------|
-| Framework | NestJS | 11.1.6 |
-| ORM | Prisma | 7.3.0 |
+| Framework | NestJS | 11.1.13 |
+| ORM | Prisma | 7.4.0 |
 | **Data Access** | **Repository Pattern** | Interface-based |
 | WebSocket | @nestjs/websockets + Socket.io | 4.x |
 | Validation | Zod v4 + nestjs-zod | ^4.3.6 / ^4.0.0 |

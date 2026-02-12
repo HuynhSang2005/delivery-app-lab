@@ -1,7 +1,7 @@
 # Logship-MVP: Mobile App Technical Specification
 
-**Version:** 4.0  
-**Last Updated:** February 2026  
+**Version:** 5.0  
+**Last Updated:** February 2026
 **Platform:** React Native + Expo SDK 54  
 **Target:** iOS 14+ / Android 10+  
 **Package Manager:** Bun  
@@ -32,10 +32,22 @@ This document specifies the technical implementation for Logship-MVP mobile appl
 | expo-task-manager | Background tasks for driver location |
 | EAS Build | Cloud builds for iOS/Android |
 | EAS Update | OTA updates without app store review |
-| React Native 0.81 | Latest stable React Native |
-| React 19.1 | Latest React 19 version |
+| React Native 0.84 | Latest stable React Native with Hermes V1 |
+| React 19.2 | Latest React 19 version |
 
-> **Note:** Expo SDK 54 is the latest stable release with React Native 0.81 and React 19.1.
+> **Note:** Expo SDK 54 is the latest stable release with React Native 0.84 and React 19.2.
+
+### 1.3. React Native 0.84.0 Changes
+
+> **ℹ️ UPDATE:** React Native 0.84.0 includes Hermes V1 as the default JavaScript engine.
+
+| Feature | Description |
+|---------|-------------|
+| Hermes V1 | New Hermes engine version with improved performance |
+| No Breaking Changes | No breaking changes for existing users |
+| Performance | Better startup time and reduced memory usage |
+
+**No migration required** - Existing code continues to work without modifications.
 
 ---
 
@@ -114,8 +126,8 @@ apps/mobile/
     "@react-native-firebase/app": "^22.0.0",
     "@react-native-firebase/auth": "^22.0.0",
     "@react-native-masked-view/masked-view": "^0.3.2",
-    "@shopify/flash-list": "1.7.1",
-    "@tanstack/react-query": "^5.60.0",
+    "@shopify/flash-list": "2.2.2",
+    "@tanstack/react-query": "^5.66.0",
     "axios": "^1.7.0",
     "clsx": "^2.1.0",
     "date-fns": "^4.1.0",
@@ -138,21 +150,21 @@ apps/mobile/
     "expo-updates": "~0.28.0",
     "expo-web-browser": "~15.0.0",
     "lodash-es": "^4.17.21",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "react-hook-form": "^7.54.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-hook-form": "^7.71.1",
     "@hookform/resolvers": "^4.0.0",
-    "react-native": "0.81.0",
+    "react-native": "0.84.0",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-maps": "1.22.0",
     "react-native-reanimated": "~4.0.0",
     "react-native-safe-area-context": "4.12.0",
-    "react-native-screens": "~4.8.0",
-    "react-native-svg": "15.12.0",
+    "react-native-screens": "~4.4.0",
+    "react-native-svg": "15.8.0",
     "react-native-toast-message": "^2.2.0",
     "react-native-url-polyfill": "^2.0.0",
     "socket.io-client": "^4.8.0",
-    "tailwindcss": "^4.0.0",
+    "tailwindcss": "^4.1.18",
     "nativewind": "^4.1.0",
     "zod": "^4.3.6",
     "zustand": "^5.0.0"
@@ -161,8 +173,8 @@ apps/mobile/
     "@babel/core": "^7.25.0",
     "@hey-api/openapi-ts": "^0.92.3",
     "@types/lodash-es": "^4.17.12",
-    "@types/react": "~19.0.0",
-    "typescript": "^5.7.0"
+    "@types/react": "~19.2.4",
+    "typescript": "^5.9.3"
   }
 }
 ```
@@ -172,18 +184,18 @@ apps/mobile/
 | Category | Library | Version | Purpose |
 |----------|---------|---------|---------|
 | **Core** | `expo` | ~54.0.0 | Expo SDK |
-| **Core** | `react-native` | 0.81.0 | React Native |
-| **Core** | `react` | 19.1.0 | React (Expo SDK 54 uses React 19.1) |
+| **Core** | `react-native` | 0.84.0 | React Native 0.84 with Hermes V1 |
+| **Core** | `react` | 19.2.4 | React (Expo SDK 54 uses React 19.2.4) |
 | **Navigation** | `expo-router` | ~5.0.0 | File-based routing |
 | **API Client** | `@hey-api/client-fetch` | ^0.10.0 | Type-safe API client |
 | **State (Server)** | `@tanstack/react-query` | ^5.60.0 | Server state management |
 | **State (Client)** | `zustand` | ^5.0.0 | Client state management |
-| **Forms** | `react-hook-form` | ^7.54.0 | Form handling |
+| **Forms** | `react-hook-form` | ^7.71.1 | Form handling |
 | **Validation** | `zod` | ^4.3.6 | Schema validation (Zod v4 - latest) |
 | **Maps** | `react-native-maps` | 1.22.0 | Map components (with Goong tiles) |
 | **Location** | `expo-location` | ~19.0.0 | GPS and location tracking |
 | **Background Tasks** | `expo-task-manager` | ~13.0.0 | Background location updates |
-| **Lists** | `@shopify/flash-list` | 1.8.0 | High-performance lists |
+| **Lists** | `@shopify/flash-list` | 2.2.2 | High-performance lists |
 | **Bottom Sheet** | `@gorhom/bottom-sheet` | ^5.0.0 | Bottom sheet UI |
 | **Toast** | `react-native-toast-message` | ^2.2.0 | Toast notifications |
 | **Network** | `@react-native-community/netinfo` | ^11.4.0 | Network status |

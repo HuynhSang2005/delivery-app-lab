@@ -1,6 +1,6 @@
 # Logship-MVP: Development Phases
 
-**Version:** 4.0  
+**Version:** 5.0  
 **Last Updated:** February 2026  
 **Timeline:** 10-12 weeks (Solo developer + AI assistance)  
 **Working Hours:** ~20-30 hours/week  
@@ -26,7 +26,7 @@ This document outlines the development phases for Logship-MVP, a logistics deliv
 | Component | Technology |
 |-----------|------------|
 | Mobile | React Native + Expo SDK 54 |
-| Admin Web | Next.js 15 + Tailwind |
+| Admin Web | Next.js 16 + Tailwind |
 | Backend | NestJS 11 + Prisma |
 | Database | Neon (Postgres + PostGIS) |
 | Cache | Upstash Redis |
@@ -124,7 +124,7 @@ cd apps/mobile && bunx expo start     # Opens in Expo Go
 cd apps/admin && bun run dev          # Runs on localhost:3001
 
 # Database
-bunx prisma studio                    # Shows tables in browser
+bun run db:studio                    # Shows tables in browser
 ```
 
 ---

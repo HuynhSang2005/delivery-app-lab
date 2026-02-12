@@ -1,7 +1,7 @@
 # Logship-MVP: Monorepo Structure Specification
 
-**Version:** 4.0  
-**Last Updated:** February 2026  
+**Version:** 5.0  
+**Last Updated:** February 2026
 **Package Manager:** Bun  
 **Monorepo Tool:** Bun Workspaces  
 **Runtime:** Bun 1.3.9+  
@@ -30,7 +30,7 @@ This document defines the monorepo structure for the Logship-MVP project using *
 logship-mvp/                          # Root
 ├── apps/                             # Application packages
 │   ├── mobile/                       # React Native + Expo SDK 54
-│   ├── admin/                        # Next.js 15 Admin Dashboard
+│   ├── admin/                        # Next.js 16 Admin Dashboard
 │   └── api/                          # NestJS 11 Backend API
 ├── packages/                         # Shared packages
 │   ├── shared-types/                 # TypeScript types (API contracts)
@@ -83,7 +83,7 @@ logship-mvp/                          # Root
   "devDependencies": {
     "@logship/shared-config": "workspace:*",
     "prettier": "^3.5.0",
-    "typescript": "^5.7.3"
+    "typescript": "^5.9.3"
   }
 }
 ```
@@ -185,19 +185,19 @@ apps/mobile/
     "@hey-api/client-fetch": "^0.10.0",
     "expo": "~54.0.0",
     "expo-router": "~5.0.0",
-    "react": "19.1.0",
-    "react-native": "0.81.0",
+    "react": "19.2.4",
+    "react-native": "0.84.0",
     "@tanstack/react-query": "^5.66.0"
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "^0.92.3",
     "@logship/shared-config": "workspace:*",
-    "typescript": "^5.7.3"
+    "typescript": "^5.9.3"
   }
 }
 ```
 
-### 3.2. apps/admin - Next.js 15 Dashboard
+### 3.2. apps/admin - Next.js 16 Dashboard
 
 ```
 apps/admin/
@@ -258,16 +258,16 @@ apps/admin/
   "dependencies": {
     "@logship/shared-types": "workspace:*",
     "@hey-api/client-fetch": "^0.10.0",
-    "next": "^15.1.6",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "next": "^16.1.6",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
     "@tanstack/react-query": "^5.66.0"
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "^0.92.3",
     "@logship/shared-config": "workspace:*",
-    "tailwindcss": "^4.0.4",
-    "typescript": "^5.7.3"
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.3"
   }
 }
 ```
@@ -430,18 +430,18 @@ apps/api/
   },
   "dependencies": {
     "@logship/shared-types": "workspace:*",
-    "@nestjs/common": "^11.1.6",
-    "@nestjs/core": "^11.1.6",
-    "@nestjs/platform-express": "^11.1.6",
-    "@nestjs/swagger": "^11.1.6",
-    "@prisma/client": "^7.3.0",
+    "@nestjs/common": "^11.1.13",
+    "@nestjs/core": "^11.1.13",
+    "@nestjs/platform-express": "^11.1.13",
+    "@nestjs/swagger": "^11.1.13",
+    "@prisma/client": "^7.4.0",
     "bullmq": "^5.50.0",
     "ioredis": "^5.5.0"
   },
   "devDependencies": {
     "@logship/shared-config": "workspace:*",
-    "prisma": "^7.3.0",
-    "typescript": "^5.7.3"
+    "prisma": "^7.4.0",
+    "typescript": "^5.9.3"
   }
 }
 ```
@@ -502,7 +502,7 @@ packages/shared-types/
   },
   "devDependencies": {
     "@logship/shared-config": "workspace:*",
-    "typescript": "^5.7.3"
+    "typescript": "^5.9.3"
   }
 }
 ```
@@ -557,8 +557,8 @@ packages/shared-config/
     "eslint": "^9.20.0",
     "eslint-config-prettier": "^10.0.1",
     "prettier": "^3.5.0",
-    "tailwindcss": "^4.0.4",
-    "typescript": "^5.7.3"
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.3"
   }
 }
 ```

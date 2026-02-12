@@ -307,7 +307,12 @@ NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abcdef
 
 ### 1. Generate Prisma Client
 
+> **⚠️ Prisma 7.4.0 Setup Required:**
+
 ```bash
+# Install driver adapter first
+bun add @prisma/adapter-pg
+
 # From project root
 bun run db:generate
 
@@ -315,6 +320,12 @@ bun run db:generate
 cd apps/api
 bunx prisma generate
 ```
+
+**Prisma 7.4.0 Additional Setup:**
+- [ ] Create `prisma.config.ts` file in apps/api/
+- [ ] Update `prisma/schema.prisma` with output path
+- [ ] Add `"type": "module"` to package.json
+- [ ] Update all PrismaClient imports to use generated path
 
 ### 2. Run Migrations
 
@@ -336,9 +347,23 @@ bun run db:studio
 
 ### 4. Seed Database (Optional)
 
+> **⚠️ Prisma 7.4.0 Change:** Seed is no longer automatic during migrations.
+
 ```bash
 # If you have seed data
 bun run --filter @logship/api db:seed
+
+# Or run directly
+bunx prisma db seed
+```
+
+**Configure seed script in package.json:**
+```json
+{
+  "prisma": {
+    "seed": "bunx ts-node prisma/seed.ts"
+  }
+}
 ```
 
 ## Development Verification
@@ -361,17 +386,21 @@ bun run dev:api
 
 ### 2. Start Admin Dashboard
 
+> **⚠️ Next.js 16 Note:** Turbopack is now the default build tool.
+
 ```bash
 # Terminal 2
 bun run dev:admin
 
 # Should see: Ready on http://localhost:3001
+# Turbopack is now default (no --turbo flag needed)
 ```
 
 **Verify:**
 - [ ] No errors in console
 - [ ] Can access http://localhost:3001
 - [ ] Login page loads
+- [ ] Turbopack is running (check console output)
 
 ### 3. Start Mobile App
 
@@ -452,6 +481,93 @@ bun add -d husky
 bunx husky install
 ```
 
+## Prisma 7.4.0 Setup Steps
+
+### Additional Configuration Required
+
+1. **Create prisma.config.ts:**
+   ```typescript
+   // apps/api/prisma.config.ts
+   import 'dotenv/config'
+   import { defineConfig, env } from 'prisma/config'
+   
+   export default defineConfig({
+     schema: 'prisma/schema.prisma',
+     datasource: {
+       url: env('DATABASE_URL'),
+     },
+   })
+   ```
+
+2. **Update package.json:**
+   ```json
+   {
+     "name": "@logship/api",
+     "type": "module",
+     "scripts": {
+       "db:generate": "bunx prisma generate",
+       "db:migrate": "bunx prisma migrate dev",
+       "db:seed": "bunx prisma db seed"
+     },
+     "prisma": {
+       "seed": "bunx ts-node prisma/seed.ts"
+     }
+   }
+   ```
+
+3. **Update prisma/schema.prisma:**
+   ```prisma
+   generator client {
+     provider = "prisma-client"
+     output   = "../generated/prisma"
+   }
+   
+   datasource db {
+     provider = "postgresql"
+   }
+   ```
+
+4. **Install driver adapter:**
+   ```bash
+   bun add @prisma/adapter-pg
+   ```
+
+## Next.js 16 Setup Steps
+
+### Additional Configuration Required
+
+1. **Rename middleware.ts to proxy.ts:**
+   ```typescript
+   // apps/admin/proxy.ts
+   import { NextResponse } from 'next/server';
+   import type { NextRequest } from 'next/server';
+   
+   export async function proxy(request: NextRequest) {
+     // Your middleware logic
+     return NextResponse.next();
+   }
+   ```
+
+2. **Update next.config.ts:**
+   ```typescript
+   const nextConfig = {
+     turbopack: {},  // Now default, not experimental
+     cacheComponents: true,  // Was experimental.ppr
+     reactCompiler: true,    // Now stable
+   };
+   ```
+
+3. **Update package.json scripts:**
+   ```json
+   {
+     "scripts": {
+       "dev": "bunx next dev -p 3001",
+       "build": "bunx next build",
+       "lint": "bunx eslint ."  // next lint removed
+     }
+   }
+   ```
+
 ## Troubleshooting Setup Issues
 
 If you encounter issues during setup, see [TROUBLESHOOTING.md](./TROUBLESHOOTING.md).
@@ -461,6 +577,9 @@ Common issues:
 - [ ] Database connection fails → Check DATABASE_URL format
 - [ ] Prisma errors → Run `bun run db:generate`
 - [ ] Mobile app won't connect → Use IP address, not localhost
+- [ ] Prisma 7 ESM errors → Ensure `"type": "module"` is in package.json
+- [ ] Next.js 16 async errors → Await cookies(), headers(), params, searchParams
+- [ ] Turbopack issues → Check for webpack-specific configurations
 
 ## Next Steps
 
@@ -473,6 +592,7 @@ After completing this checklist:
 
 ## Verification Summary
 
+### General Setup
 - [ ] All prerequisites installed
 - [ ] All accounts created
 - [ ] Repository cloned and dependencies installed
@@ -482,9 +602,26 @@ After completing this checklist:
 - [ ] Cloudinary account ready
 - [ ] Goong Maps API keys obtained
 - [ ] All .env files created and filled
+
+### Prisma 7.4.0 Setup
+- [ ] `prisma.config.ts` file created
+- [ ] `prisma/schema.prisma` updated with output path
+- [ ] `"type": "module"` added to package.json
+- [ ] `@prisma/adapter-pg` installed
+- [ ] PrismaClient updated with driver adapter
 - [ ] Database migrations applied
+- [ ] Seed script configured in package.json
+
+### Next.js 16 Setup
+- [ ] `middleware.ts` renamed to `proxy.ts`
+- [ ] `next.config.ts` updated (turbopack, cacheComponents)
+- [ ] `next lint` removed from package.json scripts
+- [ ] Async APIs (cookies, headers, params) properly awaited
+- [ ] React Compiler enabled (optional)
+
+### Development Verification
 - [ ] Backend running on localhost:3000
-- [ ] Admin dashboard running on localhost:3001
+- [ ] Admin dashboard running on localhost:3001 (Turbopack)
 - [ ] Mobile app running in Expo Go
 - [ ] All services communicating correctly
 
