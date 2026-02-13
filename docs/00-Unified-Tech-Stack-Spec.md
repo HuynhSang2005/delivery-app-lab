@@ -117,7 +117,7 @@ This document serves as the **single source of truth** for all technology decisi
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `react-hook-form` | ^7.54.2 | Form handling |
+| `react-hook-form` | ^7.71.1 | Form handling |
 | `@hookform/resolvers` | ^4.0.0 | Resolver integration (Zod v4 compatible) |
 | `zod` | ^4.3.6 | Schema validation (Zod v4 - latest) |
 
@@ -218,7 +218,7 @@ This document serves as the **single source of truth** for all technology decisi
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `react-hook-form` | ^7.54.2 | Form handling |
+| `react-hook-form` | ^7.71.1 | Form handling |
 | `@hookform/resolvers` | ^4.0.0 | Resolvers |
 | `zod` | ^4.3.6 | Validation (Zod v4 - latest) |
 
@@ -349,7 +349,7 @@ logship-mvp/
 ### 7.1. Critical Rules
 
 1. **Bun ONLY** - No npm, no pnpm, no yarn, no npx
-2. **Expo SDK 54** - Latest stable with React Native 0.81
+2. **Expo SDK 54** - Latest stable with React Native 0.84.0
 3. **React 19 for Mobile** - Expo SDK 54 uses React 19
 4. **React 19 for Web** - Next.js 16 uses React 19
 5. **Prisma is ORM, Neon is Database** - Never confuse these
@@ -543,7 +543,7 @@ NEXT_PUBLIC_GOONG_API_KEY="your-goong-api-key"
 | Date | Version | Changes |
 |------|---------|---------|
 | 2026-02-10 | 5.0 | Updated to General Delivery App, Expo SDK 54, React 19.2.4, Hey-API 0.92.3 |
-| 2026-02-09 | 4.0 | Updated to Expo SDK 54, React Native 0.81, Prisma 7, Bun 1.3.9 |
+| 2026-02-09 | 4.0 | Updated to Expo SDK 54, React Native 0.84.0, Prisma 7.4.0, Bun 1.3.9 |
 | 2025-02-03 | 3.0 | Updated all dependencies to latest versions, Bun-only policy |
 | 2025-02-03 | 2.0 | Complete rewrite with Bun, corrected versions, unified structure |
 

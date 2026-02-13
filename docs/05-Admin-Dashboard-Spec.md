@@ -181,7 +181,7 @@ apps/admin/
     "react-day-picker": "^9.5.1",
     "react-dom": "^19.2.4",
     "react-error-boundary": "^5.0.0",
-    "react-hook-form": "^7.54.2",
+    "react-hook-form": "^7.71.1",
     "@hookform/resolvers": "^4.0.0",
     "react-resizable-panels": "^2.1.0",
     "recharts": "^2.13.0",
@@ -357,9 +357,27 @@ export { client };
 **Route:** `/settings`
 
 **Features:**
-- Pricing configuration (base price, price per km)
-- Driver matching radius
-- Other system parameters
+- **Pricing Configuration:**
+  - Price per km (default: 8.000 VND)
+  - Platform fee percentage (default: 15%)
+  - Max order distance (default: 25km)
+  - Surge pricing percentage (default: 20%)
+- **Driver Matching:**
+  - Initial radius (default: 3km)
+  - Max radius (default: 7km)
+  - Timeout (default: 5 minutes)
+- **Location Tracking:**
+  - Default interval (default: 30 seconds)
+  - Adaptive interval (default: 10 seconds)
+  - Adaptive distance threshold (default: 500m)
+- **Cancellation Policy:**
+  - Free cancellation window (default: 5 minutes)
+  - Cancellation fee percentage (default: 10%)
+  - Driver daily cancellation limit (default: 3)
+  - Driver rating penalty (default: -10 points)
+- **Service Area:**
+  - City (default: Hồ Chí Minh)
+  - Max distance (default: 25km)
 
 ---
 
@@ -587,7 +605,7 @@ export const config = {
 };
 ```
 
-### 7.4. next.config.ts (Next.js 16)
+### 7.5. next.config.ts (Next.js 16)
 
 > **⚠️ BREAKING CHANGES:** 
 > - `experimental.turbopack` is now just `turbopack`
@@ -625,7 +643,7 @@ const nextConfig: NextConfig = {
 export default nextConfig;
 ```
 
-### 7.5. New Caching APIs (Next.js 16)
+### 7.6. New Caching APIs (Next.js 16)
 
 Next.js 16 introduces new caching APIs:
 

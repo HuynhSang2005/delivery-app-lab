@@ -414,10 +414,24 @@ src/
   - **Time:** 2 hours
 
 - [ ] 2.3.4. Implement pricing calculation
-  - **Expected:** Distance + weight based pricing
-  - **Formula:** base + (distance × per_km) + (weight × per_kg)
+  - **Expected:** Fixed price per km (8.000 VND/km)
+  - **Formula:** distance × 8.000đ
+  - **Platform Fee:** 15%
+  - **Driver Earnings:** 85%
+  - **Max Distance:** 25km
   - **Verify:** Correct calculations
+  - **Examples:**
+    - 3km: 24.000đ (platform: 3.600đ, driver: 20.400đ)
+    - 10km: 80.000đ (platform: 12.000đ, driver: 68.000đ)
+    - 25km: 200.000đ (platform: 30.000đ, driver: 170.000đ)
   - **Time:** 1.5 hours
+
+- [ ] 2.3.5. Implement cancellation logic
+  - **Expected:** Cancellation policy enforcement
+  - **Customer:** Free 5 phút, sau đó 10% phí
+  - **Driver:** Max 3 lần/ngày, -10 rating/lần
+  - **Verify:** Correct fee calculation and driver penalties
+  - **Time:** 2 hours
 
 #### 2.4. Driver Matching System
 - [ ] 2.4.1. Set up BullMQ queues
@@ -430,6 +444,12 @@ src/
   - **Expected:** Background job finds drivers
   - **File:** `src/modules/orders/order-matching.processor.ts`
   - **Logic:** Find nearest, send notifications, handle timeout
+  - **Business Rules:**
+    - Initial radius: 3km
+    - Timeout: 5 phút
+    - Expansion: 5km → 7km
+    - Priority: Rating cao → Khoảng cách gần
+    - Surge: +20% khi mở rộng bán kính
   - **Verify:** Processor runs on new order
   - **Time:** 3 hours
 
@@ -442,7 +462,10 @@ src/
 
 - [ ] 2.4.4. Add retry logic
   - **Expected:** Expands radius if no acceptance
-  - **Logic:** Retry 3 times, +1km each time
+  - **Logic:** 
+    - Retry 1: 3km radius, 5 phút timeout
+    - Retry 2: 5km radius, +20% surge
+    - Retry 3: 7km radius, +20% surge
   - **Verify:** Retries work correctly
   - **Time:** 1.5 hours
 
@@ -450,8 +473,14 @@ src/
 - [ ] Users can register/login
 - [ ] Drivers can register and go online
 - [ ] Orders can be created
-- [ ] Driver matching works
+- [ ] Pricing calculated correctly (8.000đ/km, 15% platform fee)
+- [ ] Driver matching works (3km → 5km → 7km, 5min timeout)
+- [ ] Cancellation policy enforced (5min free, 10% after, driver limits)
 - [ ] All endpoints documented in Swagger
+- [ ] Pricing examples verified:
+  - 3km: 24.000đ (platform: 3.600đ, driver: 20.400đ)
+  - 10km: 80.000đ (platform: 12.000đ, driver: 68.000đ)
+  - 25km: 200.000đ (platform: 30.000đ, driver: 170.000đ)
 
 ---
 
@@ -479,6 +508,7 @@ src/
 - [ ] 3.2.1. Create location update endpoint
   - **Expected:** Drivers can send GPS updates
   - **Event:** `driver:location`
+  - **Frequency:** 30 giây/lần (default), 10 giây/lần khi gần đích (<500m)
   - **Verify:** Updates stored in Redis + PostgreSQL
   - **Time:** 1.5 hours
 
@@ -493,6 +523,12 @@ src/
   - **Queue:** location-batch
   - **Verify:** History persisted every 30s
   - **Time:** 1.5 hours
+
+- [ ] 3.2.4. Implement adaptive tracking
+  - **Expected:** Faster updates when near destination
+  - **Logic:** 10s interval when <500m from destination
+  - **Verify:** Adaptive logic works
+  - **Time:** 1 hour
 
 #### 3.3. Chat System
 - [ ] 3.3.1. Create Message entity
@@ -537,9 +573,10 @@ src/
 
 **Phase 3 Completion Criteria:**
 - [ ] WebSocket connections working
-- [ ] Real-time location tracking
+- [ ] Real-time location tracking (30s default, 10s adaptive)
 - [ ] Chat system functional
 - [ ] Push notifications working
+- [ ] Location tracking adaptive logic working (<500m = 10s interval)
 
 ---
 
@@ -1227,6 +1264,51 @@ Before completing a feature, AI-Agent must:
 
 ---
 
-**Last Updated:** February 10, 2026  
+**Last Updated:** February 13, 2026  
 **Next Review:** Weekly or when phase completes  
 **Status:** 🟡 Ready to start Phase 1
+
+---
+
+## 14. Business Logic Summary
+
+### Pricing Model
+- **Giá cố định:** 8.000 VND/km
+- **Platform Fee:** 15%
+- **Driver Earnings:** 85%
+- **Max Distance:** 25km
+
+**Pricing Examples:**
+```
+3km:   24.000đ  (platform: 3.600đ,  driver: 20.400đ)
+10km:  80.000đ  (platform: 12.000đ, driver: 68.000đ)
+20km:  160.000đ (platform: 24.000đ, driver: 136.000đ)
+25km:  200.000đ (platform: 30.000đ, driver: 170.000đ)
+```
+
+### Driver Matching
+- **Initial Radius:** 3km
+- **Timeout:** 5 phút
+- **Expansion:** 3km → 5km → 7km
+- **Priority:** Rating cao → Khoảng cách gần
+- **Surge:** +20% khi mở rộng bán kính
+
+### Location Tracking
+- **Frequency:** 30 giây/lần (default)
+- **Adaptive:** 10 giây/lần khi gần đích (<500m)
+- **Background:** Enabled
+
+### Cancellation Policy
+**Customer:**
+- Miễn phí trong 5 phút sau đặt hàng
+- Sau 5 phút: 10% phí hủy (nếu tài xế đã nhận)
+
+**Driver:**
+- Tối đa 3 lần hủy/ngày
+- Sau 3 lần: Khóa 24 giờ
+- Penalty: -10 điểm rating mỗi lần hủy sau khi nhận
+
+### Service Area
+- **Thành phố:** Hồ Chí Minh
+- **Max distance:** 25km
+- **Payment:** COD only (online cho tương lai)

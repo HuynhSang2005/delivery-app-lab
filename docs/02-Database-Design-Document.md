@@ -200,6 +200,11 @@ CREATE TABLE drivers (
   rating FLOAT DEFAULT 0,
   total_ratings INT DEFAULT 0,
   total_deliveries INT DEFAULT 0,
+  daily_cancellations INT DEFAULT 0,  -- Reset daily
+  total_cancellations INT DEFAULT 0,
+  last_cancellation_at TIMESTAMPTZ,
+  is_locked BOOLEAN DEFAULT FALSE,  -- Locked after 3 cancellations/day
+  locked_until TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   
@@ -291,22 +296,28 @@ CREATE TABLE orders (
   cancelled_at TIMESTAMPTZ,
   estimated_delivery_at TIMESTAMPTZ,
   
-  -- Pricing
+  -- Pricing (Fixed: 8.000 VND/km)
   distance_km DECIMAL(8, 2),
-  base_price DECIMAL(10, 2) NOT NULL,
-  distance_price DECIMAL(10, 2) NOT NULL,
-  weight_price DECIMAL(10, 2) DEFAULT 0,
-  surge_multiplier DECIMAL(3, 2) DEFAULT 1.00,
+  price_per_km DECIMAL(10, 2) DEFAULT 8000,  -- 8.000 VND/km fixed
+  base_price DECIMAL(10, 2) DEFAULT 0,  -- No base price (simplified)
+  distance_price DECIMAL(10, 2) NOT NULL,  -- distance_km × 8000
+  surge_multiplier DECIMAL(3, 2) DEFAULT 1.00,  -- 1.20 when expanded radius
   discount_amount DECIMAL(10, 2) DEFAULT 0,
-  total_price DECIMAL(10, 2) NOT NULL,
+  total_price DECIMAL(10, 2) NOT NULL,  -- distance_price × surge_multiplier - discount
   currency VARCHAR(3) DEFAULT 'VND',
+  
+  -- Platform & Driver Earnings
+  platform_fee DECIMAL(10, 2) NOT NULL,  -- total_price × 15%
+  driver_earnings DECIMAL(10, 2) NOT NULL,  -- total_price × 85%
   
   -- Cancellation
   cancelled_by UUID REFERENCES users(id),
+  cancelled_by_role VARCHAR(20),  -- 'customer', 'driver', 'admin'
   cancellation_reason TEXT,
+  cancellation_fee DECIMAL(10, 2) DEFAULT 0,  -- 10% of total if after 5min
+  minutes_to_cancel INTEGER,  -- Minutes from order creation to cancellation
   
-  -- Driver earnings
-  driver_earnings DECIMAL(10, 2),
+
   
   -- Soft delete
   is_deleted BOOLEAN DEFAULT FALSE,
@@ -469,11 +480,28 @@ CREATE TABLE system_config (
 
 -- Default pricing config
 INSERT INTO system_config (config_key, config_value, description) VALUES
-('pricing_base', '{"amount": 15000, "currency": "VND"}', 'Base price for any delivery'),
-('pricing_per_km', '{"amount": 5000, "currency": "VND"}', 'Price per kilometer'),
-('pricing_per_kg', '{"amount": 2000, "currency": "VND"}', 'Price per kilogram'),
-('driver_matching_radius', '{"initial_km": 2, "max_km": 10}', 'Driver search radius settings'),
-('location_update_interval', '{"seconds": 5}', 'Driver location update interval');
+('pricing_per_km', '{"amount": 8000, "currency": "VND"}', 'Fixed price per kilometer - 8.000 VND/km'),
+('platform_fee_percent', '{"percent": 15}', 'Platform fee percentage (15%)'),
+('cancellation_fee_percent', '{"percent": 10}', 'Cancellation fee after 5 minutes (10%)'),
+('cancellation_free_minutes', '{"minutes": 5}', 'Free cancellation window (5 minutes)'),
+('driver_matching_radius', '{"initial_km": 3, "max_km": 7}', 'Driver search radius settings'),
+('driver_matching_timeout', '{"minutes": 5}', 'Driver matching timeout (5 minutes)'),
+('location_update_interval', '{"seconds": 30}', 'Driver location update interval (30 seconds)'),
+('location_adaptive_distance', '{"meters": 500}', 'Distance to trigger adaptive tracking (500m)'),
+('location_adaptive_interval', '{"seconds": 10}', 'Adaptive tracking interval when near destination (10 seconds)'),
+('max_order_distance', '{"km": 25}', 'Maximum order distance (25km)'),
+('driver_daily_cancellation_limit', '{"count": 3}', 'Max driver cancellations per day (3)'),
+('driver_cancellation_penalty', '{"rating_points": -10}', 'Rating penalty per cancellation (-10 points)'),
+('surge_pricing_expansion', '{"percent": 20}', 'Surge pricing when expanding radius (20%)');
+
+-- Insert pricing examples
+INSERT INTO system_config (config_key, config_value, description) VALUES
+('pricing_examples', '{"examples": [
+  {"distance_km": 3, "total": 24000, "platform_fee": 3600, "driver_earnings": 20400},
+  {"distance_km": 10, "total": 80000, "platform_fee": 12000, "driver_earnings": 68000},
+  {"distance_km": 20, "total": 160000, "platform_fee": 24000, "driver_earnings": 136000},
+  {"distance_km": 25, "total": 200000, "platform_fee": 30000, "driver_earnings": 170000}
+]}', 'Pricing examples for reference');
 ```
 
 ---
@@ -1128,7 +1156,7 @@ bunx prisma db seed
 
 ---
 
-## 10. Prisma 7 Migration Guide
+## 9. Prisma 7 Migration Guide
 
 ### Breaking Changes Summary
 
@@ -1249,7 +1277,7 @@ export const prisma = new PrismaClient({ adapter });
 
 ---
 
-## 9. Related Documents
+## 10. Related Documents
 
 | Document | Description |
 |----------|-------------|

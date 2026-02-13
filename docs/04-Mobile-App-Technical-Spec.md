@@ -472,6 +472,11 @@ Update `app.json` with required permissions:
 
 **IMPORTANT**: Background location ONLY works in development builds, NOT in Expo Go.
 
+**Business Rules:**
+- **Frequency:** 30 giây/lần (mặc định)
+- **Adaptive:** 10 giây/lần khi gần đích (< 500m)
+- **Background:** Enabled
+
 ```typescript
 // src/services/location/BackgroundLocationService.ts
 import * as Location from 'expo-location';
@@ -502,6 +507,7 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
           heading: location.coords.heading,
           speed: location.coords.speed,
           timestamp: location.timestamp,
+          isNearDestination: false, // Will be calculated server-side
         });
       } catch (err) {
         console.error('[BackgroundLocation] Failed to update:', err);
@@ -530,7 +536,10 @@ export class BackgroundLocationService {
     return true;
   }
 
-  static async startTracking(): Promise<boolean> {
+  static async startTracking(options?: { 
+    orderId?: string;
+    destination?: { lat: number; lng: number };
+  }): Promise<boolean> {
     const hasPermissions = await this.requestPermissions();
     if (!hasPermissions) {
       throw new Error('Location permissions not granted');
@@ -543,9 +552,13 @@ export class BackgroundLocationService {
       return true;
     }
 
+    // Default: 30 seconds interval
+    // Adaptive: 10 seconds when near destination (<500m)
+    const timeInterval = options?.destination ? 10000 : 30000;
+
     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
       accuracy: Location.Accuracy.Balanced,
-      timeInterval: 10000, // 10 seconds minimum (battery optimization)
+      timeInterval, // 30s default, 10s when near destination
       distanceInterval: 50, // 50 meters
       showsBackgroundLocationIndicator: true,
       pausesUpdatesAutomatically: false,
@@ -557,7 +570,7 @@ export class BackgroundLocationService {
       },
     });
 
-    console.log('[Location] Background tracking started');
+    console.log('[Location] Background tracking started (interval: ${timeInterval}ms)');
     return true;
   }
 
@@ -585,17 +598,21 @@ export class BackgroundLocationService {
   }
 
   static async watchPosition(
-    callback: (location: Location.LocationObject) => void
+    callback: (location: Location.LocationObject) => void,
+    options?: { nearDestination?: boolean }
   ): Promise<Location.LocationSubscription> {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
       throw new Error('Location permission not granted');
     }
 
+    // 30s default, 10s when near destination
+    const timeInterval = options?.nearDestination ? 10000 : 30000;
+
     return await Location.watchPositionAsync(
       {
         accuracy: Location.Accuracy.High,
-        timeInterval: 5000,
+        timeInterval,
         distanceInterval: 10,
       },
       callback
@@ -691,12 +708,89 @@ export function showLocationPermissionAlert() {
 
 ### 6.7. Best Practices
 
-1. **Battery Optimization**: Use `timeInterval: 10000` (10s) and `distanceInterval: 50` (50m) minimum
+1. **Battery Optimization**: Use `timeInterval: 30000` (30s) default, `10000` (10s) when near destination
 2. **Error Handling**: Always handle permission denials gracefully
 3. **Retry Logic**: Queue failed location updates for retry
 4. **Testing**: Use development builds (`expo-dev-client`) for background location
 5. **Permissions**: Request foreground first, then background
 6. **Cleanup**: Always stop tracking when component unmounts or order completes
+7. **Adaptive Tracking**: Switch to 10s interval when driver is within 500m of destination
+
+### 6.8. Pricing Display (User App)
+
+**Pricing Model:** 8.000 VND/km (fixed)
+
+```typescript
+// src/utils/pricing.ts
+export const PRICING = {
+  PRICE_PER_KM: 8000,
+  PLATFORM_FEE_PERCENT: 15,
+  MAX_DISTANCE_KM: 25,
+  SURGE_PERCENT: 20,
+} as const;
+
+export function calculatePrice(distanceKm: number, surgeMultiplier: number = 1): {
+  distancePrice: number;
+  totalPrice: number;
+  platformFee: number;
+  driverEarnings: number;
+} {
+  const distancePrice = distanceKm * PRICING.PRICE_PER_KM;
+  const totalPrice = Math.round(distancePrice * surgeMultiplier);
+  const platformFee = Math.round(totalPrice * (PRICING.PLATFORM_FEE_PERCENT / 100));
+  const driverEarnings = totalPrice - platformFee;
+  
+  return {
+    distancePrice,
+    totalPrice,
+    platformFee,
+    driverEarnings,
+  };
+}
+
+// Pricing examples
+export const PRICING_EXAMPLES = [
+  { km: 3, total: 24000, platform: 3600, driver: 20400 },
+  { km: 10, total: 80000, platform: 12000, driver: 68000 },
+  { km: 20, total: 160000, platform: 24000, driver: 136000 },
+  { km: 25, total: 200000, platform: 30000, driver: 170000 },
+];
+```
+
+### 6.9. Cancellation Flow
+
+**Customer Cancellation:**
+- Miễn phí trong 5 phút sau đặt hàng
+- Sau 5 phút: 10% phí hủy
+
+**Driver Cancellation:**
+- Tối đa 3 lần/ngày
+- -10 điểm rating mỗi lần
+- Khóa 24h sau 3 lần
+
+```typescript
+// src/utils/cancellation.ts
+export const CANCELLATION = {
+  FREE_MINUTES: 5,
+  FEE_PERCENT: 10,
+  DRIVER_DAILY_LIMIT: 3,
+  DRIVER_LOCK_HOURS: 24,
+  DRIVER_RATING_PENALTY: -10,
+} as const;
+
+export function calculateCancellationFee(
+  totalPrice: number,
+  minutesSinceOrder: number,
+  driverAssigned: boolean
+): number {
+  if (minutesSinceOrder <= CANCELLATION.FREE_MINUTES) {
+    return 0;
+  }
+  if (!driverAssigned) {
+    return 0;
+  }
+  return Math.round(totalPrice * (CANCELLATION.FEE_PERCENT / 100));
+}
 ```
 
 ---

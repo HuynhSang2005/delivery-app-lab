@@ -24,6 +24,27 @@ This document provides comprehensive technical architecture for the Logship-MVP 
 | **Type Safety** | End-to-end TypeScript with Hey-API client generation |
 | **Defense in Depth** | Multiple security layers (auth, validation, rate limiting) |
 
+### 1.2. Business Logic Overview
+
+**Pricing Model:**
+- **Giá cố định:** 8.000 VND/km
+- **Platform Fee:** 15% giá đơn
+- **Max Distance:** 25km (Hồ Chí Minh)
+
+**Driver Matching:**
+- **Timeout:** 5 phút
+- **Radius:** 3km → 5km → 7km
+- **Priority:** Rating cao
+- **Surge:** +20% khi mở rộng
+
+**Location Tracking:**
+- **Frequency:** 30 giây/lần
+- **Adaptive:** 10 giây/lần khi gần đích (<500m)
+
+**Cancellation:**
+- **Customer:** Free 5 phút, sau đó 10%
+- **Driver:** Max 3 lần/ngày, -10 rating/lần
+
 ### 1.2. High-Level Architecture Diagram
 
 ```
@@ -1008,24 +1029,132 @@ export const prisma = new PrismaClient({ adapter });
 
 ---
 
-## 5. Background Jobs (Optional for MVP)
+## 5. Background Jobs (BullMQ)
 
-> **Note:** For MVP with 50 concurrent users, you can skip BullMQ and use simple async/await. 
-> Add BullMQ only if you need to process heavy background tasks.
+### 5.1. Required Queues
 
-### When to Use BullMQ
-- Processing large exports
-- Sending bulk notifications
-- Heavy image processing
+| Queue | Purpose | Priority |
+|-------|---------|----------|
+| `order-matching` | Driver matching with 5min timeout | HIGH |
+| `location-batch` | Batch insert location updates | MEDIUM |
+| `notifications` | Push notifications | MEDIUM |
 
-### Simple Alternative
+### 5.2. Order Matching Processor
+
+**Business Rules:**
+- **Initial Radius:** 3km
+- **Timeout:** 5 phút
+- **Expansion:** 5km → 7km
+- **Surge:** +20% khi mở rộng
+
 ```typescript
-// Just use async/await in services
-async sendNotification(data: NotificationData) {
-  // Process immediately or use setTimeout for delay
-  setTimeout(() => {
-    this.processNotification(data);
-  }, 1000);
+// src/modules/orders/processors/order-matching.processor.ts
+@Processor('order-matching')
+export class OrderMatchingProcessor {
+  constructor(
+    private ordersService: OrdersService,
+    private driversService: DriversService,
+    private geoService: GeoService,
+  ) {}
+
+  @Process('find-driver')
+  async handleFindDriver(job: Job<{ orderId: string }>) {
+    const { orderId } = job.data;
+    const order = await this.ordersService.findById(orderId);
+    
+    if (!order || order.status !== 'pending') return;
+
+    // Phase 1: Search 3km radius
+    let drivers = await this.driversService.findNearest(
+      order.pickupLat,
+      order.pickupLng,
+      3000, // 3km
+      5
+    );
+
+    if (drivers.length > 0) {
+      await this.notifyDrivers(order, drivers, 1.0);
+      return;
+    }
+
+    // Phase 2: Expand to 5km (+20% surge)
+    drivers = await this.driversService.findNearest(
+      order.pickupLat,
+      order.pickupLng,
+      5000, // 5km
+      5
+    );
+
+    if (drivers.length > 0) {
+      await this.ordersService.applySurge(orderId, 1.2);
+      await this.notifyDrivers(order, drivers, 1.2);
+      return;
+    }
+
+    // Phase 3: Expand to 7km (+20% surge)
+    drivers = await this.driversService.findNearest(
+      order.pickupLat,
+      order.pickupLng,
+      7000, // 7km
+      5
+    );
+
+    if (drivers.length > 0) {
+      await this.ordersService.applySurge(orderId, 1.2);
+      await this.notifyDrivers(order, drivers, 1.2);
+    } else {
+      // No drivers found - cancel or retry later
+      await this.ordersService.markNoDriversAvailable(orderId);
+    }
+  }
+
+  private async notifyDrivers(order: Order, drivers: Driver[], surgeMultiplier: number) {
+    // Sort by rating first, then distance
+    const sortedDrivers = drivers.sort((a, b) => {
+      if (b.rating !== a.rating) return b.rating - a.rating;
+      return a.distance - b.distance;
+    });
+
+    // Notify top 5 drivers
+    for (const driver of sortedDrivers.slice(0, 5)) {
+      await this.notificationsService.sendDriverNotification(driver.id, {
+        type: 'NEW_ORDER',
+        orderId: order.id,
+        surgeMultiplier,
+        estimatedEarnings: order.driverEarnings * surgeMultiplier,
+      });
+    }
+  }
+}
+```
+
+### 5.3. Location Batch Processor
+
+**Business Rules:**
+- **Frequency:** 30 giây/lần
+- **Adaptive:** 10 giây/lần khi gần đích (<500m)
+
+```typescript
+// src/modules/drivers/processors/location-batch.processor.ts
+@Processor('location-batch')
+export class LocationBatchProcessor {
+  @Process('batch-insert')
+  async handleBatchInsert(job: Job<{ locations: LocationUpdate[] }>) {
+    const { locations } = job.data;
+    
+    // Batch insert to PostgreSQL
+    await this.prisma.driverLocation.createMany({
+      data: locations.map(loc => ({
+        driverId: loc.driverId,
+        latitude: loc.lat,
+        longitude: loc.lng,
+        accuracy: loc.accuracy,
+        heading: loc.heading,
+        speed: loc.speed,
+        recordedAt: new Date(loc.timestamp),
+      })),
+    });
+  }
 }
 ```
 
@@ -1070,7 +1199,141 @@ export function setupSwagger(app: INestApplication) {
 }
 ```
 
-### 7.2. Zod + OpenAPI Integration
+### 7.2. Pricing Service
+
+**Pricing Model:** 8.000 VND/km (fixed)
+
+```typescript
+// src/modules/orders/services/pricing.service.ts
+@Injectable()
+export class PricingService {
+  private readonly PRICE_PER_KM = 8000;
+  private readonly PLATFORM_FEE_PERCENT = 15;
+  private readonly MAX_DISTANCE_KM = 25;
+  private readonly SURGE_PERCENT = 20;
+
+  calculatePrice(distanceKm: number, surgeMultiplier: number = 1): {
+    distancePrice: number;
+    totalPrice: number;
+    platformFee: number;
+    driverEarnings: number;
+  } {
+    // Validate max distance
+    if (distanceKm > this.MAX_DISTANCE_KM) {
+      throw new Error(`Distance exceeds maximum (${this.MAX_DISTANCE_KM}km)`);
+    }
+
+    const distancePrice = distanceKm * this.PRICE_PER_KM;
+    const totalPrice = Math.round(distancePrice * surgeMultiplier);
+    const platformFee = Math.round(totalPrice * (this.PLATFORM_FEE_PERCENT / 100));
+    const driverEarnings = totalPrice - platformFee;
+
+    return {
+      distancePrice,
+      totalPrice,
+      platformFee,
+      driverEarnings,
+    };
+  }
+
+  calculateCancellationFee(
+    totalPrice: number,
+    minutesSinceOrder: number,
+    driverAssigned: boolean
+  ): number {
+    const FREE_MINUTES = 5;
+    const CANCELLATION_FEE_PERCENT = 10;
+
+    if (minutesSinceOrder <= FREE_MINUTES) {
+      return 0;
+    }
+
+    if (!driverAssigned) {
+      return 0;
+    }
+
+    return Math.round(totalPrice * (CANCELLATION_FEE_PERCENT / 100));
+  }
+
+  getSurgeMultiplier(radiusExpanded: boolean): number {
+    return radiusExpanded ? 1 + (this.SURGE_PERCENT / 100) : 1;
+  }
+}
+```
+
+### 7.3. Cancellation Service
+
+**Cancellation Policy:**
+- **Customer:** Free 5 phút, sau đó 10%
+- **Driver:** Max 3 lần/ngày, -10 rating/lần
+
+```typescript
+// src/modules/orders/services/cancellation.service.ts
+@Injectable()
+export class CancellationService {
+  constructor(
+    private ordersRepository: IOrdersRepository,
+    private driversRepository: IDriversRepository,
+    private pricingService: PricingService,
+  ) {}
+
+  async cancelOrder(
+    orderId: string,
+    cancelledBy: string,
+    cancelledByRole: 'customer' | 'driver' | 'admin',
+    reason?: string
+  ): Promise<CancelOrderResult> {
+    const order = await this.ordersRepository.findById(orderId);
+    if (!order) {
+      throw new OrderNotFoundError(orderId);
+    }
+
+    // Check if can cancel
+    if (['delivered', 'cancelled'].includes(order.status)) {
+      throw new CannotCancelError('Order already completed or cancelled');
+    }
+
+    // Driver cancellation limits
+    if (cancelledByRole === 'driver') {
+      const driver = await this.driversRepository.findById(order.driverId);
+      if (driver.dailyCancellations >= 3) {
+        throw new CancellationLimitError('Daily cancellation limit reached (3/day)');
+      }
+
+      // Update driver stats
+      await this.driversRepository.incrementCancellations(driver.id);
+      await this.driversRepository.updateRating(driver.id, -10); // -10 points
+    }
+
+    // Calculate cancellation fee
+    const minutesSinceOrder = differenceInMinutes(new Date(), order.createdAt);
+    const cancellationFee = this.pricingService.calculateCancellationFee(
+      order.totalPrice,
+      minutesSinceOrder,
+      !!order.driverId
+    );
+
+    // Update order
+    await this.ordersRepository.update(orderId, {
+      status: 'cancelled',
+      cancelledBy,
+      cancelledByRole,
+      cancellationReason: reason,
+      cancellationFee,
+      cancelledAt: new Date(),
+    });
+
+    return {
+      orderId,
+      status: 'cancelled',
+      cancellationFee,
+      refundAmount: order.totalPrice - cancellationFee,
+    };
+  }
+}
+```
+
+### 7.4. Zod + OpenAPI Integration
 
 We use **nestjs-zod** for DTO validation with automatic OpenAPI schema generation.
 

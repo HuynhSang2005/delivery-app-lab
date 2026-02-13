@@ -203,7 +203,20 @@ export class RolesGuard implements CanActivate {
 | COMPLETED | Delivery successful | Driver |
 | CANCELLED | Order cancelled | User (before ASSIGNED) or Admin |
 
+**Cancellation Policy:**
+- **Customer:** Miễn phí trong 5 phút sau đặt hàng
+- **Sau 5 phút:** 10% phí hủy (nếu tài xế đã nhận)
+- **Driver:** Tối đa 3 lần hủy/ngày, sau đó khóa 24h
+- **Driver Penalty:** -10 điểm rating mỗi lần hủy sau khi nhận
+
 ### 4.3. Driver Matching Algorithm
+
+**Business Rules:**
+- **Initial Search Radius:** 3km
+- **Timeout:** 5 phút
+- **Expansion:** 5km → 7km nếu không có tài xế
+- **Surge Pricing:** +20% khi mở rộng bán kính
+- **Priority:** Rating cao được ưu tiên
 
 ```sql
 -- Find nearest active drivers using PostGIS KNN operator
@@ -218,18 +231,23 @@ WHERE d.status = 'ACTIVE'
   AND ST_DWithin(
     d.last_location, 
     ST_MakePoint(:lng, :lat)::geography,
-    5000  -- 5km radius
+    3000  -- 3km initial radius
   )
-ORDER BY d.last_location <-> ST_MakePoint(:lng, :lat)::geography
+ORDER BY d.rating DESC, d.last_location <-> ST_MakePoint(:lng, :lat)::geography
 LIMIT 5;
 ```
 
 ### 4.4. Real-time Tracking
 
+**Business Rules:**
+- **Frequency:** 30 giây/lần (mặc định)
+- **Adaptive:** 10 giây/lần khi gần đích (< 500m)
+- **Background:** Enabled
+
 ```
 Driver App                    Backend                      User App
     │                            │                            │
-    │  GPS Update (5s interval)  │                            │
+    │  GPS Update (30s interval) │                            │
     │  emit('driver:location')   │                            │
     │───────────────────────────>│                            │
     │                            │  Update Redis GEOADD       │
@@ -238,6 +256,9 @@ Driver App                    Backend                      User App
     │                            │───────────────────────────>│
     │                            │                            │  Update map marker
     │                            │                            │  (AnimatedRegion)
+    │                            │                            │
+    │  Adaptive (10s when <500m) │                            │
+    │───────────────────────────>│                            │
 ```
 
 ### 4.5. Chat System
@@ -335,7 +356,7 @@ Driver App                    Backend                      User App
                           ▼                         ▼
                ┌───────────────────┐     ┌───────────────────┐
                │  Search Radius:   │     │  Query Redis GEO  │
-               │  Start at 1km     │     │  for active       │
+               │  Start at 3km     │     │  for active       │
                │                   │     │  drivers          │
                └─────────┬─────────┘     └─────────┬─────────┘
                          │                         │
@@ -350,8 +371,8 @@ Driver App                    Backend                      User App
                                       ▼                     ▼
                          ┌─────────────────────────┐  ┌─────────────────┐
                          │  Sort by:               │  │ Expand radius   │
-                         │  1. Distance (nearest)  │  │ by 1km          │
-                         │  2. Rating (future)     │  │ (max 10km)      │
+                         │  1. Rating (high first) │  │ +2km each time  │
+                         │  2. Distance (nearest)  │  │ (max 7km)       │
                          │  3. Completion rate     │  └────────┬────────┘
                          └────────────┬────────────┘           │
                                       │                        │
@@ -362,12 +383,13 @@ Driver App                    Backend                      User App
                          │  Send push notification │
                          │  to top 5 drivers       │
                          │  (via Socket.io)        │
+                         │  +20% surge if expanded │
                          └────────────┬────────────┘
                                       │
                                       ▼
                          ┌─────────────────────────┐
                          │  Wait for acceptance    │
-                         │  (30 second timeout)    │
+                         │  (5 minute timeout)     │
                          └────────────┬────────────┘
                                       │
                     ┌─────────────────┴─────────────────┐
@@ -453,7 +475,7 @@ The following Socket.io events are used for real-time communication:
 |-------|-----------|---------|-------------|
 | `order:join` | Client → Server | `{ orderId: string }` | Join order room for tracking |
 | `order:leave` | Client → Server | `{ orderId: string }` | Leave order room |
-| `driver:location` | Client → Server | `{ orderId?, lat, lng, heading?, speed? }` | Driver location update (every 5s) |
+| `driver:location` | Client → Server | `{ orderId?, lat, lng, heading?, speed? }` | Driver location update (every 30s, 10s when <500m) |
 | `location:updated` | Server → Client | `{ orderId, driverId, lat, lng, heading?, eta? }` | Location broadcast to order room |
 | `order:new` | Server → Client | Order object | New order available for drivers |
 | `order:status` | Server → Client | `{ orderId, status, updatedAt, driverLocation? }` | Order status changed |
@@ -555,7 +577,75 @@ Order Event                    BullMQ                         External Services
 
 ---
 
-## 6. Security Considerations
+## 6. Business Logic
+
+### 5.1. Pricing Model
+
+**Giá cố định:** 8.000 VND/km (đơn giản, dễ hiểu)
+
+| Distance | Total Price | Platform Fee (15%) | Driver Earnings |
+|----------|-------------|-------------------|-----------------|
+| 3km | 24.000đ | 3.600đ | 20.400đ |
+| 10km | 80.000đ | 12.000đ | 68.000đ |
+| 20km | 160.000đ | 24.000đ | 136.000đ |
+| 25km (max) | 200.000đ | 30.000đ | 170.000đ |
+
+**Pricing Formula:**
+```
+Total Price = Distance (km) × 8.000đ
+Platform Fee = Total Price × 15%
+Driver Earnings = Total Price × 85%
+```
+
+**Max Distance:** 25km (Hồ Chí Minh city limits)
+
+### 5.2. Cancellation Policy
+
+**Customer Cancellation:**
+- **Free:** Trong 5 phút sau đặt hàng
+- **Sau 5 phút:** 10% phí hủy (nếu tài xế đã nhận đơn)
+- **Không thể hủy:** Khi tài xế đã đến điểm lấy hàng
+
+**Driver Cancellation:**
+- **Tối đa:** 3 lần hủy/ngày
+- **Sau 3 lần:** Khóa tài khoản 24 giờ
+- **Penalty:** -10 điểm rating mỗi lần hủy sau khi nhận đơn
+
+### 5.3. Driver Matching Rules
+
+| Parameter | Value |
+|-----------|-------|
+| Initial Radius | 3km |
+| Timeout | 5 phút |
+| Expansion | 5km → 7km (nếu không có tài xế) |
+| Priority | Rating cao được ưu tiên |
+| Surge | +20% khi mở rộng bán kính |
+
+**Matching Flow:**
+1. Tìm tài xế trong bán kính 3km
+2. Sắp xếp theo: Rating → Khoảng cách → Số đơn hoàn thành
+3. Gửi thông báo đến top 5 tài xế
+4. Chờ 5 phút
+5. Nếu không có ai nhận → Mở rộng 5km (+20% giá)
+6. Nếu vẫn không có → Mở rộng 7km (+20% giá)
+
+### 5.4. Location Tracking
+
+| Scenario | Frequency |
+|----------|-----------|
+| Normal | 30 giây/lần |
+| Near destination (<500m) | 10 giây/lần |
+| Background | Enabled |
+
+### 5.5. Service Area
+
+- **Thành phố:** Hồ Chí Minh
+- **Max distance:** 25km
+- **Payment:** COD only (online cho tương lai)
+
+---
+
+## 7. Security Considerations
 
 ### 6.1. Authentication & Authorization
 
@@ -580,7 +670,7 @@ Order Event                    BullMQ                         External Services
 
 ---
 
-## 7. Scalability Notes
+## 8. Scalability Notes
 
 This MVP is designed for **50 concurrent users**. For scaling beyond:
 
@@ -589,11 +679,11 @@ This MVP is designed for **50 concurrent users**. For scaling beyond:
 | Database | Neon free tier (0.5 GB) | Neon Pro with autoscaling |
 | Real-time | Single Redis instance | Redis Cluster |
 | Backend | Single instance | Horizontal scaling with load balancer |
-| Location Updates | 5s interval | Adaptive intervals based on speed |
+| Location Updates | 30s interval | 10s when <500m from destination |
 
 ---
 
-## 8. Related Documents
+## 9. Related Documents
 
 | Document | Description |
 |----------|-------------|
@@ -606,7 +696,7 @@ This MVP is designed for **50 concurrent users**. For scaling beyond:
 
 ---
 
-## 9. Glossary
+## 10. Glossary
 
 | Term | Definition |
 |------|------------|

@@ -683,6 +683,8 @@ Roles: DRIVER
 
 Preview price before creating order.
 
+**Pricing Model:** 8.000 VND/km (fixed)
+
 ```http
 POST /orders/calculate-price
 Authorization: Bearer <token>
@@ -708,14 +710,29 @@ Authorization: Bearer <token>
   "success": true,
   "data": {
     "distanceKm": 12.5,
-    "basePrice": 10000,
-    "distancePrice": 62500,
-    "totalPrice": 72500,
+    "pricePerKm": 8000,
+    "distancePrice": 100000,
+    "surgeMultiplier": 1.0,
+    "totalPrice": 100000,
+    "platformFee": 15000,
+    "driverEarnings": 85000,
     "currency": "VND",
-    "estimatedDuration": "25-35 min"
+    "estimatedDuration": "25-35 min",
+    "maxDistance": 25
   }
 }
 ```
+
+**Pricing Examples:**
+| Distance | Total | Platform Fee | Driver Earnings |
+|----------|-------|--------------|-----------------|
+| 3km | 24.000đ | 3.600đ | 20.400đ |
+| 10km | 80.000đ | 12.000đ | 68.000đ |
+| 20km | 160.000đ | 24.000đ | 136.000đ |
+| 25km (max) | 200.000đ | 30.000đ | 170.000đ |
+
+**Errors:**
+- `422` - Distance exceeds max (25km)
 
 ---
 
@@ -927,6 +944,11 @@ For COMPLETED status, include proof:
 
 ### 5.7. Cancel Order
 
+**Cancellation Policy:**
+- **Customer:** Miễn phí trong 5 phút sau đặt hàng
+- **Sau 5 phút:** 10% phí hủy (nếu tài xế đã nhận)
+- **Driver:** Tối đa 3 lần hủy/ngày, -10 điểm rating mỗi lần
+
 ```http
 POST /orders/:id/cancel
 Authorization: Bearer <token>
@@ -935,12 +957,30 @@ Authorization: Bearer <token>
 **Request Body:**
 ```json
 {
-  "reason": "Customer requested cancellation"
+  "reason": "Customer requested cancellation",
+  "cancelledBy": "customer"  // or "driver", "admin"
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "orderId": "uuid",
+    "status": "CANCELLED",
+    "cancelledAt": "2025-01-15T10:35:00Z",
+    "cancellationFee": 0,  // or 10000 if after 5min
+    "refundAmount": 100000,  // Total - cancellationFee
+    "message": "Order cancelled successfully. Refund processed."
+  }
 }
 ```
 
 **Errors:**
 - `422` - Cannot cancel order in DELIVERING or COMPLETED status
+- `403` - Driver has exceeded daily cancellation limit (3/day)
+- `422` - Cannot cancel - driver already at pickup location
 
 ---
 
