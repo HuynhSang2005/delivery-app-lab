@@ -39,9 +39,10 @@ error: Failed to install
    bun install
    ```
 
-3. Use npm as fallback:
+3. Delete lockfile and reinstall:
    ```bash
-   npm install
+   rm bun.lockb
+   bun install
    ```
 
 ---
@@ -519,7 +520,7 @@ Build fails with native module errors
 **Solutions:**
 1. Update EAS CLI:
    ```bash
-   npm install -g eas-cli
+   bun install -g eas-cli
    ```
 
 2. Clear build cache:

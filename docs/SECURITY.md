@@ -378,9 +378,7 @@ DATABASE_URL="postgresql://..."
 FIREBASE_PROJECT_ID="logship-mvp"
 FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n..."
 
-# JWT
-JWT_SECRET="min-32-char-random-string"
-JWT_EXPIRATION="1h"
+# Note: JWT tokens are verified via Firebase Admin SDK (RS256), not a shared secret.
 
 # API Keys
 GOONG_API_KEY="..."

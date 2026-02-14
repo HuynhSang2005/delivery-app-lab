@@ -127,34 +127,34 @@ This document provides comprehensive technical architecture for the Logship-MVP 
     "db:seed": "bunx ts-node prisma/seed.ts"
   },
   "dependencies": {
-    "@nestjs/bullmq": "^11.1.13",
+    "@nestjs/bullmq": "^11.0.4",
     "@nestjs/common": "^11.1.13",
-    "@nestjs/config": "^4.0.0",
+    "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.1.13",
-    "@nestjs/jwt": "^11.1.13",
-    "@nestjs/passport": "^11.1.13",
+    "@nestjs/jwt": "^11.0.2",
+    "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.1.13",
     "@nestjs/platform-socket.io": "^11.1.13",
     "@nestjs/schedule": "^5.0.1",
-    "@nestjs/swagger": "^11.1.13",
+    "@nestjs/swagger": "^11.2.6",
     "@nestjs/terminus": "^11.0.1",
     "@nestjs/throttler": "^6.5.0",
     "@nestjs/websockets": "^11.1.13",
     "@prisma/client": "^7.4.0",
-    "bullmq": "^5.50.0",
-    "cloudinary": "^2.5.0",
+    "bullmq": "^5.69.1",
+    "cloudinary": "^2.9.0",
     "date-fns": "^4.1.0",
-    "firebase-admin": "^13.0.0",
-    "ioredis": "^5.4.0",
+    "firebase-admin": "^13.6.1",
+    "ioredis": "^5.9.3",
     "lodash": "^4.17.21",
-    "nestjs-zod": "^4.0.0",
+    "nestjs-zod": "^5.1.1",
     "passport": "^0.7.0",
-    "passport-jwt": "^4.0.0",
+    "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.0",
-    "socket.io": "^4.8.0",
-    "socket.io-redis-adapter": "^8.0.0",
-    "uuid": "^11.0.0",
+    "socket.io": "^4.8.3",
+    "@socket.io/redis-adapter": "^8.3.0",
+    "uuid": "^13.0.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
@@ -189,26 +189,26 @@ This document provides comprehensive technical architecture for the Logship-MVP 
 | Category | Library | Version | Purpose |
 |----------|---------|---------|---------|
 | **Core** | `@nestjs/*` | ^11.1.13 | NestJS framework |
-| **API Docs** | `@nestjs/swagger` | ^11.1.13 | OpenAPI/Swagger |
+| **API Docs** | `@nestjs/swagger` | ^11.2.6 | OpenAPI/Swagger |
 | **Validation** | `zod` | ^4.3.6 | Schema validation (Zod v4) |
-| **Validation** | `nestjs-zod` | ^4.0.0 | Zod integration for NestJS |
+| **Validation** | `nestjs-zod` | ^5.1.1 | Zod integration for NestJS |
 | **ORM** | `@prisma/client` | ^7.4.0 | **Prisma ORM** |
 | **ORM CLI** | `prisma` | ^7.4.0 | **Prisma CLI** |
-| **Queue** | `bullmq` | ^5.0.0 | Message queues |
-| **Redis** | `ioredis` | ^5.4.0 | Redis client |
-| **Auth** | `@nestjs/jwt` | ^11.1.13 | JWT tokens |
-| **Auth** | `@nestjs/passport` | ^11.1.13 | Passport integration |
-| **Auth** | `passport-jwt` | ^4.0.0 | JWT strategy |
-| **Auth** | `firebase-admin` | ^13.0.0 | Firebase Auth |
+| **Queue** | `bullmq` | ^5.69.1 | Message queues |
+| **Redis** | `ioredis` | ^5.9.3 | Redis client |
+| **Auth** | `@nestjs/jwt` | ^11.0.2 | JWT tokens |
+| **Auth** | `@nestjs/passport` | ^11.0.5 | Passport integration |
+| **Auth** | `passport-jwt` | ^4.0.1 | JWT strategy |
+| **Auth** | `firebase-admin` | ^13.6.1 | Firebase Auth |
 | **WebSocket** | `@nestjs/websockets` | ^11.1.13 | Socket.io |
-| **WebSocket** | `socket.io` | ^4.8.0 | Socket.io server |
-| **WebSocket** | `socket.io-redis-adapter` | ^8.0.0 | Redis adapter |
+| **WebSocket** | `socket.io` | ^4.8.3 | Socket.io server |
+| **WebSocket** | `@socket.io/redis-adapter` | ^8.3.0 | Redis adapter |
 | **Rate Limit** | `@nestjs/throttler` | ^6.5.0 | Rate limiting |
 | **Health** | `@nestjs/terminus` | ^11.0.1 | Health checks |
 | **Schedule** | `@nestjs/schedule` | ^5.0.1 | Cron jobs |
-| **Storage** | `cloudinary` | ^2.5.0 | Image storage |
+| **Storage** | `cloudinary` | ^2.9.0 | Image storage |
 | **Utilities** | `lodash` | ^4.17.21 | Utility functions |
-| **Utilities** | `uuid` | ^11.0.0 | UUID generation |
+| **Utilities** | `uuid` | ^13.0.0 | UUID generation |
 | **Utilities** | `date-fns` | ^4.1.0 | Date formatting |
 | **Schema** | `zod` | ^4.3.6 | Schema validation (Zod v4 - latest) |
 
@@ -1517,10 +1517,6 @@ FIREBASE_CLIENT_EMAIL="firebase-adminsdk@..."
 CLOUDINARY_CLOUD_NAME="your-cloud"
 CLOUDINARY_API_KEY="your-key"
 CLOUDINARY_API_SECRET="your-secret"
-
-# JWT
-JWT_SECRET="your-secret"
-JWT_EXPIRES_IN="15m"
 
 # Goong Maps
 GOONG_API_KEY="your-goong-key"

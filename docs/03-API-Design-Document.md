@@ -2041,10 +2041,10 @@ We use **Hey-API** (`@hey-api/openapi-ts`) to auto-generate type-safe TypeScript
 
 ```bash
 # Install in frontend project (admin or mobile)
-bun add @hey-api/client-fetch@0.10.0 @tanstack/react-query@5.66.0
+bun add @hey-api/client-fetch@0.13.1 @tanstack/react-query@5.90.21
 
 # Dev dependency for code generation
-bun add -d @hey-api/openapi-ts@0.92.3
+bun add -d @hey-api/openapi-ts@0.92.4
 ```
 
 **Configuration file (`hey-api.config.ts`):**

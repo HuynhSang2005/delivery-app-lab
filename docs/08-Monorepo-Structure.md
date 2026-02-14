@@ -32,10 +32,6 @@ logship-mvp/                          # Root
 │   ├── mobile/                       # React Native + Expo SDK 54
 │   ├── admin/                        # Next.js 16 Admin Dashboard
 │   └── api/                          # NestJS 11 Backend API
-├── packages/                         # Shared packages
-│   ├── shared-types/                 # TypeScript types (API contracts)
-│   ├── shared-config/                # Shared configurations
-│   └── shared-utils/                 # Common utility functions
 ├── docs/                             # Documentation (MD files)
 ├── .github/                          # GitHub Actions workflows
 ├── docker/                           # Docker configurations
@@ -43,6 +39,10 @@ logship-mvp/                          # Root
 ├── bun.lockb                         # Bun lockfile
 └── tsconfig.json                     # Root TypeScript config
 ```
+
+> **Future expansion:** When shared code is needed across apps, add a `packages/` directory
+> (e.g. `packages/shared-types`, `packages/shared-config`, `packages/shared-utils`) and
+> include `"packages/*"` in the root `workspaces` array. See [Section 4](#4-shared-packages-future) for details.
 
 ---
 
@@ -53,38 +53,36 @@ logship-mvp/                          # Root
 ```json
 {
   "name": "logship-mvp",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "private": true,
   "workspaces": [
-    "apps/*",
-    "packages/*"
+    "apps/*"
   ],
   "scripts": {
-    "dev": "bun run --filter '*' dev",
+    "dev": "bun run --filter './apps/api' start:dev",
     "dev:mobile": "bun run --filter @logship/mobile dev",
     "dev:admin": "bun run --filter @logship/admin dev",
-    "dev:api": "bun run --filter @logship/api dev",
-    "build": "bun run --filter '*' build",
+    "dev:api": "bun run --filter './apps/api' start:dev",
+    "build": "bun run --filter './apps/api' build",
     "build:mobile": "bun run --filter @logship/mobile build",
     "build:admin": "bun run --filter @logship/admin build",
-    "build:api": "bun run --filter @logship/api build",
-    "lint": "bun run --filter '*' lint",
-    "test": "bun run --filter '*' test",
-    "test:e2e": "bun run --filter '*' test:e2e",
-    "typecheck": "bun run --filter '*' typecheck",
-    "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules bun.lockb",
+    "build:api": "bun run --filter './apps/api' build",
+    "lint": "bun run --filter './apps/api' lint",
+    "test": "bun run --filter './apps/api' test",
+    "test:e2e": "bun run --filter './apps/api' test:e2e",
+    "typecheck": "bun run --filter './apps/api' typecheck",
+    "clean": "rimraf apps/*/dist apps/*/coverage apps/*/.next apps/*/.expo apps/*/node_modules/.cache",
     "fresh": "bun run clean && bun install",
-    "format": "bunx prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "format:check": "bunx prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "db:generate": "bun run --filter @logship/api db:generate",
-    "db:migrate": "bun run --filter @logship/api db:migrate",
-    "db:studio": "bun run --filter @logship/api db:studio"
+    "format": "bun run --filter './apps/api' format",
+    "format:check": "bun run --filter './apps/api' format:check",
+    "db:generate": "bun run --filter './apps/api' db:generate",
+    "db:migrate": "bun run --filter './apps/api' db:migrate",
+    "db:studio": "bun run --filter './apps/api' db:studio"
   },
   "devDependencies": {
-    "@logship/shared-config": "workspace:*",
-    "prettier": "^3.5.0",
     "typescript": "^5.9.3"
-  }
+  },
+  "packageManager": "bun@1.3.9"
 }
 ```
 
@@ -93,21 +91,21 @@ logship-mvp/                          # Root
 Bun workspaces use the `--filter` flag to target specific packages:
 
 ```bash
-# Run command in all packages
+# Run command in all apps
 bun run --filter '*' dev
 
-# Run command in specific package
+# Run command in specific app
 bun run --filter @logship/mobile dev
 bun run --filter @logship/admin build
 bun run --filter @logship/api test
 
-# Install dependencies in all packages
+# Install dependencies in all apps
 bun install
 
-# Add dependency to specific package
+# Add dependency to specific app
 bun add --filter @logship/mobile zod
 
-# Add dev dependency to specific package
+# Add dev dependency to specific app
 bun add --filter @logship/api --dev @types/node
 ```
 
@@ -181,17 +179,15 @@ apps/mobile/
     "generate:api": "bunx openapi-ts"
   },
   "dependencies": {
-    "@logship/shared-types": "workspace:*",
-    "@hey-api/client-fetch": "^0.10.0",
+    "@hey-api/client-fetch": "^0.13.1",
     "expo": "~54.0.0",
-    "expo-router": "~5.0.0",
+    "expo-router": "~6.0.23",
     "react": "19.2.4",
     "react-native": "0.84.0",
-    "@tanstack/react-query": "^5.66.0"
+    "@tanstack/react-query": "^5.90.21"
   },
   "devDependencies": {
-    "@hey-api/openapi-ts": "^0.92.3",
-    "@logship/shared-config": "workspace:*",
+    "@hey-api/openapi-ts": "^0.92.4",
     "typescript": "^5.9.3"
   }
 }
@@ -256,16 +252,14 @@ apps/admin/
     "generate:api": "bunx openapi-ts"
   },
   "dependencies": {
-    "@logship/shared-types": "workspace:*",
-    "@hey-api/client-fetch": "^0.10.0",
+    "@hey-api/client-fetch": "^0.13.1",
     "next": "^16.1.6",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "@tanstack/react-query": "^5.66.0"
+    "@tanstack/react-query": "^5.90.21"
   },
   "devDependencies": {
-    "@hey-api/openapi-ts": "^0.92.3",
-    "@logship/shared-config": "workspace:*",
+    "@hey-api/openapi-ts": "^0.92.4",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3"
   }
@@ -429,17 +423,15 @@ apps/api/
     "db:studio": "bunx prisma studio"
   },
   "dependencies": {
-    "@logship/shared-types": "workspace:*",
     "@nestjs/common": "^11.1.13",
     "@nestjs/core": "^11.1.13",
     "@nestjs/platform-express": "^11.1.13",
-    "@nestjs/swagger": "^11.1.13",
+    "@nestjs/swagger": "^11.2.6",
     "@prisma/client": "^7.4.0",
-    "bullmq": "^5.50.0",
-    "ioredis": "^5.5.0"
+    "bullmq": "^5.69.1",
+    "ioredis": "^5.9.3"
   },
   "devDependencies": {
-    "@logship/shared-config": "workspace:*",
     "prisma": "^7.4.0",
     "typescript": "^5.9.3"
   }
@@ -448,7 +440,11 @@ apps/api/
 
 ---
 
-## 4. Shared Packages
+## 4. Shared Packages (Future)
+
+> **Note:** The `packages/` directory does not exist yet. The following describes the planned
+> shared package structure for when cross-app code sharing becomes necessary. To enable, create
+> the directory and add `"packages/*"` to the `workspaces` array in the root `package.json`.
 
 ### 4.1. packages/shared-types
 
@@ -501,7 +497,6 @@ packages/shared-types/
     "clean": "rm -rf dist"
   },
   "devDependencies": {
-    "@logship/shared-config": "workspace:*",
     "typescript": "^5.9.3"
   }
 }
@@ -604,7 +599,7 @@ packages/shared-utils/
 | `bun run lint` | Lint all packages |
 | `bun run test` | Run tests in all packages |
 | `bun run typecheck` | Type check all packages |
-| `bun run clean` | Clean all node_modules |
+| `bun run clean` | Clean build artifacts and caches |
 | `bun run fresh` | Clean install everything |
 
 ### 5.2. API Generation Workflow
@@ -958,9 +953,9 @@ apps/{app-name}/
 
 ## 9. Cross-App Communication
 
-### 8.1. Shared Types Contract
+### 8.1. Shared Types Contract (Future)
 
-All apps use `@logship/shared-types` for type safety:
+When `packages/shared-types` is created, all apps will use `@logship/shared-types` for type safety:
 
 ```typescript
 // packages/shared-types/src/api/order.types.ts
@@ -1006,14 +1001,11 @@ export interface OrderResponse {
 # Add to specific app
 bun add --filter @logship/mobile lodash-es
 
-# Add to shared package
-bun add --filter @logship/shared-utils date-fns
-
 # Add dev dependency
 bun add --filter @logship/admin --dev @types/node
 ```
 
-**Workspace Dependencies:**
+**Workspace Dependencies (future, when packages/ exists):**
 ```bash
 # Reference workspace package
 bun add --filter @logship/mobile @logship/shared-types
@@ -1021,8 +1013,8 @@ bun add --filter @logship/mobile @logship/shared-types
 
 ### 9.2. Code Organization Rules
 
-1. **Shared Types First:** Always add types to `shared-types` before using in apps
-2. **No Cross-App Imports:** Apps should only import from `packages/*`, never from other `apps/*`
+1. **No Cross-App Imports:** Apps should never import from other `apps/*` directly
+2. **Shared Code via Packages:** When shared code is needed, extract to `packages/*` (see [Section 4](#4-shared-packages-future))
 3. **Build Before Commit:** Run `bun run build` before pushing to ensure no broken references
 4. **Version Pinning:** Use exact versions for critical dependencies (React Native, Next.js, NestJS)
 
@@ -1051,7 +1043,7 @@ git push origin feat/user-profile
 2. **Update root package.json:**
    ```json
    {
-     "workspaces": ["apps/*", "packages/*"]
+     "workspaces": ["apps/*"]
    }
    ```
 

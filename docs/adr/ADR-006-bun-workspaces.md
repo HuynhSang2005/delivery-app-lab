@@ -8,7 +8,7 @@
 
 We needed to choose a monorepo management strategy for Logship-MVP. The project consists of:
 - 3 applications: mobile (Expo), admin (Next.js), api (NestJS)
-- 3 shared packages: shared-types, shared-config, shared-utils
+- Potential for shared packages in the future (shared-types, shared-config, shared-utils)
 
 Requirements:
 - Easy dependency management across packages
@@ -86,12 +86,12 @@ logship-mvp/
 │   ├── mobile/          # @logship/mobile
 │   ├── admin/           # @logship/admin
 │   └── api/             # @logship/api
-├── packages/
-│   ├── shared-types/    # @logship/shared-types
-│   ├── shared-config/   # @logship/shared-config
-│   └── shared-utils/    # @logship/shared-utils
 └── package.json         # Root with workspaces config
 ```
+
+> **Future:** When shared code is needed, add `packages/` directory
+> (e.g. `packages/shared-types`, `packages/shared-config`, `packages/shared-utils`)
+> and include `"packages/*"` in the workspaces array.
 
 ## Root package.json Configuration
 
@@ -100,8 +100,7 @@ logship-mvp/
   "name": "logship-mvp",
   "private": true,
   "workspaces": [
-    "apps/*",
-    "packages/*"
+    "apps/*"
   ]
 }
 ```
@@ -142,8 +141,8 @@ bun run --filter '*' build
 
 ## Best Practices
 
-1. **Shared Types First**: Always add types to `shared-types` before using in apps
-2. **No Cross-App Imports**: Apps only import from `packages/*`, never from other `apps/*`
+1. **No Cross-App Imports**: Apps never import from other `apps/*` directly
+2. **Shared Code via Packages**: When needed, extract to `packages/*` and add to workspaces
 3. **Version Pinning**: Use exact versions for critical dependencies
 4. **Build Before Commit**: Run `bun run build` before pushing
 

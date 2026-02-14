@@ -39,17 +39,17 @@ The Admin Dashboard is a web application for system administrators to manage use
 | Framework | Next.js 16 (App Router) | ^16.1.6 |
 | Language | TypeScript | ^5.9.3 |
 | React | React 19 | ^19.2.4 |
-| State (Server) | TanStack Query | ^5.60.0 |
-| State (Client) | Zustand | ^5.0.0 |
+| State (Server) | TanStack Query | ^5.90.21 |
+| State (Client) | Zustand | ^5.0.11 |
 | UI Components | Shadcn/ui + Radix UI | ^2.0.0 |
 | Styling | Tailwind CSS | ^4.1.18 |
-| Tables | TanStack Table | ^8.20.0 |
-| Charts | Recharts | ^2.13.0 |
-| Maps | Goong JS (Mapbox GL compatible) | ^3.9.0 |
+| Tables | TanStack Table | ^8.21.3 |
+| Charts | Recharts | ^2.15.1 |
+| Maps | Goong JS (Mapbox GL compatible) | ^3.10.0 |
 | Forms | React Hook Form + Zod | ^7.71.1 / ^4.3.6 |
-| Icons | Lucide React | ^0.460.0 |
+| Icons | Lucide React | ^0.475.0 |
 | Date | date-fns | ^4.1.0 |
-| API Client | Hey-API | ^0.10.0 |
+| API Client | Hey-API | ^0.13.1 |
 | Package Manager | Bun | ^1.3.9 |
 
 > **⚠️ BREAKING CHANGES (Next.js 16):** Turbopack is now default, async request APIs required, middleware renamed to proxy, and more. See [Next.js 16 Migration Guide](#12-nextjs-16-migration-guide) below.
@@ -135,7 +135,7 @@ apps/admin/
   
 > **⚠️ BREAKING CHANGE:** `next lint` command has been removed in Next.js 16. Use `bunx eslint` directly or configure lint script as `"lint": "bunx eslint ."`.
   "dependencies": {
-    "@hey-api/client-fetch": "^0.10.0",
+    "@hey-api/client-fetch": "^0.13.1",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.0",
     "@radix-ui/react-avatar": "^1.1.0",
@@ -161,42 +161,42 @@ apps/admin/
     "@radix-ui/react-toggle": "^1.1.0",
     "@radix-ui/react-toggle-group": "^1.1.0",
     "@radix-ui/react-tooltip": "^1.1.0",
-    "@tanstack/react-query": "^5.60.0",
-    "@tanstack/react-query-devtools": "^5.60.0",
-    "@tanstack/react-table": "^8.20.0",
-    "class-variance-authority": "^0.7.0",
-    "clsx": "^2.1.0",
-    "cmdk": "^1.0.0",
+    "@tanstack/react-query": "^5.90.21",
+    "@tanstack/react-query-devtools": "^5.90.21",
+    "@tanstack/react-table": "^8.21.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "cmdk": "^1.0.4",
     "date-fns": "^4.1.0",
-    "embla-carousel-react": "^8.5.0",
-    "framer-motion": "^11.15.0",
-    "input-otp": "^1.4.0",
+    "embla-carousel-react": "^8.5.2",
+    "framer-motion": "^12.4.2",
+    "input-otp": "^1.4.2",
     "lodash-es": "^4.17.21",
     "lucide-react": "^0.475.0",
     "mapbox-gl": "^3.10.0",
     "next": "^16.1.6",
-    "next-themes": "^0.4.0",
-    "nuqs": "^2.2.0",
+    "next-themes": "^0.4.4",
+    "nuqs": "^2.3.2",
     "react": "^19.2.4",
     "react-day-picker": "^9.5.1",
     "react-dom": "^19.2.4",
     "react-error-boundary": "^5.0.0",
     "react-hook-form": "^7.71.1",
-    "@hookform/resolvers": "^4.0.0",
-    "react-resizable-panels": "^2.1.0",
-    "recharts": "^2.13.0",
-    "socket.io-client": "^4.8.0",
-    "sonner": "^1.7.0",
-    "tailwind-merge": "^2.5.0",
+    "@hookform/resolvers": "^5.2.2",
+    "react-resizable-panels": "^2.1.7",
+    "recharts": "^2.15.1",
+    "socket.io-client": "^4.8.3",
+    "sonner": "^1.7.4",
+    "tailwind-merge": "^3.0.1",
     "tailwindcss": "^4.1.18",
     "tailwindcss-animate": "^1.0.7",
-    "use-debounce": "^10.0.0",
-    "vaul": "^1.1.0",
+    "use-debounce": "^10.0.4",
+    "vaul": "^1.1.2",
     "zod": "^4.3.6",
-    "zustand": "^5.0.0"
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
-    "@hey-api/openapi-ts": "^0.92.3",
+    "@hey-api/openapi-ts": "^0.92.4",
     "@types/lodash-es": "^4.17.12",
     "@types/mapbox-gl": "^3.4.0",
     "@types/node": "^20.0.0",
@@ -214,24 +214,24 @@ apps/admin/
 | **Framework** | `next` | ^16.1.6 | Next.js 16 App Router |
 | **React** | `react` | ^19.2.4 | React 19 |
 | **React DOM** | `react-dom` | ^19.2.4 | React DOM |
-| **API Client** | `@hey-api/client-fetch` | ^0.10.0 | Type-safe API client |
-| **State (Server)** | `@tanstack/react-query` | ^5.60.0 | Server state management |
-| **State (Client)** | `zustand` | ^5.0.0 | Client state management |
+| **API Client** | `@hey-api/client-fetch` | ^0.13.1 | Type-safe API client |
+| **State (Server)** | `@tanstack/react-query` | ^5.90.21 | Server state management |
+| **State (Client)** | `zustand` | ^5.0.11 | Client state management |
 | **UI Components** | `@radix-ui/react-*` | ^1.1-2.1.0 | Headless UI primitives |
 | **Styling** | `tailwindcss` | ^4.1.18 | Utility-first CSS |
-| **Tables** | `@tanstack/react-table` | ^8.20.0 | Data tables |
-| **Charts** | `recharts` | ^2.13.0 | Charts & graphs |
+| **Tables** | `@tanstack/react-table` | ^8.21.3 | Data tables |
+| **Charts** | `recharts` | ^2.15.1 | Charts & graphs |
 | **Maps** | `mapbox-gl` | ^3.10.0 | Map rendering (Goong tiles) |
 | **Forms** | `react-hook-form` | ^7.71.1 | Form handling |
 | **Validation** | `zod` | ^4.3.6 | Schema validation (Zod v4 - latest) |
 | **Animations** | `framer-motion` | ^12.4.2 | UI animations |
-| **Command Palette** | `cmdk` | ^1.0.0 | Command menu |
-| **Drawer** | `vaul` | ^1.1.0 | Drawer component |
-| **URL State** | `nuqs` | ^2.2.0 | Query string state |
-| **Debounce** | `use-debounce` | ^10.0.0 | Debounce hooks |
-| **Themes** | `next-themes` | ^0.4.0 | Dark/light mode |
+| **Command Palette** | `cmdk` | ^1.0.4 | Command menu |
+| **Drawer** | `vaul` | ^1.1.2 | Drawer component |
+| **URL State** | `nuqs` | ^2.3.2 | Query string state |
+| **Debounce** | `use-debounce` | ^10.0.4 | Debounce hooks |
+| **Themes** | `next-themes` | ^0.4.4 | Dark/light mode |
 | **Error Handling** | `react-error-boundary` | ^5.0.0 | Error boundaries |
-| **Real-time** | `socket.io-client` | ^4.8.0 | WebSocket client |
+| **Real-time** | `socket.io-client` | ^4.8.3 | WebSocket client |
 
 > **Note:** We use `mapbox-gl` as the rendering library since Goong JS tiles are Mapbox GL compatible.
 

@@ -533,7 +533,7 @@ Order Event                    BullMQ                         External Services
 | Maps | react-native-maps + **Goong Maps** | 1.x |
 | Location | expo-location + expo-task-manager | SDK 54 |
 | WebSocket | socket.io-client | 4.x |
-| Forms | React Hook Form + Zod | ^7.54.2 / ^4.3.6 |
+| Forms | React Hook Form + Zod | ^7.71.1 / ^4.3.6 |
 
 ### 5.2. Frontend (Web Admin)
 
@@ -555,11 +555,12 @@ Order Event                    BullMQ                         External Services
 | Framework | NestJS | 11.1.13 |
 | ORM | Prisma | 7.4.0 |
 | **Data Access** | **Repository Pattern** | Interface-based |
-| WebSocket | @nestjs/websockets + Socket.io | 4.x |
-| Validation | Zod v4 + nestjs-zod | ^4.3.6 / ^4.0.0 |
+| WebSocket | @nestjs/websockets + Socket.io | 4.8.3 |
+| Validation (schema) | Zod v4 | 4.3.6 |
+| Validation (NestJS) | nestjs-zod | 5.1.1 |
 | Auth | Passport + JWT + Firebase Admin | Latest |
 | API Docs | Swagger/OpenAPI | Latest |
-| **Message Queue** | **@nestjs/bullmq** | 11.1.x |
+| **Message Queue** | **@nestjs/bullmq** | 11.0.x |
 | API Client Gen | **Hey-API** | Latest |
 
 ### 5.4. Database & Infrastructure

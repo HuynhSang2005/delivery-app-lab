@@ -120,29 +120,29 @@ apps/mobile/
     "lint": "bunx eslint ."
   },
   "dependencies": {
-    "@gorhom/bottom-sheet": "^5.0.0",
-    "@hey-api/client-fetch": "^0.10.0",
-    "@react-native-community/netinfo": "^11.4.0",
-    "@react-native-firebase/app": "^22.0.0",
-    "@react-native-firebase/auth": "^22.0.0",
+    "@gorhom/bottom-sheet": "^5.2.8",
+    "@hey-api/client-fetch": "^0.13.1",
+    "@react-native-community/netinfo": "^11.4.1",
+    "@react-native-firebase/app": "^23.8.6",
+    "@react-native-firebase/auth": "^23.8.6",
     "@react-native-masked-view/masked-view": "^0.3.2",
     "@shopify/flash-list": "2.2.2",
-    "@tanstack/react-query": "^5.66.0",
+    "@tanstack/react-query": "^5.90.21",
     "axios": "^1.7.0",
-    "clsx": "^2.1.0",
+    "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "expo": "~54.0.0",
     "expo-clipboard": "~8.0.0",
     "expo-constants": "~18.0.0",
     "expo-dev-client": "~6.0.0",
-    "expo-haptics": "~15.0.0",
-    "expo-image": "~3.0.0",
+    "expo-haptics": "~15.0.8",
+    "expo-image": "~3.0.11",
     "expo-image-picker": "~17.0.0",
     "expo-linking": "~8.0.0",
-    "expo-location": "~19.0.0",
-    "expo-notifications": "~0.30.0",
-    "expo-router": "~5.0.0",
-    "expo-secure-store": "~15.0.0",
+    "expo-location": "~19.0.8",
+    "expo-notifications": "~0.32.16",
+    "expo-router": "~6.0.23",
+    "expo-secure-store": "~15.0.8",
     "expo-splash-screen": "~0.30.0",
     "expo-status-bar": "~3.0.0",
     "expo-system-ui": "~5.0.0",
@@ -153,25 +153,25 @@ apps/mobile/
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hook-form": "^7.71.1",
-    "@hookform/resolvers": "^4.0.0",
+    "@hookform/resolvers": "^5.2.2",
     "react-native": "0.84.0",
-    "react-native-gesture-handler": "~2.24.0",
-    "react-native-maps": "1.22.0",
-    "react-native-reanimated": "~4.0.0",
-    "react-native-safe-area-context": "4.12.0",
-    "react-native-screens": "~4.4.0",
-    "react-native-svg": "15.8.0",
-    "react-native-toast-message": "^2.2.0",
+    "react-native-gesture-handler": "~2.30.0",
+    "react-native-maps": "1.27.1",
+    "react-native-reanimated": "~4.2.1",
+    "react-native-safe-area-context": "5.6.2",
+    "react-native-screens": "~4.23.0",
+    "react-native-svg": "15.15.3",
+    "react-native-toast-message": "^2.3.3",
     "react-native-url-polyfill": "^2.0.0",
-    "socket.io-client": "^4.8.0",
+    "socket.io-client": "^4.8.3",
     "tailwindcss": "^4.1.18",
-    "nativewind": "^4.1.0",
+    "nativewind": "^4.2.1",
     "zod": "^4.3.6",
-    "zustand": "^5.0.0"
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
     "@babel/core": "^7.25.0",
-    "@hey-api/openapi-ts": "^0.92.3",
+    "@hey-api/openapi-ts": "^0.92.4",
     "@types/lodash-es": "^4.17.12",
     "@types/react": "~19.2.4",
     "typescript": "^5.9.3"
@@ -186,23 +186,23 @@ apps/mobile/
 | **Core** | `expo` | ~54.0.0 | Expo SDK |
 | **Core** | `react-native` | 0.84.0 | React Native 0.84 with Hermes V1 |
 | **Core** | `react` | 19.2.4 | React (Expo SDK 54 uses React 19.2.4) |
-| **Navigation** | `expo-router` | ~5.0.0 | File-based routing |
-| **API Client** | `@hey-api/client-fetch` | ^0.10.0 | Type-safe API client |
-| **State (Server)** | `@tanstack/react-query` | ^5.60.0 | Server state management |
-| **State (Client)** | `zustand` | ^5.0.0 | Client state management |
+| **Navigation** | `expo-router` | ~6.0.23 | File-based routing |
+| **API Client** | `@hey-api/client-fetch` | ^0.13.1 | Type-safe API client |
+| **State (Server)** | `@tanstack/react-query` | ^5.90.21 | Server state management |
+| **State (Client)** | `zustand` | ^5.0.11 | Client state management |
 | **Forms** | `react-hook-form` | ^7.71.1 | Form handling |
 | **Validation** | `zod` | ^4.3.6 | Schema validation (Zod v4 - latest) |
-| **Maps** | `react-native-maps` | 1.22.0 | Map components (with Goong tiles) |
-| **Location** | `expo-location` | ~19.0.0 | GPS and location tracking |
+| **Maps** | `react-native-maps` | 1.27.1 | Map components (with Goong tiles) |
+| **Location** | `expo-location` | ~19.0.8 | GPS and location tracking |
 | **Background Tasks** | `expo-task-manager` | ~13.0.0 | Background location updates |
 | **Lists** | `@shopify/flash-list` | 2.2.2 | High-performance lists |
-| **Bottom Sheet** | `@gorhom/bottom-sheet` | ^5.0.0 | Bottom sheet UI |
-| **Toast** | `react-native-toast-message` | ^2.2.0 | Toast notifications |
-| **Network** | `@react-native-community/netinfo` | ^11.4.0 | Network status |
-| **Auth** | `@react-native-firebase/*` | ^22.0.0 | Firebase Auth |
-| **Styling** | `nativewind` | ^4.1.0 | Tailwind for RN |
+| **Bottom Sheet** | `@gorhom/bottom-sheet` | ^5.2.8 | Bottom sheet UI |
+| **Toast** | `react-native-toast-message` | ^2.3.3 | Toast notifications |
+| **Network** | `@react-native-community/netinfo` | ^11.4.1 | Network status |
+| **Auth** | `@react-native-firebase/*` | ^23.8.6 | Firebase Auth |
+| **Styling** | `nativewind` | ^4.2.1 | Tailwind for RN |
 | **Utilities** | `lodash-es` | ^4.17.21 | Utility functions |
-| **Real-time** | `socket.io-client` | ^4.8.0 | WebSocket client |
+| **Real-time** | `socket.io-client` | ^4.8.3 | WebSocket client |
 
 ---
 

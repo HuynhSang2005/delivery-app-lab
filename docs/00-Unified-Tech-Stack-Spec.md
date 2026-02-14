@@ -1,7 +1,7 @@
 # Logship-MVP: Unified Tech Stack Specification
 
-**Version:** 5.0  
-**Last Updated:** February 2026  
+**Version:** 5.1  
+**Last Updated:** February 14, 2026  
 **Status:** Single Source of Truth for All Documentation
 
 ---
@@ -39,7 +39,7 @@ This document serves as the **single source of truth** for all technology decisi
 | `@nestjs/core` | ^11.1.13 | NestJS framework core |
 | `@nestjs/common` | ^11.1.13 | Common utilities |
 | `@nestjs/platform-express` | ^11.1.13 | HTTP platform adapter |
-| `@nestjs/config` | ^4.0.0 | Configuration management |
+| `@nestjs/config` | ^4.0.3 | Configuration management |
 
 ### 2.2. Database (Neon PostgreSQL + PostGIS)
 
@@ -57,11 +57,11 @@ This document serves as the **single source of truth** for all technology decisi
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `@nestjs/jwt` | ^11.0.0 | JWT tokens |
-| `@nestjs/passport` | ^11.0.0 | Passport integration |
+| `@nestjs/jwt` | ^11.0.2 | JWT tokens |
+| `@nestjs/passport` | ^11.0.5 | Passport integration |
 | `passport-jwt` | ^4.0.1 | JWT strategy |
-| `firebase-admin` | ^13.1.0 | Firebase Auth (OTP) |
-| `@nestjs/throttler` | ^6.4.0 | Rate limiting |
+| `firebase-admin` | ^13.6.1 | Firebase Auth (OTP) |
+| `@nestjs/throttler` | ^6.5.0 | Rate limiting |
 
 ### 2.4. Real-time & Messaging
 
@@ -69,26 +69,26 @@ This document serves as the **single source of truth** for all technology decisi
 |---------|---------|---------|
 | `@nestjs/websockets` | ^11.1.13 | WebSocket support |
 | `@nestjs/platform-socket.io` | ^11.1.13 | Socket.io adapter |
-| `socket.io` | ^4.8.1 | WebSocket server |
-| `@nestjs/bullmq` | ^11.1.13 | Queue integration |
-| `bullmq` | ^5.50.0 | Message queues |
-| `ioredis` | ^5.5.0 | Redis client (Upstash) |
+| `socket.io` | ^4.8.3 | WebSocket server |
+| `@nestjs/bullmq` | ^11.0.4 | Queue integration |
+| `bullmq` | ^5.69.1 | Message queues |
+| `ioredis` | ^5.9.3 | Redis client (Upstash) |
 
 ### 2.5. API Documentation
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `@nestjs/swagger` | ^11.1.13 | OpenAPI/Swagger docs |
+| `@nestjs/swagger` | ^11.2.6 | OpenAPI/Swagger docs |
 
 ### 2.6. Validation & Utilities
 
 | Package | Version | Purpose |
 |---------|---------|---------|
 | `zod` | ^4.3.6 | Schema validation (Zod v4 - latest) |
-| `nestjs-zod` | ^4.0.0 | Zod integration for NestJS DTOs |
-| `cloudinary` | ^2.5.1 | Image storage |
+| `nestjs-zod` | ^5.1.1 | Zod integration for NestJS DTOs |
+| `cloudinary` | ^2.9.0 | Image storage |
 | `lodash` | ^4.17.21 | Utilities |
-| `uuid` | ^11.0.5 | UUID generation |
+| `uuid` | ^13.0.0 | UUID generation |
 | `date-fns` | ^4.1.0 | Date formatting |
 
 ---
@@ -102,7 +102,7 @@ This document serves as the **single source of truth** for all technology decisi
 | `expo` | ~54.0.0 | Expo SDK |
 | `react-native` | 0.84.0 | React Native |
 | `react` | 19.2.4 | React (Expo SDK 54 uses React 19.2) |
-| `expo-router` | ~5.0.0 | File-based routing |
+| `expo-router` | ~6.0.23 | File-based routing |
 
 **NOTE:** Expo SDK 54 is the latest stable with React Native 0.84.0 and React 19.2.4.
 
@@ -110,65 +110,65 @@ This document serves as the **single source of truth** for all technology decisi
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `@tanstack/react-query` | ^5.66.0 | Server state |
-| `zustand` | ^5.0.3 | Client state |
+| `@tanstack/react-query` | ^5.90.21 | Server state |
+| `zustand` | ^5.0.11 | Client state |
 
 ### 3.3. Forms & Validation
 
 | Package | Version | Purpose |
 |---------|---------|---------|
 | `react-hook-form` | ^7.71.1 | Form handling |
-| `@hookform/resolvers` | ^4.0.0 | Resolver integration (Zod v4 compatible) |
+| `@hookform/resolvers` | ^5.2.2 | Resolver integration (Zod v4 compatible) |
 | `zod` | ^4.3.6 | Schema validation (Zod v4 - latest) |
 
 ### 3.4. Maps & Location
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `react-native-maps` | 1.22.0 | Map components |
-| `expo-location` | ~19.0.0 | Location services |
+| `react-native-maps` | 1.27.1 | Map components |
+| `expo-location` | ~19.0.8 | Location services |
 | `expo-task-manager` | ~13.0.0 | Background tasks |
 
 ### 3.5. API Client
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `@hey-api/client-fetch` | ^0.10.0 | Type-safe API client |
-| `@hey-api/openapi-ts` | ^0.92.3 | Code generation (dev) |
+| `@hey-api/client-fetch` | ^0.13.1 | Type-safe API client |
+| `@hey-api/openapi-ts` | ^0.92.4 | Code generation (dev) |
 
 ### 3.6. UI Components
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `nativewind` | ^4.1.0 | Tailwind for RN |
+| `nativewind` | ^4.2.1 | Tailwind for RN |
 | `tailwindcss` | ^4.1.18 | CSS framework |
-| `@gorhom/bottom-sheet` | ^5.1.1 | Bottom sheets |
+| `@gorhom/bottom-sheet` | ^5.2.8 | Bottom sheets |
 | `@shopify/flash-list` | 2.2.2 | High-performance lists |
-| `react-native-toast-message` | ^2.2.1 | Toast notifications |
-| `react-native-gesture-handler` | ~2.24.0 | Gestures |
-| `react-native-reanimated` | ~4.0.0 | Animations |
-| `react-native-safe-area-context` | 4.12.0 | Safe areas |
-| `react-native-screens` | ~4.4.0 | Screen optimization |
-| `react-native-svg` | 15.8.0 | SVG support |
+| `react-native-toast-message` | ^2.3.3 | Toast notifications |
+| `react-native-gesture-handler` | ~2.30.0 | Gestures |
+| `react-native-reanimated` | ~4.2.1 | Animations |
+| `react-native-safe-area-context` | 5.6.2 | Safe areas |
+| `react-native-screens` | ~4.23.0 | Screen optimization |
+| `react-native-svg` | 15.15.3 | SVG support |
 
 ### 3.7. Firebase & Auth
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `@react-native-firebase/app` | ^22.0.0 | Firebase core |
-| `@react-native-firebase/auth` | ^22.0.0 | Firebase Auth |
+| `@react-native-firebase/app` | ^23.8.6 | Firebase core |
+| `@react-native-firebase/auth` | ^23.8.6 | Firebase Auth |
 
 ### 3.8. Utilities
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `socket.io-client` | ^4.8.1 | WebSocket client |
-| `expo-secure-store` | ~15.0.0 | Secure storage |
-| `expo-image` | ~3.0.0 | Image handling |
+| `socket.io-client` | ^4.8.3 | WebSocket client |
+| `expo-secure-store` | ~15.0.8 | Secure storage |
+| `expo-image` | ~3.0.11 | Image handling |
 | `expo-image-picker` | ~17.0.0 | Image picker |
-| `expo-notifications` | ~0.30.0 | Push notifications |
+| `expo-notifications` | ~0.32.16 | Push notifications |
 | `expo-clipboard` | ~8.0.0 | Clipboard |
-| `expo-haptics` | ~15.0.0 | Haptic feedback |
+| `expo-haptics` | ~15.0.8 | Haptic feedback |
 | `expo-linking` | ~8.0.0 | Deep linking |
 | `expo-constants` | ~18.0.0 | App constants |
 | `expo-updates` | ~0.28.0 | OTA updates |
@@ -200,8 +200,8 @@ This document serves as the **single source of truth** for all technology decisi
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `@tanstack/react-query` | ^5.66.0 | Server state |
-| `zustand` | ^5.0.3 | Client state |
+| `@tanstack/react-query` | ^5.90.21 | Server state |
+| `zustand` | ^5.0.11 | Client state |
 
 ### 4.3. UI Components (Shadcn/ui + Radix)
 
@@ -219,22 +219,22 @@ This document serves as the **single source of truth** for all technology decisi
 | Package | Version | Purpose |
 |---------|---------|---------|
 | `react-hook-form` | ^7.71.1 | Form handling |
-| `@hookform/resolvers` | ^4.0.0 | Resolvers |
+| `@hookform/resolvers` | ^5.2.2 | Resolvers |
 | `zod` | ^4.3.6 | Validation (Zod v4 - latest) |
 
 ### 4.5. API Client
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `@hey-api/client-fetch` | ^0.10.0 | Type-safe client |
-| `@hey-api/openapi-ts` | ^0.92.3 | Code generation (dev) |
+| `@hey-api/client-fetch` | ^0.13.1 | Type-safe client |
+| `@hey-api/openapi-ts` | ^0.92.4 | Code generation (dev) |
 
 ### 4.6. Tables & Data
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `@tanstack/react-table` | ^8.21.2 | Data tables |
-| `@tanstack/react-query-devtools` | ^5.66.0 | Query devtools |
+| `@tanstack/react-table` | ^8.21.3 | Data tables |
+| `@tanstack/react-query-devtools` | ^5.90.21 | Query devtools |
 
 ### 4.7. Charts & Visualization
 
@@ -261,7 +261,7 @@ This document serves as the **single source of truth** for all technology decisi
 | `use-debounce` | ^10.0.4 | Debounce hooks |
 | `next-themes` | ^0.4.4 | Dark/light mode |
 | `react-error-boundary` | ^5.0.0 | Error boundaries |
-| `socket.io-client` | ^4.8.1 | WebSocket client |
+| `socket.io-client` | ^4.8.3 | WebSocket client |
 | `sonner` | ^1.7.4 | Toast notifications |
 | `lodash-es` | ^4.17.21 | Utilities |
 | `embla-carousel-react` | ^8.5.2 | Carousel |
@@ -316,12 +316,16 @@ This document serves as the **single source of truth** for all technology decisi
   "name": "logship-mvp",
   "private": true,
   "workspaces": [
-    "apps/*",
-    "packages/*"
+    "apps/*"
   ],
-  "devDependencies": {
-    "typescript": "^5.9.3"
-  }
+  "scripts": {
+    "dev": "bun run --filter './apps/api' start:dev",
+    "build": "bun run --filter './apps/api' build",
+    "test": "bun run --filter './apps/api' test",
+    "lint": "bun run --filter './apps/api' lint",
+    "typecheck": "bun run --filter './apps/api' typecheck"
+  },
+  "packageManager": "bun@1.3.9"
 }
 ```
 
@@ -333,11 +337,8 @@ logship-mvp/
 │   ├── mobile/          # React Native + Expo SDK 54
 │   ├── admin/           # Next.js 16
 │   └── api/             # NestJS 11
-├── packages/
-│   ├── shared-types/    # Shared TypeScript types
-│   ├── shared-config/   # Shared configs
-│   └── shared-utils/    # Shared utilities
-├── bun.lockb
+├── docs/                # Project documentation
+├── bun.lock
 ├── package.json
 └── tsconfig.json
 ```
@@ -446,9 +447,9 @@ CLOUDINARY_CLOUD_NAME="your-cloud"
 CLOUDINARY_API_KEY="your-key"
 CLOUDINARY_API_SECRET="your-secret"
 
-# JWT
-JWT_SECRET="your-secret"
-JWT_EXPIRES_IN="15m"
+# App
+PORT=3000
+NODE_ENV="development"
 
 # Goong Maps
 GOONG_API_KEY="your-goong-key"
@@ -542,6 +543,7 @@ NEXT_PUBLIC_GOONG_API_KEY="your-goong-api-key"
 
 | Date | Version | Changes |
 |------|---------|---------|
+| 2026-02-14 | 5.1 | QA fix: Updated all packages to latest stable, removed JWT_SECRET (Firebase Auth only), fixed @nestjs/bullmq version, removed packages/ dir |
 | 2026-02-10 | 5.0 | Updated to General Delivery App, Expo SDK 54, React 19.2.4, Hey-API 0.92.3 |
 | 2026-02-09 | 4.0 | Updated to Expo SDK 54, React Native 0.84.0, Prisma 7.4.0, Bun 1.3.9 |
 | 2025-02-03 | 3.0 | Updated all dependencies to latest versions, Bun-only policy |

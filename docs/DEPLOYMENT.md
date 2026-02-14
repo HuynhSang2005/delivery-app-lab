@@ -227,10 +227,6 @@ FIREBASE_PROJECT_ID=logship-production
 FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n..."
 FIREBASE_CLIENT_EMAIL=firebase-adminsdk@logship-production.iam.gserviceaccount.com
 
-# JWT
-JWT_SECRET=your-super-secret-jwt-key-min-32-chars
-JWT_EXPIRES_IN=15m
-
 # Cloudinary
 CLOUDINARY_CLOUD_NAME=your-cloud-name
 CLOUDINARY_API_KEY=your-api-key
@@ -485,10 +481,6 @@ REDIS_URL=rediss://default:pass@host.upstash.io:6379
 FIREBASE_PROJECT_ID=logship-production
 FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n..."
 FIREBASE_CLIENT_EMAIL=firebase-adminsdk@logship-production.iam.gserviceaccount.com
-
-# JWT
-JWT_SECRET=your-super-secret-jwt-key
-JWT_EXPIRES_IN=15m
 
 # Cloudinary
 CLOUDINARY_CLOUD_NAME=your-cloud

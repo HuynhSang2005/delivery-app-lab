@@ -77,7 +77,7 @@ apps/api/
 
 **Core:**
 - ✅ @nestjs/common, core, platform-express (11.x)
-- ✅ TypeScript 5.7.3
+- ✅ TypeScript 5.9.3
 - ✅ Jest 30.x for testing
 - ✅ ESLint + Prettier configured
 
@@ -108,10 +108,6 @@ REDIS_URL="rediss://..."
 FIREBASE_PROJECT_ID="..."
 FIREBASE_PRIVATE_KEY="..."
 FIREBASE_CLIENT_EMAIL="..."
-
-# JWT
-JWT_SECRET="..."
-JWT_EXPIRES_IN="15m"
 
 # Cloudinary
 CLOUDINARY_CLOUD_NAME="..."
@@ -250,7 +246,7 @@ src/
 
 - [ ] 1.1.2. Install additional dependencies
   - **Expected:** All packages installed successfully
-  - **Packages:** prisma, @prisma/client, ioredis, bullmq, @nestjs/bullmq, firebase-admin, @nestjs/jwt, passport, passport-jwt, @nestjs/websockets, @nestjs/platform-socket.io, socket.io, socket.io-redis-adapter, @nestjs/swagger, zod, nestjs-zod, cloudinary
+  - **Packages:** prisma, @prisma/client, ioredis, bullmq, @nestjs/bullmq, firebase-admin, @nestjs/jwt, passport, passport-jwt, @nestjs/websockets, @nestjs/platform-socket.io, socket.io, @socket.io/redis-adapter, @nestjs/swagger, zod, nestjs-zod, cloudinary
   - **Command:** `bun add [packages]`
   - **Verify:** `bun.lock` updated, no errors
   - **Time:** 30 min
