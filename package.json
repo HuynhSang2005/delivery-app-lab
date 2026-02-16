@@ -1,6 +1,33 @@
 {
+  "name": "logship-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Logship MVP — Hyperlocal delivery platform for Ho Chi Minh City",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "bun run --filter './apps/api' start:dev",
+    "dev:api": "bun run --filter './apps/api' start:dev",
+    "build": "bun run --filter './apps/api' build",
+    "build:api": "bun run --filter './apps/api' build",
+    "test": "bun run --filter './apps/api' test",
+    "test:api": "bun run --filter './apps/api' test",
+    "test:e2e": "bun run --filter './apps/api' test:e2e",
+    "test:cov": "bun run --filter './apps/api' test:cov",
+    "lint": "bun run --filter './apps/api' lint",
+    "lint:check": "bun run --filter './apps/api' lint:check",
+    "format": "bun run --filter './apps/api' format",
+    "format:check": "bun run --filter './apps/api' format:check",
+    "typecheck": "bun run --filter './apps/api' typecheck",
+    "clean": "rimraf apps/*/dist apps/*/coverage apps/*/.next apps/*/.expo apps/*/node_modules/.cache"
+  },
   "dependencies": {},
   "devDependencies": {
     "@neondatabase/mcp-server-neon": "^0.6.5"
-  }
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "packageManager": "bun@1.3.9"
 }
