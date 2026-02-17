@@ -1,1 +1,122 @@
-node_modules
+# ==========================================
+# Dependencies
+# ==========================================
+node_modules/
+.pnp
+.pnp.js
+
+# ==========================================
+# Environment Variables (CRITICAL - secrets)
+# ==========================================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.test
+.env.staging
+.env.production
+
+# ==========================================
+# Build outputs
+# ==========================================
+dist/
+build/
+.next/
+.turbo/
+out/
+
+# ==========================================
+# Expo / React Native
+# ==========================================
+.expo/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+android/
+ios/
+
+# ==========================================
+# Test & Coverage
+# ==========================================
+coverage/
+.nyc_output/
+*.lcov
+
+# ==========================================
+# IDE & Editor
+# ==========================================
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.swp
+*.swo
+*~
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# ==========================================
+# OS files
+# ==========================================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ==========================================
+# Logs
+# ==========================================
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# ==========================================
+# Secrets & Credentials
+# ==========================================
+*.pem
+*.p12
+*.key
+*.cert
+credentials.json
+service-account*.json
+firebase-adminsdk*.json
+
+# ==========================================
+# AI Tooling (contains API keys)
+# ==========================================
+opencode.json
+
+# ==========================================
+# Temp files
+# ==========================================
+.temp/
+.tmp/
+*.pid
+*.seed
+*.pid.lock
+
+# ==========================================
+# Prisma
+# ==========================================
+prisma/generated/
+
+# ==========================================
+# Misc
+# ==========================================
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+*.tsbuildinfo
