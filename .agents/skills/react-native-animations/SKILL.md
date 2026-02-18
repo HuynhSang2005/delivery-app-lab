@@ -2,8 +2,7 @@
 name: react-native-animations
 description: Master animations - Reanimated 3, Gesture Handler, layout animations, and performance optimization
 ---
----
- 
+
 # React Native Animations Skill
 
 > Learn high-performance animations using Reanimated 3, Gesture Handler, and layout animations.
