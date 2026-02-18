@@ -1,119 +1,105 @@
-# Delivery App Lab
+# Logship-MVP — AI Agent Guide
 
-Delivery application with NestJS backend, React Native (Expo) mobile app, and PostgreSQL database.
+> Last Updated: February 18, 2026
 
-## Stack
+## Agent Role
+You are a senior full-stack developer. Your priorities are: type safety > correctness > performance > speed.
+Always verify your work with tests and type checks before claiming completion.
 
-- **Backend**: NestJS + TypeScript + PostgreSQL (Neon) + Redis + PostGIS
-- **Mobile**: React Native + Expo SDK 54 + Goong Maps
-- **Package Manager**: Bun
-- **Auth**: Firebase Phone Authentication
+## Project Context
+Logship-MVP is an on-demand delivery platform for the Vietnam market.
+- **Status:** Overall: 8%, Phase 1 Foundation: 25%
+- **Current Task:** 1.2.1 Initialize Prisma
+- **Runtime:** Bun exclusively
+See [CURRENT_STATE.md](../docs/be/dev-v1/CURRENT_STATE.md) for detailed progress.
 
-## Commands
+## Critical Files
+| File | Purpose | When to Read |
+|------|---------|--------------|
+| docs/be/dev-v1/CURRENT_STATE.md | Current progress and decisions | Before starting ANY work |
+| docs/00-Unified-Tech-Stack-Spec.md | Single source of truth for versions | Before adding dependencies |
+| docs/07-Backend-Architecture.md | Architecture patterns and structure | Before creating modules |
+| docs/be/dev-v1/GUIDELINES.md | Development workflow and patterns | For dev workflow details |
+| docs/be/dev-v1/IMPLEMENTATION_PLAN.md | Task sequencing and requirements | For roadmap details |
 
+## Quick Start
 ```bash
-bun install          # Install dependencies
-bun dev              # Start development
-bun test             # Run tests
-bun typecheck        # TypeScript check
-bun lint             # Lint code
-bun build            # Production build
+bun install      # Install dependencies
+bun dev          # Start development server
+bun build        # Production build
+bun typecheck    # Strict TypeScript check
+bun test         # Run all tests
 ```
 
-## Tool Priority
+## Architecture
+**Modular Monolith + Repository Pattern.** Layer flow: Controller → Service → Repository → Prisma → Neon.
+See [docs/07-Backend-Architecture.md](../docs/07-Backend-Architecture.md) for full details.
+- **Module Structure:** (TARGET — not yet implemented) `modules/{feature}/` containing controller, service, and repositories.
+- **Repository Rules:** Define interface with Symbol token, inject via `@Inject(TOKEN)`, ONLY data access (no business logic).
 
-**ALWAYS use serena-mcp FIRST for codebase exploration.**
+## Tech Stack
+| Category | Technology |
+|----------|------------|
+| Framework | NestJS ^11.1.13 |
+| Database | Neon PostgreSQL 17 + PostGIS |
+| ORM | Prisma ^7.4.0 (ESM, driver adapter required) |
+| Validation | Zod ^4.3.6 + nestjs-zod |
+| Auth | Firebase Admin ^13.6.1 (Phone OTP) |
+| Mobile | Expo SDK 54, React Native 0.84.0 |
+See [docs/00-Unified-Tech-Stack-Spec.md](../docs/00-Unified-Tech-Stack-Spec.md) for full list.
 
-1. `serena_find_symbol` → Find definitions
-2. `serena_find_referencing_symbols` → Check usage
-3. `serena_search_for_pattern` → Find patterns
-4. `read` → Read specific sections only
+## Code Conventions
+- **Bun ONLY:** NEVER use npm, pnpm, yarn, or npx.
+- **Type Safety:** TypeScript strict mode enabled.
+- **Validation:** Zod v4 for ALL schemas. NEVER use class-validator for app logic.
+- **class-validator Note:** Exists in package.json only as a peer dependency for NestJS.
+- **Data:** UUID primary keys, soft deletes (`deletedAt`).
+- **DTOs:** Use `createZodDto()` from `nestjs-zod`.
+- **Logic:** Business logic in Service layer ONLY. Repositories must not throw logic errors.
+- **Naming:** kebab-case filenames, PascalCase classes/modules, I-prefixed interfaces.
 
-## Agents
+## Testing
+- **Requirements:** 80%+ coverage for services. Mock repository interfaces, not Prisma directly.
+- **Verification:** Task is NOT complete without passing: `bun typecheck && bun test && bun lint`.
+- See [opencode.md](./opencode.md) for test templates and full workflow.
 
-| Agent | Use When | Tools |
-|-------|----------|-------|
-| `@plan` | Architecture planning, analysis, research | Read-only |
-| `@review` | Code review + QA verification | Bash allowed |
-| `@db` | Database optimization, SQL, migrations | Bash allowed |
+## Boundaries
 
-## MCP Servers
+### ✅ ALWAYS
+- Use `serena-mcp` first for exploration.
+- Use `find-skills` to discover relevant skills dynamically.
+- Use `bun` / `bunx` exclusively.
+- Follow Controller → Service → Repository flow.
+- Use Zod v4 for all validation.
+- Read `CURRENT_STATE.md` before starting work.
+- Run typecheck and tests before claiming success.
+- Use soft deletes (`deletedAt`).
 
-- **serena**: Codebase exploration (symbols, references)
-- **context7**: Library documentation
-- **tavily**: Web search and research
-- **neon**: Database operations
-- **perplexity**: Deep research and reasoning
+### ⚠️ ASK FIRST
+- Adding new dependencies.
+- Changing database schema.
+- Modifying core architecture patterns.
+- Skipping implementation plan steps.
+- Integrating new external services.
 
-## Research Workflow
+### 🚫 NEVER
+- Use npm, pnpm, yarn, or npx.
+- Use class-validator for application validation.
+- Put business logic in Repository layer.
+- Throw business errors from Repository layer.
+- Hard delete records.
+- Commit secrets or `.env` files.
+- Ignore TypeScript or Lint errors.
 
-When researching technical topics:
-1. **Library docs**: `context7_query-docs`
-2. **Deep research**: `perplexity_perplexity_research`
-3. **Current info**: `tavily_tavily_search`
+## When Stuck
+1. Consult [CURRENT_STATE.md](../docs/be/dev-v1/CURRENT_STATE.md) for context.
+2. Search codebase using `serena_search_for_pattern`.
+3. Check `docs/` for architecture decisions.
+4. Ask clarifying questions instead of guessing.
+5. See [opencode.md](./opencode.md) for tool-specific details and MCP server help.
 
-## Skill Discovery
-
-**DON'T hardcode skills. Use discovery:**
-```typescript
-// Find relevant skills
-skill({ name: "find-skills" })
-
-// Then load appropriate ones
-skill({ name: "skill-name" })
-```
-
-## Skills Reference
-
-### Core Skills (.opencode/skills/)
-
-| Skill | Description | When to Use |
-|-------|-------------|-------------|
-| **brainstorming** | Explore user intent before implementation | Any new feature or component |
-| **building-native-ui** | Expo Router, styling, components, navigation | Mobile UI development |
-| **delivery-order-matching** | PostGIS KNN, driver assignment, ETA | Order matching algorithm |
-| **delivery-pricing-engine** | Dynamic pricing, surge, discounts | Fare calculation |
-| **expo-location-patterns** | Location tracking, permissions, background | GPS tracking |
-| **expo-notifications** | Push notifications, FCM, deep linking | Notification system |
-| **firebase-auth** | Firebase Auth (web + React Native) | Authentication flows |
-| **goong-maps-integration** | Vietnam maps, geocoding, directions | Map integration |
-| **hey-api-patterns** | TypeScript API clients from OpenAPI | API client generation |
-| **nestjs-firebase-auth** | NestJS token verification, guards | Backend auth |
-| **nestjs-modular-monolith** | Feature-based NestJS modules | Backend architecture |
-| **nestjs-queue-architect** | BullMQ job processing | Background jobs |
-| **project-planning** | Structured project phases | New projects/features |
-| **react-hook-form-zod** | Type-safe forms validation | Form handling |
-| **tanstack-query** | Server state management | Data fetching |
-| **tanstack-table** | Data tables with pagination | Admin tables |
-| **upgrading-expo** | SDK migration guides | Expo upgrades |
-| **vercel-react-native-skills** | React Native performance | Mobile optimization |
-| **vietnam-phone-validation** | VN phone numbers, carriers | Phone auth |
-| **zod** | Schema validation | Type validation |
-| **zustand-state-management** | Global state management | App state |
-
-### Agent Skills (.agents/skills/)
-
-| Skill | Description |
-|-------|-------------|
-| **api-design-principles** | REST/GraphQL best practices |
-| **architecture-patterns** | Clean Architecture, DDD |
-| **auth-implementation-patterns** | JWT, OAuth, RBAC |
-| **backend-patterns** | Node.js, Express, Next.js API |
-| **error-handling-patterns** | Error handling across languages |
-| **firebase-auth** | Web Firebase Auth |
-| **nestjs-best-practices** | Comprehensive NestJS guide |
-| **nestjs-dependency-injection** | DI patterns |
-| **nestjs-expert** | NestJS troubleshooting |
-| **postgis-skill** | PostGIS geospatial queries |
-| **redis-development** | Redis caching, pub/sub |
-| **sql-optimization-patterns** | Query optimization |
-| **upgrading-expo** | SDK 54+ migration |
-| **websocket-engineer** | Socket.io real-time |
-
-## Critical Rules
-
-- **Serena FIRST**: Always explore codebase with serena-mcp before reading files
-- **Skill Discovery**: Use `find-skills` to discover relevant skills dynamically
-- **Research**: Use perplexity for deep technical research
-- **Verification**: Run tests before claiming completion
-- **Read Specific**: Use offset/limit, never read entire large files
+## References
+- [Tool Integration & MCP Help](./opencode.md)
+- [System Design Document](../docs/01-SDD-System-Design-Document.md)
+- [Database Design](../docs/02-Database-Design-Document.md)
+- [API Specification](../docs/03-API-Design-Document.md)

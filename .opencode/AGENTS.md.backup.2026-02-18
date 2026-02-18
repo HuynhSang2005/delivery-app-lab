@@ -1,0 +1,599 @@
+# Logship-MVP — AI Agent Guide
+
+> Single source of truth for all AI agents working on this delivery application.
+
+## 1. Project Context
+
+**Project:** Logship-MVP — General Delivery Application for Vietnam market
+**Status:** Phase 1 Foundation (25%), Current Task: 1.2.1 Initialize Prisma
+**Repository:** Monorepo with Bun Workspaces
+
+### Business Domain
+- On-demand delivery service (food, packages, documents)
+- Vietnam market (Ho Chi Minh City initially)
+- Two-sided marketplace: Customers ↔ Drivers
+
+### Key Business Constants
+| Constant | Value | Notes |
+|----------|-------|-------|
+| Base pricing | 8.000 VND/km | Fixed rate |
+| Platform fee | 15% | Of order total |
+| Max distance | 25km | Ho Chi Minh area |
+| Driver matching timeout | 5 minutes | Per attempt |
+| Matching radius | 3km → 5km → 7km | Expanding search |
+| Surge pricing | +20% | When expanding radius |
+| Location tracking | 30s intervals | 10s when <500m from destination |
+| Customer cancel | Free within 5 min | 10% fee after |
+| Driver cancel limit | 3 per day | -10 rating per cancel |
+
+## 2. Architecture
+
+### Pattern: Modular Monolith + Repository Pattern
+
+**Layer flow:** Controller → Service → Repository → Prisma → Neon PostgreSQL
+
+| Layer | Responsibility | Rules |
+|-------|---------------|-------|
+| Controller | HTTP/WS handling, DTOs | NO business logic |
+| Service | Business logic, orchestration | Inject Repository via interface |
+| Repository | Data access via Prisma | NO business logic, NO error handling |
+| Database | Neon PostgreSQL + PostGIS | Prisma ORM with driver adapter |
+
+### Module Structure
+```
+modules/{feature}/
+├── {feature}.module.ts
+├── {feature}.controller.ts
+├── {feature}.service.ts
+├── dto/
+│   ├── create-{feature}.dto.ts
+│   └── update-{feature}.dto.ts
+├── repositories/
+│   ├── {feature}.repository.interface.ts  # Interface with Symbol token
+│   └── {feature}.repository.ts            # Prisma implementation
+└── interfaces/
+    └── {feature}.interface.ts
+```
+
+### Repository Pattern (MANDATORY)
+- Always define interface with Symbol token: `export const FEATURE_REPOSITORY = Symbol('FEATURE_REPOSITORY');`
+- Service injects via: `@Inject(FEATURE_REPOSITORY) private repo: IFeatureRepository`
+- Module binds: `{ provide: FEATURE_REPOSITORY, useClass: FeatureRepository }`
+- Repository ONLY does data access — no business logic, no error throwing
+- Service handles business logic and error throwing
+
+## 3. Tech Stack
+
+### CRITICAL: Bun Exclusively
+This project uses **Bun** as the ONLY package manager and runtime.
+**NEVER** use npm, pnpm, yarn, or npx. Always use `bun` or `bunx`.
+
+### Backend
+| Technology | Version | Purpose |
+|-----------|---------|---------|
+| NestJS | ^11.1.13 | Backend framework |
+| Prisma | ^7.4.0 | ORM (with driver adapter for Neon) |
+| Neon PostgreSQL | 17+ | Serverless database with PostGIS |
+| Zod | ^4.3.6 | Schema validation (v4) |
+| nestjs-zod | ^5.1.1 | Zod integration for NestJS DTOs |
+| Firebase Admin | ^13.6.1 | Phone OTP authentication |
+| BullMQ | ^5.69.1 | Job queues |
+| ioredis | ^5.9.3 | Redis client (Upstash) |
+| Socket.io | ^4.8.3 | WebSocket real-time |
+| Swagger | ^11.2.6 | OpenAPI documentation |
+| TypeScript | ^5.9.3 | Strict mode |
+
+### Mobile
+| Technology | Version | Purpose |
+|-----------|---------|---------|
+| Expo SDK | 54 | React Native framework |
+| React Native | 0.84.0 | Mobile UI |
+| React | 19.2.4 | Component framework |
+| Goong Maps | - | Vietnam-optimized maps |
+| Zustand | - | State management |
+| TanStack Query | v5 | Server state |
+| React Hook Form + Zod | - | Form validation |
+
+### External Services
+| Service | Purpose |
+|---------|---------|
+| Neon | Serverless PostgreSQL + PostGIS |
+| Upstash | Redis (cache, queues, socket adapter) |
+| Firebase | Phone OTP authentication |
+| Cloudinary | Image storage |
+| Goong Maps | Vietnam geocoding & directions |
+
+## 4. Commands
+
+### Development
+```bash
+bun install              # Install all dependencies
+bun dev                  # Start dev server with hot reload
+bun build                # Production build
+bun start                # Start production server
+```
+
+### Database (Prisma 7.4.0)
+```bash
+bunx prisma generate     # Generate Prisma Client
+bunx prisma migrate dev  # Run migrations (dev)
+bunx prisma studio       # Open Prisma Studio GUI
+bunx prisma db push      # Push schema changes (prototyping)
+```
+
+### Testing
+```bash
+bun test                 # Run all unit tests
+bun test {module}        # Test specific module (e.g., bun test orders.service)
+bun run test:cov         # Test with coverage report
+bun run test:e2e         # E2E tests
+```
+
+### Code Quality
+```bash
+bun typecheck            # TypeScript strict check
+bun lint                 # ESLint (auto-fix)
+bun run lint:check       # ESLint (check only)
+```
+
+### Prisma 7.4.0 Breaking Changes
+- Uses ESM by default
+- Config file: `prisma.config.ts` (NOT `.prismarc`)
+- Generator: `prisma-client` (NOT `prisma-client-js`)
+- Requires driver adapter for Neon: `@prisma/adapter-pg`
+
+## 5. Tool Priority
+
+**ALWAYS use serena-mcp FIRST for codebase exploration.**
+
+### Exploration (in order of preference)
+1. `serena_find_symbol` — Find class/function/variable definitions
+2. `serena_find_referencing_symbols` — Find all usages of a symbol
+3. `serena_search_for_pattern` — Regex pattern search across codebase
+4. `serena_get_symbols_overview` — Get file structure overview
+5. `read` with offset/limit — Read specific file sections (NEVER entire large files)
+6. `grep` / `glob` — File content search / file pattern matching
+
+### Research (for external knowledge)
+1. `context7` — Library documentation lookup (FIRST for any library question)
+2. `perplexity_perplexity_research` — Deep technical research
+3. `tavily_tavily_search` — Current information, news, tutorials
+4. `google_search` — Broad web search
+
+### Code Modification
+1. `serena_replace_symbol_body` — Replace function/class bodies
+2. `serena_insert_after_symbol` / `serena_insert_before_symbol` — Insert code
+3. `serena_rename_symbol` — Rename across codebase
+4. `edit` — Direct file editing (when serena is not suitable)
+5. `write` — Write new files
+
+### Rules
+- NEVER read entire large files — always use offset/limit
+- ALWAYS check serena symbols before reading file content
+- Use `serena_get_symbols_overview` first when exploring a new file
+
+## 6. Oh-my-opencode Integration
+
+This project uses the **oh-my-opencode** plugin which provides an 11-agent architecture.
+
+### Primary Agents
+| Agent | Role | Model |
+|-------|------|-------|
+| Sisyphus | Main orchestrator, task execution | Kimi K2.5 |
+| Atlas | Master coordinator, QA gate | Claude Opus 4.6 |
+| Prometheus | Strategic planner | Kimi K2.5 |
+| Hephaestus | Code craftsman | Kimi K2.5 |
+
+### Subagents
+| Agent | Role | Model |
+|-------|------|-------|
+| Oracle | High-IQ consultation, debugging | GPT 5.2 Codex |
+| Metis | Pre-planning analysis | Claude Sonnet 4.5 |
+| Momus | Code review, QA verification | GPT 5.2 |
+| Librarian | Documentation research | GPT 5 Mini |
+| Explore | Codebase search | GPT 5 Mini |
+| Multimodal-looker | Image/PDF analysis | Gemini 3 Flash |
+
+### Task Categories
+| Category | Best For |
+|----------|----------|
+| `visual-engineering` | Frontend, UI/UX, design |
+| `ultrabrain` | Hard logic problems |
+| `deep` | Complex problem-solving |
+| `quick` | Trivial single-file changes |
+| `artistry` | Creative solutions |
+| `writing` | Documentation |
+| `unspecified-low` | Low effort misc tasks |
+| `unspecified-high` | High effort misc tasks |
+
+### Delegation Pattern
+```typescript
+task(
+  category="deep",
+  load_skills=["nestjs-expert", "architecture-patterns"],
+  run_in_background=false,
+  prompt="..."
+)
+```
+
+## 7. Project Agents
+
+### @plan — Architecture Planning
+- **Purpose:** Analysis, research, architecture decisions
+- **Tools:** Read-only (no code modification)
+- **Use when:** Planning new features, analyzing requirements, researching solutions
+- **Prompt:** `.opencode/agents/plan-prompt.md`
+
+### @review — Code Review + QA
+- **Purpose:** Code review, quality verification, testing
+- **Tools:** Bash allowed (can run tests, builds)
+- **Use when:** Reviewing PRs, verifying implementations, running QA
+- **Prompt:** `.opencode/agents/review-prompt.md`
+
+### @db — Database Operations
+- **Purpose:** Database optimization, SQL, migrations, PostGIS
+- **Tools:** Bash allowed (can run prisma commands)
+- **Use when:** Schema changes, query optimization, migration creation
+- **Prompt:** `.opencode/agents/db-prompt.md`
+
+## 8. MCP Servers
+
+### serena (ALWAYS FIRST)
+Codebase exploration via Language Server Protocol.
+- `serena_find_symbol` — Find definitions
+- `serena_find_referencing_symbols` — Find usages
+- `serena_search_for_pattern` — Pattern search
+- `serena_get_symbols_overview` — File outline
+- `serena_replace_symbol_body` — Replace code
+- `serena_rename_symbol` — Rename across project
+
+### context7
+Library documentation lookup. Use FIRST when you need docs for any library.
+- Query: `context7_query-docs` with library name and topic
+
+### tavily
+Web search, extraction, and research.
+- `tavily_tavily_search` — Web search
+- `tavily_tavily_extract` — URL content extraction
+- `tavily_tavily_research` — Deep research on topic
+
+### neon
+Database operations for Neon PostgreSQL.
+- `neon_run_sql` — Execute SQL
+- `neon_prepare_database_migration` — Safe migrations
+- `neon_describe_table_schema` — Table structure
+- `neon_get_database_tables` — List tables
+
+### perplexity
+Deep research and reasoning.
+- `perplexity_perplexity_ask` — Quick answers with citations
+- `perplexity_perplexity_reason` — Chain-of-thought analysis
+- `perplexity_perplexity_research` — Comprehensive research
+
+### Research Workflow
+1. **Library docs:** context7 (FIRST)
+2. **Deep research:** perplexity_perplexity_research
+3. **Current info:** tavily_tavily_search
+4. **Broad search:** google_search
+
+## 9. Skill System
+
+### Discovery First
+```typescript
+// DON'T hardcode skills. Use discovery:
+skill({ name: "find-skills" })
+
+// Then load appropriate ones:
+skill({ name: "skill-name" })
+```
+
+### Core Skills (.opencode/skills/)
+| Skill | Description | When to Use |
+|-------|-------------|-------------|
+| brainstorming | Explore user intent before implementation | Any new feature or component |
+| building-native-ui | Expo Router, styling, components, navigation | Mobile UI development |
+| delivery-order-matching | PostGIS KNN, driver assignment, ETA | Order matching algorithm |
+| delivery-pricing-engine | Dynamic pricing, surge, discounts | Fare calculation |
+| expo-location-patterns | Location tracking, permissions, background | GPS tracking |
+| expo-notifications | Push notifications, FCM, deep linking | Notification system |
+| firebase-auth | Firebase Auth (web + React Native) | Authentication flows |
+| goong-maps-integration | Vietnam maps, geocoding, directions | Map integration |
+| hey-api-patterns | TypeScript API clients from OpenAPI | API client generation |
+| nestjs-firebase-auth | NestJS token verification, guards | Backend auth |
+| nestjs-modular-monolith | Feature-based NestJS modules | Backend architecture |
+| nestjs-queue-architect | BullMQ job processing | Background jobs |
+| project-planning | Structured project phases | New projects/features |
+| react-hook-form-zod | Type-safe forms validation | Form handling |
+| tanstack-query | Server state management v5 | Data fetching |
+| tanstack-table | Data tables with pagination | Admin tables |
+| upgrading-expo | SDK migration guides | Expo upgrades |
+| vercel-react-native-skills | React Native performance | Mobile optimization |
+| vietnam-phone-validation | VN phone numbers, carriers | Phone auth |
+| zod | Schema validation (v4) | Type validation |
+| zustand-state-management | Global state management | App state |
+
+### Agent Skills (.agents/skills/)
+| Skill | Description |
+|-------|-------------|
+| api-design-principles | REST/GraphQL best practices |
+| architecture-patterns | Clean Architecture, DDD |
+| auth-implementation-patterns | JWT, OAuth, RBAC |
+| backend-patterns | Node.js, Express, Next.js API |
+| error-handling-patterns | Error handling across languages |
+| nestjs-best-practices | Comprehensive NestJS guide |
+| nestjs-dependency-injection | DI patterns |
+| nestjs-expert | NestJS troubleshooting |
+| postgis-skill | PostGIS geospatial queries |
+| redis-development | Redis caching, pub/sub |
+| sql-optimization-patterns | Query optimization |
+| websocket-engineer | Socket.io real-time |
+
+## 10. Code Conventions
+
+### General Rules
+- **Runtime:** Bun ONLY — never npm, pnpm, yarn, npx
+- **Language:** TypeScript with strict mode
+- **Validation:** Zod v4 for ALL schemas (env, DTOs, API responses)
+- **DTOs:** Use `createZodDto()` from `nestjs-zod` — NEVER use class-validator
+- **Primary Keys:** UUID for all tables
+- **Soft Deletes:** `deletedAt` timestamp (nullable) — never hard delete
+- **Timestamps:** `createdAt`, `updatedAt` on all tables
+
+### DTO Pattern
+```typescript
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
+
+export const CreateFeatureSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  description: z.string().optional(),
+});
+
+export class CreateFeatureDto extends createZodDto(CreateFeatureSchema) {}
+```
+
+### Error Handling
+- Errors ONLY in Service layer — NEVER in Repository
+- Use custom exception classes extending NestJS exceptions
+- Repository returns null/empty — Service decides what to throw
+
+```typescript
+// ✅ Correct: Service throws
+const feature = await this.repo.findById(id);
+if (!feature) throw new NotFoundException(`Feature ${id} not found`);
+
+// ❌ Wrong: Repository throws
+async findById(id: string) {
+  const result = await this.prisma.feature.findUnique({ where: { id } });
+  if (!result) throw new NotFoundException(); // NEVER do this
+  return result;
+}
+```
+
+### Naming Conventions
+| Type | Pattern | Example |
+|------|---------|---------|
+| Module | PascalCase + Module suffix | `OrdersModule` |
+| Controller | PascalCase + Controller suffix | `OrdersController` |
+| Service | PascalCase + Service suffix | `OrdersService` |
+| Repository | PascalCase + Repository suffix | `OrdersRepository` |
+| DTO | PascalCase + Dto suffix | `CreateOrderDto` |
+| Interface | I prefix + PascalCase | `IOrdersRepository` |
+| Symbol token | SCREAMING_SNAKE_CASE | `ORDERS_REPOSITORY` |
+| File names | kebab-case | `orders.service.ts` |
+
+## 11. Testing Guidelines
+
+### AI-Agent Testing Workflow
+
+#### Phase 1: Explore
+1. Read implementation (Controller, Service, DTOs)
+2. Understand dependencies (injected services/modules)
+3. Identify scenarios (happy path, errors, edge cases)
+4. Check existing patterns (similar test files)
+
+#### Phase 2: Generate (by priority)
+1. **Service unit tests** (HIGHEST — 80%+ coverage)
+   - Mock Repository interfaces, NOT PrismaService
+   - Test business logic
+2. **Controller unit tests** (70%+ coverage)
+   - Mock services
+   - Test HTTP status codes
+3. **E2E tests** (after feature is stable)
+   - Full request/response cycle
+   - Critical user flows only
+
+#### Phase 3: Validate
+```bash
+bun run typecheck              # Type check first
+bun run test orders.service    # Test specific module
+bun run test                   # Run all tests
+bun run test:cov               # Coverage report
+```
+
+#### Phase 4: Iterate
+1. Analyze error messages from Jest output
+2. Fix implementation or tests
+3. Re-run and verify
+4. Add missing scenarios
+
+### Unit Test Template (Repository Pattern)
+```typescript
+describe('FeatureService', () => {
+  let service: FeatureService;
+  let repository: jest.Mocked<IFeatureRepository>;
+
+  beforeEach(async () => {
+    const module = await Test.createTestingModule({
+      providers: [
+        FeatureService,
+        {
+          provide: FEATURE_REPOSITORY,
+          useValue: {
+            findById: jest.fn(),
+            findAll: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            delete: jest.fn(),
+          },
+        },
+      ],
+    }).compile();
+
+    service = module.get(FeatureService);
+    repository = module.get(FEATURE_REPOSITORY);
+  });
+
+  it('should create feature', async () => {
+    const dto = { name: 'Test' };
+    const expected = { id: '1', ...dto, createdAt: new Date() };
+    repository.create.mockResolvedValue(expected);
+
+    const result = await service.create(dto);
+
+    expect(result).toEqual(expected);
+    expect(repository.create).toHaveBeenCalledWith(dto);
+  });
+});
+```
+
+### Testing Checklist
+Before marking feature complete:
+- [ ] Unit tests for all service methods
+- [ ] Controller tests for all endpoints
+- [ ] `bun run test` passes
+- [ ] Coverage > 80% for services
+- [ ] Error cases tested
+- [ ] Edge cases considered
+- [ ] TypeScript compiles with no errors
+
+## 12. File Organization
+
+### Backend Structure
+```
+apps/api/src/
+├── main.ts                          # Entry point
+├── app.module.ts                    # Root module
+├── config/                          # Configuration
+│   ├── database.config.ts
+│   ├── firebase.config.ts
+│   └── swagger.config.ts
+├── common/                          # Shared infrastructure (@Global)
+│   ├── decorators/                  # @CurrentUser, @Roles, @Public
+│   ├── filters/                     # ZodException, AllExceptions
+│   ├── guards/                      # JwtAuth, Roles, Throttler
+│   ├── interceptors/                # Logging, Transform
+│   └── pipes/                       # Validation
+├── database/                        # Database layer
+│   ├── database.module.ts
+│   ├── prisma.service.ts
+│   └── geo.service.ts               # PostGIS helpers
+├── infrastructure/                  # External services
+│   ├── firebase/                    # Firebase Auth
+│   ├── redis/                       # Redis (Upstash)
+│   ├── cloudinary/                  # Image storage
+│   └── queues/                      # BullMQ processors
+├── gateway/                         # WebSocket Gateway
+│   └── events.gateway.ts
+└── modules/                         # Feature modules
+    ├── auth/                        # Authentication
+    ├── users/                       # User management
+    ├── drivers/                     # Driver management
+    ├── orders/                      # Order lifecycle
+    ├── chat/                        # Messaging
+    └── admin/                       # Admin dashboard
+```
+
+### Configuration Files
+```
+project-root/
+├── .opencode/
+│   ├── AGENTS.md                    # THIS FILE — AI agent guide
+│   ├── agents/                      # Custom agent prompts
+│   │   ├── plan-prompt.md
+│   │   ├── review-prompt.md
+│   │   └── db-prompt.md
+│   └── skills/                      # Project-specific skills
+├── .agents/skills/                  # Generic dev skills
+├── opencode.json                    # Project MCP config
+├── docs/                            # Project documentation
+│   ├── 00-Unified-Tech-Stack-Spec.md
+│   ├── 01-SDD-System-Design-Document.md
+│   ├── 02-Database-Design-Document.md
+│   ├── 03-API-Design-Document.md
+│   ├── 07-Backend-Architecture.md
+│   └── be/dev-v1/
+│       ├── GUIDELINES.md
+│       ├── CURRENT_STATE.md
+│       └── IMPLEMENTATION_PLAN.md
+└── prisma/
+    ├── prisma.config.ts
+    └── schema.prisma
+```
+
+### Key Documents
+| Document | Purpose | When to Read |
+|----------|---------|-------------|
+| `docs/00-Unified-Tech-Stack-Spec.md` | Single source of truth for versions | Before adding dependencies |
+| `docs/07-Backend-Architecture.md` | Architecture patterns, folder structure | Before creating modules |
+| `docs/be/dev-v1/GUIDELINES.md` | AI agent workflow, testing patterns | Before any development |
+| `docs/be/dev-v1/CURRENT_STATE.md` | Current progress, decisions | Before starting work |
+
+## 13. External References
+
+### Project Documentation
+- **Tech Stack:** `docs/00-Unified-Tech-Stack-Spec.md` — All versions and decisions
+- **System Design:** `docs/01-SDD-System-Design-Document.md` — Architecture overview
+- **Database Design:** `docs/02-Database-Design-Document.md` — Schema and relationships
+- **API Design:** `docs/03-API-Design-Document.md` — REST + WebSocket endpoints
+- **Backend Architecture:** `docs/07-Backend-Architecture.md` — Patterns and structure
+- **AI Guidelines:** `docs/be/dev-v1/GUIDELINES.md` — Development workflow
+- **Current State:** `docs/be/dev-v1/CURRENT_STATE.md` — Progress tracking
+
+### External Documentation
+- [NestJS Documentation](https://docs.nestjs.com)
+- [Prisma 7.x Documentation](https://www.prisma.io/docs)
+- [Expo SDK 54 Documentation](https://docs.expo.dev)
+- [Zod v4 Documentation](https://zod.dev)
+- [Goong Maps API](https://docs.goong.io)
+- [Firebase Admin SDK](https://firebase.google.com/docs/admin/setup)
+- [BullMQ Documentation](https://docs.bullmq.io)
+
+## 14. Critical Rules
+
+### ✅ ALWAYS
+- Use serena-mcp FIRST for codebase exploration
+- Use `find-skills` to discover relevant skills dynamically
+- Use `bun` / `bunx` exclusively — NEVER npm, pnpm, yarn, npx
+- Follow Repository Pattern: Controller → Service → Repository
+- Use Zod v4 + nestjs-zod for ALL validation (NEVER class-validator)
+- Use UUID primary keys and soft deletes (`deletedAt`)
+- Read `docs/be/dev-v1/CURRENT_STATE.md` before starting work
+- Read `docs/00-Unified-Tech-Stack-Spec.md` before adding dependencies
+- Run verification before claiming completion:
+  ```bash
+  bun run typecheck && bun run test && bun run lint
+  ```
+- Update `docs/be/dev-v1/CURRENT_STATE.md` after completing each task
+- Use offset/limit when reading files — never read entire large files
+- Define Repository interfaces with Symbol tokens
+
+### ⚠️ ASK FIRST
+- Adding new dependencies (check tech stack spec first)
+- Changing database schema (discuss migration strategy)
+- Modifying architecture decisions (documented in docs/)
+- Skipping or reordering implementation plan tasks
+- Adding new external services
+
+### 🚫 NEVER
+- Use npm, pnpm, yarn, or npx
+- Use class-validator (use Zod v4 instead)
+- Put business logic in Repository layer
+- Throw errors from Repository layer
+- Hard delete records (use soft delete)
+- Commit secrets, credentials, or .env files
+- Skip TypeScript strict mode errors
+- Read entire large files without offset/limit
+- Ignore failing tests or type errors
+- Make assumptions about unclear requirements — ASK
+
