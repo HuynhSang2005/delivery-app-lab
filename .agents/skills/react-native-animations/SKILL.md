@@ -1,13 +1,9 @@
 ---
 name: react-native-animations
 description: Master animations - Reanimated 3, Gesture Handler, layout animations, and performance optimization
-sasmp_version: "1.3.0"
-bonded_agent: 05-react-native-animation
-bond_type: PRIMARY_BOND
-version: "2.0.0"
-updated: "2025-01"
 ---
-
+---
+ 
 # React Native Animations Skill
 
 > Learn high-performance animations using Reanimated 3, Gesture Handler, and layout animations.

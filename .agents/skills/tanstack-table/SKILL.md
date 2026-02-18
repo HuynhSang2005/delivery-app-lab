@@ -1,38 +1,6 @@
 ---
 name: tanstack-table
 description: TanStack Table v8 headless data tables with server-side features for Cloudflare Workers + D1. Use for pagination, filtering, sorting, virtualization, or encountering state management, TanStack Query coordination, URL sync errors.
-license: MIT
-allowed-tools: [Bash, Read, Write, Edit]
-metadata:
-  version: 1.1.0
-  author: Claude Skills Maintainers
-  last-verified: 2025-12-09
-  production-tested: true
-  keywords:
-    - tanstack table
-    - react table
-    - data table
-    - datagrid
-    - headless table
-    - server-side pagination
-    - server-side filtering
-    - server-side sorting
-    - tanstack query integration
-    - cloudflare d1
-    - cloudflare workers
-    - virtualization
-    - tanstack virtual
-    - large datasets
-    - table state management
-    - url state sync
-    - column configuration
-    - typescript table
-    - react table v8
-    - headless ui
-    - data visualization
-    - pagination
-    - filtering
-    - sorting
 ---
 
 # TanStack Table Skill

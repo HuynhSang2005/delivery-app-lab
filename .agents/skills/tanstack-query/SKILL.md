@@ -1,10 +1,6 @@
 ---
 name: tanstack-query
 description: TanStack Query v5 performance optimization for data fetching, caching, mutations, and query patterns. This skill should be used when using useQuery, useMutation, queryClient, prefetch patterns, or TanStack Query caching. This skill does NOT cover generating query hooks from OpenAPI (use orval skill) or mocking API responses in tests (use test-msw skill).
-license: MIT
-metadata:
-  author: community
-  version: "1.0.0"
 ---
 
 # TanStack Query Best Practices

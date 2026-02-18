@@ -1,10 +1,6 @@
 ---
 name: tailwindcss
 description: Tailwind CSS utility-first CSS framework. Use when styling web applications with utility classes, building responsive designs, or customizing design systems with theme variables.
-metadata:
-  author: Hairyf
-  version: "2026.2.2"
-  source: Generated from https://github.com/tailwindlabs/tailwindcss.com, scripts located at https://github.com/hairyf/skills
 ---
 
 # Tailwind CSS
