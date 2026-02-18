@@ -70,6 +70,19 @@ None
   - `src/app.controller.ts` — Added `/health` endpoint
 - **Verification:** TypeScript compiles, ESLint passes
 
+### Refactor AGENTS.md for production readiness ✅
+- **Completed:** February 18, 2026
+- **Duration:** ~45 min
+- **Changes:**
+  - Split 600-line AGENTS.md into 2 focused files
+  - `.opencode/AGENTS.md` (106 lines) — Core agent guidance with Agent Role, Critical Files, When Stuck sections
+  - `.opencode/opencode.md` (225 lines) — Tool integration, oh-my-opencode, MCP servers, skills
+  - Fixed progress % to match actual state (8% overall)
+  - Added class-validator peer dependency explanation
+  - Labeled file structure as TARGET (not yet implemented)
+  - Added oh-my-opencode read-only agent restrictions and /cancel-ralph command
+  - Backup preserved at `.opencode/AGENTS.md.backup.2026-02-18`
+
 ---
 
 ## Decisions Made
