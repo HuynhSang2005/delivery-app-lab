@@ -1,89 +1,18 @@
 ---
 name: upgrading-expo
-description: Guidelines for upgrading Expo SDK versions and fixing dependency issues. Use when upgrading between Expo SDK versions, resolving breaking changes, or migrating to New Architecture.
-version: 1.1.0
+description: Guidelines for upgrading Expo SDK versions and fixing dependency issues
+version: 1.0.0
 license: MIT
 ---
 
-# Upgrading Expo SDK
-
-**Current Project Version**: Expo SDK 54
-
 ## References
 
-- ./references/new-architecture.md -- SDK 53+: New Architecture migration guide
-- ./references/react-19.md -- SDK 54: React 19 changes (useContext → use, Context.Provider → Context, forwardRef removal)
-- ./references/react-compiler.md -- SDK 54: React Compiler setup and migration guide
-- ./references/native-tabs.md -- SDK 55: Native tabs changes (Icon/Label/Badge now accessed via NativeTabs.Trigger.*)
+- ./references/new-architecture.md -- SDK +53: New Architecture migration guide
+- ./references/react-19.md -- SDK +54: React 19 changes (useContext → use, Context.Provider → Context, forwardRef removal)
+- ./references/react-compiler.md -- SDK +54: React Compiler setup and migration guide
+- ./references/native-tabs.md -- SDK +55: Native tabs changes (Icon/Label/Badge now accessed via NativeTabs.Trigger.\*)
 - ./references/expo-av-to-audio.md -- Migrate audio playback and recording from expo-av to expo-audio
 - ./references/expo-av-to-video.md -- Migrate video playback from expo-av to expo-video
-
-## Expo SDK 54 Specific Changes
-
-### React 19 Migration
-
-SDK 54 includes React 19 with breaking changes:
-
-```tsx
-// ❌ OLD: useContext
-const theme = useContext(ThemeContext);
-
-// ✅ NEW: use
-const theme = use(ThemeContext);
-
-// ❌ OLD: Context.Provider
-<ThemeContext.Provider value={theme}>
-
-// ✅ NEW: Context (implicit Provider)
-<ThemeContext value={theme}>
-
-// ❌ OLD: forwardRef
-const MyInput = forwardRef((props, ref) => ...);
-
-// ✅ NEW: ref as prop (React 19)
-const MyInput = ({ ref, ...props }) => ...;
-```
-
-### React Compiler (Recommended)
-
-Enable React Compiler in SDK 54:
-
-```json
-// app.json
-{
-  "expo": {
-    "experiments": {
-      "reactCompiler": true
-    }
-  }
-}
-```
-
-### Required Dependencies for SDK 54
-
-```bash
-# React Native Worklets (required for Reanimated)
-npx expo install react-native-worklets
-
-# React 19 compatible versions
-npx expo install react@^19.0.0 react-native@~0.76.0
-```
-
-### Metro Config Changes (SDK 54)
-
-```javascript
-// metro.config.js - Simplified for SDK 54
-const { getDefaultConfig } = require('expo/metro-config');
-
-const config = getDefaultConfig(__dirname);
-
-// SDK 54 defaults (no need to explicitly enable):
-// - experimentalImportSupport: enabled by default
-// - cjs/mjs extensions: supported by default
-// - unstable_enablePackageExports: enabled by default
-
-module.exports = config;
-```
 
 ## Beta/Preview Releases
 

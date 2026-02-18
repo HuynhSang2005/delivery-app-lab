@@ -1,11 +1,10 @@
 ---
 name: nestjs-best-practices
-description: Reference-only. Use when you need comprehensive NestJS best practices documentation covering modules, dependency injection, security, and performance. Load explicitly with skill({ name: 'nestjs-best-practices' }) - not loaded by default.
+description: NestJS best practices and architecture patterns for building production-ready applications. This skill should be used when writing, reviewing, or refactoring NestJS code to ensure proper patterns for modules, dependency injection, security, and performance.
 license: MIT
 metadata:
   author: Kadajett
   version: "1.1.0"
-  mode: reference-only
 ---
 
 # NestJS Best Practices

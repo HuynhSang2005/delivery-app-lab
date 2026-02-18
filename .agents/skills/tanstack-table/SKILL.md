@@ -1,51 +1,193 @@
 ---
 name: tanstack-table
-description: Build headless data tables with TanStack Table v8. Server-side pagination, filtering, sorting, and virtualization for Cloudflare Workers + D1. Prevents 12 documented errors. Use when building tables with large datasets, coordinating with TanStack Query, or fixing state management, performance, or React 19+ compatibility issues.
+description: TanStack Table v8 headless data tables with server-side features for Cloudflare Workers + D1. Use for pagination, filtering, sorting, virtualization, or encountering state management, TanStack Query coordination, URL sync errors.
+license: MIT
+allowed-tools: [Bash, Read, Write, Edit]
+metadata:
+  version: 1.1.0
+  author: Claude Skills Maintainers
+  last-verified: 2025-12-09
+  production-tested: true
+  keywords:
+    - tanstack table
+    - react table
+    - data table
+    - datagrid
+    - headless table
+    - server-side pagination
+    - server-side filtering
+    - server-side sorting
+    - tanstack query integration
+    - cloudflare d1
+    - cloudflare workers
+    - virtualization
+    - tanstack virtual
+    - large datasets
+    - table state management
+    - url state sync
+    - column configuration
+    - typescript table
+    - react table v8
+    - headless ui
+    - data visualization
+    - pagination
+    - filtering
+    - sorting
 ---
 
-# TanStack Table
+# TanStack Table Skill
 
-Headless data tables with server-side pagination, filtering, sorting, and virtualization for Cloudflare Workers + D1
+Build production-ready, headless data tables with TanStack Table v8, optimized for server-side patterns and Cloudflare Workers integration.
+
+---
+
+## When to Use This Skill
+
+**Auto-triggers when you mention:**
+- "data table" or "datagrid"
+- "server-side pagination" or "server-side filtering"
+- "TanStack Table" or "React Table"
+- "table with large dataset"
+- "paginate/filter/sort with API"
+- "Cloudflare D1 table integration"
+- "virtualize table" or "large list performance"
+
+**Use this skill when:**
+- Building data tables with pagination, filtering, or sorting
+- Implementing server-side table features (API-driven)
+- Integrating tables with TanStack Query for data fetching
+- Working with large datasets (1000+ rows) needing virtualization
+- Connecting tables to Cloudflare D1 databases
+- Need headless table logic without opinionated UI
+- Migrating from other table libraries to TanStack Table v8
+
+---
+
+## What This Skill Provides
+
+### 1. Production Templates (7)
+- **Basic client-side table** - Simple table with local data
+- **Server-paginated table** - API-driven pagination with TanStack Query
+- **D1 database integration** - Cloudflare D1 + Workers API + Table
+- **Column configuration patterns** - Type-safe column definitions
+- **Controlled table state** - Column visibility, pinning, ordering, fuzzy/global filtering, row selection
+- **Virtualized large dataset** - Performance optimization with TanStack Virtual
+- **shadcn/ui styled table** - Integration with Tailwind v4 + shadcn
+
+### 2. Server-Side Patterns
+- Pagination with API backends
+- Filtering with query parameters
+- Sorting with database queries
+- State management (page, filters, sorting)
+- URL synchronization
+- TanStack Query coordination
+
+### 3. Cloudflare Integration
+- D1 database query patterns
+- Workers API endpoints for table data
+- Pagination + filtering + sorting in SQL
+- Bindings setup (wrangler.jsonc)
+- Client-side integration patterns
+
+### 4. Performance Optimization
+- Virtualization with TanStack Virtual
+- Large dataset rendering (10k+ rows)
+- Memory-efficient patterns
+- useVirtualizer() integration
+
+### 5. Feature Controls & UX
+- Column visibility toggles and pinning (frozen columns)
+- Column ordering and sizing defaults
+- Global + fuzzy search and faceted filters
+- Row selection and row pinning patterns
+- Controlled state checklist to avoid perf regressions
+
+### 6. Error Prevention
+Documents and prevents 6+ common issues:
+1. Server-side state management confusion
+2. TanStack Query integration errors (query key coordination)
+3. Column filtering with API backends
+4. Manual sorting setup mistakes
+5. URL state synchronization issues
+6. Large dataset performance problems
+7. Over-controlling table state (columnSizingInfo) causing extra renders
 
 ---
 
 ## Quick Start
 
-**Last Updated**: 2026-01-09
-**Versions**: @tanstack/react-table@8.21.3, @tanstack/react-virtual@3.13.18
+### Installation
 
 ```bash
-npm install @tanstack/react-table@latest
-npm install @tanstack/react-virtual@latest  # For virtualization
+# Core table library
+bun add @tanstack/react-table@latest
+
+# Optional: For virtualization (1000+ rows)
+bun add @tanstack/react-virtual@latest
+
+# Optional: For fuzzy/global search
+bun add @tanstack/match-sorter-utils@latest
 ```
 
-**Basic Setup** (CRITICAL: memoize data/columns to prevent infinite re-renders):
+**Latest verified versions (as of 2025-12-09):**
+- `@tanstack/react-table`: v8.21.3 (stable)
+- `@tanstack/react-virtual`: v3.13.12
+- `@tanstack/match-sorter-utils`: v8.21.3 (for fuzzy filtering)
+
+**React support:** Works on React 16.8+ through React 19; React Compiler is not supported.
+
+### Basic Client-Side Table
+
 ```typescript
 import { useReactTable, getCoreRowModel, ColumnDef } from '@tanstack/react-table'
 import { useMemo } from 'react'
 
+interface User {
+  id: string
+  name: string
+  email: string
+}
+
 const columns: ColumnDef<User>[] = [
+  { accessorKey: 'id', header: 'ID' },
   { accessorKey: 'name', header: 'Name' },
   { accessorKey: 'email', header: 'Email' },
 ]
 
 function UsersTable() {
-  const data = useMemo(() => [...users], []) // Stable reference
-  const table = useReactTable({ data, columns, getCoreRowModel: getCoreRowModel() })
+  // CRITICAL: Memoize data and columns to prevent infinite re-renders
+  const data = useMemo<User[]>(() => [
+    { id: '1', name: 'Alice', email: 'alice@example.com' },
+    { id: '2', name: 'Bob', email: 'bob@example.com' },
+  ], [])
+
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(), // Required
+  })
 
   return (
     <table>
       <thead>
-        {table.getHeaderGroups().map(group => (
-          <tr key={group.id}>
-            {group.headers.map(h => <th key={h.id}>{h.column.columnDef.header}</th>)}
+        {table.getHeaderGroups().map(headerGroup => (
+          <tr key={headerGroup.id}>
+            {headerGroup.headers.map(header => (
+              <th key={header.id}>
+                {header.isPlaceholder ? null : header.column.columnDef.header}
+              </th>
+            ))}
           </tr>
         ))}
       </thead>
       <tbody>
         {table.getRowModel().rows.map(row => (
           <tr key={row.id}>
-            {row.getVisibleCells().map(cell => <td key={cell.id}>{cell.renderValue()}</td>)}
+            {row.getVisibleCells().map(cell => (
+              <td key={cell.id}>
+                {cell.renderValue()}
+              </td>
+            ))}
           </tr>
         ))}
       </tbody>
@@ -56,52 +198,143 @@ function UsersTable() {
 
 ---
 
-## Server-Side Patterns
+## Server-Side Patterns (Recommended for Large Datasets)
 
-**Cloudflare D1 API** (pagination + filtering + sorting):
+### Pattern 1: Server-Side Pagination with TanStack Query
+
+**Cloudflare Workers API Endpoint:**
+
 ```typescript
-// Workers API: functions/api/users.ts
-export async function onRequestGet({ request, env }) {
-  const url = new URL(request.url)
+// src/routes/api/users.ts
+import { Env } from '../../types'
+
+export async function onRequestGet(context: { request: Request; env: Env }) {
+  const url = new URL(context.request.url)
   const page = Number(url.searchParams.get('page')) || 0
-  const pageSize = 20
-  const search = url.searchParams.get('search') || ''
-  const sortBy = url.searchParams.get('sortBy') || 'created_at'
-  const sortOrder = url.searchParams.get('sortOrder') || 'DESC'
+  const pageSize = Number(url.searchParams.get('pageSize')) || 20
 
-  const { results } = await env.DB.prepare(`
-    SELECT * FROM users
-    WHERE name LIKE ? OR email LIKE ?
-    ORDER BY ${sortBy} ${sortOrder}
+  const offset = page * pageSize
+
+  // Query D1 database
+  const { results, meta } = await context.env.DB.prepare(`
+    SELECT id, name, email, created_at
+    FROM users
+    ORDER BY created_at DESC
     LIMIT ? OFFSET ?
-  `).bind(`%${search}%`, `%${search}%`, pageSize, page * pageSize).all()
+  `).bind(pageSize, offset).all()
 
-  const { total } = await env.DB.prepare('SELECT COUNT(*) as total FROM users').first()
+  // Get total count for pagination
+  const countResult = await context.env.DB.prepare(`
+    SELECT COUNT(*) as total FROM users
+  `).first<{ total: number }>()
 
   return Response.json({
     data: results,
-    pagination: { page, pageSize, total, pageCount: Math.ceil(total / pageSize) },
+    pagination: {
+      page,
+      pageSize,
+      total: countResult?.total || 0,
+      pageCount: Math.ceil((countResult?.total || 0) / pageSize),
+    },
   })
 }
 ```
 
-**Client-Side** (TanStack Query + Table):
-```typescript
-const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 20 })
-const [columnFilters, setColumnFilters] = useState([])
-const [sorting, setSorting] = useState([])
+**Client-Side Table with TanStack Query:**
 
-// CRITICAL: Include ALL state in query key
-const { data, isLoading } = useQuery({
-  queryKey: ['users', pagination, columnFilters, sorting],
+```typescript
+import { useReactTable, getCoreRowModel, PaginationState } from '@tanstack/react-table'
+import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
+
+function ServerPaginatedTable() {
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 20,
+  })
+
+  // TanStack Query fetches data
+  const { data, isLoading } = useQuery({
+    queryKey: ['users', pagination.pageIndex, pagination.pageSize],
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/users?page=${pagination.pageIndex}&pageSize=${pagination.pageSize}`
+      )
+      return response.json()
+    },
+  })
+
+  // TanStack Table manages display
+  const table = useReactTable({
+    data: data?.data ?? [],
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    // Server-side pagination config
+    manualPagination: true, // CRITICAL: Tell table pagination is manual
+    pageCount: data?.pagination.pageCount ?? 0,
+    state: { pagination },
+    onPaginationChange: setPagination,
+  })
+
+  if (isLoading) return <div>Loading...</div>
+
+  return (
+    <div>
+      <table>{/* render table */}</table>
+
+      {/* Pagination controls */}
+      <div>
+        <button
+          onClick={() => table.previousPage()}
+          disabled={!table.getCanPreviousPage()}
+        >
+          Previous
+        </button>
+        <span>
+          Page {table.getState().pagination.pageIndex + 1} of{' '}
+          {table.getPageCount()}
+        </span>
+        <button
+          onClick={() => table.nextPage()}
+          disabled={!table.getCanNextPage()}
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  )
+}
+```
+
+### Pattern 2: Server-Side Filtering
+
+**API with Filter Support:**
+
+```typescript
+export async function onRequestGet(context: { request: Request; env: Env }) {
+  const url = new URL(context.request.url)
+  const search = url.searchParams.get('search') || ''
+
+  const { results } = await context.env.DB.prepare(`
+    SELECT * FROM users
+    WHERE name LIKE ? OR email LIKE ?
+    LIMIT 20
+  `).bind(`%${search}%`, `%${search}%`).all()
+
+  return Response.json({ data: results })
+}
+```
+
+**Client-Side:**
+
+```typescript
+const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+
+const { data } = useQuery({
+  queryKey: ['users', columnFilters],
   queryFn: async () => {
-    const params = new URLSearchParams({
-      page: pagination.pageIndex,
-      search: columnFilters.find(f => f.id === 'search')?.value || '',
-      sortBy: sorting[0]?.id || 'created_at',
-      sortOrder: sorting[0]?.desc ? 'DESC' : 'ASC',
-    })
-    return fetch(`/api/users?${params}`).then(r => r.json())
+    const search = columnFilters.find(f => f.id === 'search')?.value || ''
+    return fetch(`/api/users?search=${search}`).then(r => r.json())
   },
 })
 
@@ -109,47 +342,60 @@ const table = useReactTable({
   data: data?.data ?? [],
   columns,
   getCoreRowModel: getCoreRowModel(),
-  // CRITICAL: manual* flags tell table server handles these
-  manualPagination: true,
-  manualFiltering: true,
-  manualSorting: true,
-  pageCount: data?.pagination.pageCount ?? 0,
-  state: { pagination, columnFilters, sorting },
-  onPaginationChange: setPagination,
+  manualFiltering: true, // CRITICAL: Server handles filtering
+  state: { columnFilters },
   onColumnFiltersChange: setColumnFilters,
-  onSortingChange: setSorting,
 })
 ```
 
 ---
 
-## Virtualization (1000+ Rows)
+## Virtualization for Large Datasets
 
-Render only visible rows for performance:
+For 1000+ rows, use TanStack Virtual to only render visible rows:
+
 ```typescript
 import { useVirtualizer } from '@tanstack/react-virtual'
+import { useRef } from 'react'
 
 function VirtualizedTable() {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const table = useReactTable({ data: largeDataset, columns, getCoreRowModel: getCoreRowModel() })
+  const tableContainerRef = useRef<HTMLDivElement>(null)
+
+  const table = useReactTable({
+    data: largeDataset, // 10k+ rows
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  })
+
   const { rows } = table.getRowModel()
 
+  // Virtualize rows
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
-    getScrollElement: () => containerRef.current,
-    estimateSize: () => 50, // Row height px
-    overscan: 10,
+    getScrollElement: () => tableContainerRef.current,
+    estimateSize: () => 50, // Row height in px
+    overscan: 10, // Render 10 extra rows for smooth scrolling
   })
 
   return (
-    <div ref={containerRef} style={{ height: '600px', overflow: 'auto' }}>
+    <div ref={tableContainerRef} style={{ height: '600px', overflow: 'auto' }}>
       <table style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
+        <thead>{/* header */}</thead>
         <tbody>
           {rowVirtualizer.getVirtualItems().map(virtualRow => {
             const row = rows[virtualRow.index]
             return (
-              <tr key={row.id} style={{ position: 'absolute', transform: `translateY(${virtualRow.start}px)` }}>
-                {row.getVisibleCells().map(cell => <td key={cell.id}>{cell.renderValue()}</td>)}
+              <tr
+                key={row.id}
+                style={{
+                  position: 'absolute',
+                  transform: `translateY(${virtualRow.start}px)`,
+                  width: '100%',
+                }}
+              >
+                {row.getVisibleCells().map(cell => (
+                  <td key={cell.id}>{cell.renderValue()}</td>
+                ))}
               </tr>
             )
           })}
@@ -160,410 +406,391 @@ function VirtualizedTable() {
 }
 ```
 
-### Warning: Hidden Containers (Tabs/Modals)
-
-**Known Issue**: When using virtualization inside tabbed content or modals that hide inactive content with `display: none`, the virtualizer continues performing layout calculations while hidden, causing:
-- Infinite re-render loops (large datasets: 50k+ rows)
-- Incorrect scroll position when tab becomes visible
-- Empty table or reset scroll (small datasets)
-
-**Source**: [GitHub Issue #6109](https://github.com/TanStack/table/issues/6109)
-
-**Prevention**:
-```typescript
-const rowVirtualizer = useVirtualizer({
-  count: rows.length,
-  getScrollElement: () => containerRef.current,
-  estimateSize: () => 50,
-  overscan: 10,
-  // Disable when container is hidden to prevent infinite re-renders
-  enabled: containerRef.current?.getClientRects().length !== 0,
-})
-
-// OR: Conditionally render instead of hiding with CSS
-{isVisible && <VirtualizedTable />}
-```
-
 ---
 
-## Column/Row Pinning
+## Common Errors & Solutions
 
-Pin columns or rows to keep them visible during horizontal/vertical scroll:
+### Error 1: Infinite Re-Renders
 
-```typescript
-import { useReactTable, getCoreRowModel } from '@tanstack/react-table'
+**Problem:** Table re-renders infinitely, browser freezes.
 
-const table = useReactTable({
-  data,
-  columns,
-  getCoreRowModel: getCoreRowModel(),
-  // Enable pinning
-  enableColumnPinning: true,
-  enableRowPinning: true,
-  // Initial pinning state
-  initialState: {
-    columnPinning: {
-      left: ['select', 'name'],  // Pin to left
-      right: ['actions'],        // Pin to right
-    },
-  },
-})
+**Cause:** `data` or `columns` references change on every render.
 
-// Render with pinned columns
-function PinnedTable() {
-  return (
-    <div className="flex">
-      {/* Left pinned columns */}
-      <div className="sticky left-0 bg-background z-10">
-        {table.getLeftHeaderGroups().map(/* render left headers */)}
-        {table.getRowModel().rows.map(row => (
-          <tr>{row.getLeftVisibleCells().map(/* render cells */)}</tr>
-        ))}
-      </div>
-
-      {/* Center scrollable columns */}
-      <div className="overflow-x-auto">
-        {table.getCenterHeaderGroups().map(/* render center headers */)}
-        {table.getRowModel().rows.map(row => (
-          <tr>{row.getCenterVisibleCells().map(/* render cells */)}</tr>
-        ))}
-      </div>
-
-      {/* Right pinned columns */}
-      <div className="sticky right-0 bg-background z-10">
-        {table.getRightHeaderGroups().map(/* render right headers */)}
-        {table.getRowModel().rows.map(row => (
-          <tr>{row.getRightVisibleCells().map(/* render cells */)}</tr>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// Toggle pinning programmatically
-column.pin('left')   // Pin column to left
-column.pin('right')  // Pin column to right
-column.pin(false)    // Unpin column
-row.pin('top')       // Pin row to top
-row.pin('bottom')    // Pin row to bottom
-```
-
-### Warning: Column Pinning with Column Groups
-
-**Known Issue**: Pinning parent group columns (created with `columnHelper.group()`) causes incorrect positioning and duplicated headers. `column.getStart('left')` returns wrong values for group headers.
-
-**Source**: [GitHub Issue #5397](https://github.com/TanStack/table/issues/5397)
-
-**Prevention**:
-```typescript
-// Disable pinning for grouped columns
-const isPinnable = (column) => !column.parent
-
-// OR: Pin individual columns within group, not the group itself
-table.getColumn('firstName')?.pin('left')
-table.getColumn('lastName')?.pin('left')
-// Don't pin the parent group column
-```
-
----
-
-## Row Expanding (Nested Data)
-
-Show/hide child rows or additional details:
+**Solution:** Always use `useMemo` or `useState`:
 
 ```typescript
-import { useReactTable, getCoreRowModel, getExpandedRowModel } from '@tanstack/react-table'
-
-// Data with nested children
-const data = [
-  {
-    id: 1,
-    name: 'Parent Row',
-    subRows: [
-      { id: 2, name: 'Child Row 1' },
-      { id: 3, name: 'Child Row 2' },
-    ],
-  },
-]
-
-const table = useReactTable({
-  data,
-  columns,
-  getCoreRowModel: getCoreRowModel(),
-  getExpandedRowModel: getExpandedRowModel(),  // Required for expanding
-  getSubRows: row => row.subRows,               // Tell table where children are
-})
-
-// Render with expand button
-function ExpandableTable() {
-  return (
-    <tbody>
-      {table.getRowModel().rows.map(row => (
-        <>
-          <tr key={row.id}>
-            <td>
-              {row.getCanExpand() && (
-                <button onClick={row.getToggleExpandedHandler()}>
-                  {row.getIsExpanded() ? '▼' : '▶'}
-                </button>
-              )}
-            </td>
-            {row.getVisibleCells().map(cell => (
-              <td key={cell.id} style={{ paddingLeft: `${row.depth * 20}px` }}>
-                {cell.renderValue()}
-              </td>
-            ))}
-          </tr>
-        </>
-      ))}
-    </tbody>
-  )
-}
-
-// Control expansion programmatically
-table.toggleAllRowsExpanded()     // Expand/collapse all
-row.toggleExpanded()              // Toggle single row
-table.getIsAllRowsExpanded()      // Check if all expanded
-```
-
-**Detail Rows** (custom content, not nested data):
-
-```typescript
-function DetailRow({ row }) {
-  if (!row.getIsExpanded()) return null
-
-  return (
-    <tr>
-      <td colSpan={columns.length}>
-        <div className="p-4 bg-muted">
-          Custom detail content for row {row.id}
-        </div>
-      </td>
-    </tr>
-  )
-}
-```
-
----
-
-## Row Grouping
-
-Group rows by column values:
-
-```typescript
-import { useReactTable, getCoreRowModel, getGroupedRowModel } from '@tanstack/react-table'
-
-const table = useReactTable({
-  data,
-  columns,
-  getCoreRowModel: getCoreRowModel(),
-  getGroupedRowModel: getGroupedRowModel(),    // Required for grouping
-  getExpandedRowModel: getExpandedRowModel(),  // Groups are expandable
-  initialState: {
-    grouping: ['status'],  // Group by 'status' column
-  },
-})
-
-// Column with aggregation
-const columns = [
-  {
-    accessorKey: 'status',
-    header: 'Status',
-  },
-  {
-    accessorKey: 'amount',
-    header: 'Amount',
-    aggregationFn: 'sum',                      // Sum grouped values
-    aggregatedCell: ({ getValue }) => `Total: ${getValue()}`,
-  },
-]
-
-// Render grouped table
-function GroupedTable() {
-  return (
-    <tbody>
-      {table.getRowModel().rows.map(row => (
-        <tr key={row.id}>
-          {row.getVisibleCells().map(cell => (
-            <td key={cell.id}>
-              {cell.getIsGrouped() ? (
-                // Grouped cell - show group header with expand toggle
-                <button onClick={row.getToggleExpandedHandler()}>
-                  {row.getIsExpanded() ? '▼' : '▶'} {cell.renderValue()} ({row.subRows.length})
-                </button>
-              ) : cell.getIsAggregated() ? (
-                // Aggregated cell - show aggregation result
-                cell.renderValue()
-              ) : cell.getIsPlaceholder() ? null : (
-                // Regular cell
-                cell.renderValue()
-              )}
-            </td>
-          ))}
-        </tr>
-      ))}
-    </tbody>
-  )
-}
-
-// Built-in aggregation functions
-// 'sum', 'min', 'max', 'extent', 'mean', 'median', 'unique', 'uniqueCount', 'count'
-```
-
-### Warning: Performance Bottleneck with Grouping (Community-sourced)
-
-**Known Issue**: The grouping feature causes significant performance degradation on medium-to-large datasets. With grouping enabled, render times can increase from <1 second to 30-40 seconds on 50k rows due to excessive memory usage in `createRow` calculations.
-
-**Source**: [Blog Post (JP Camara)](https://jpcamara.com/2023/03/07/making-tanstack-table.html) | [GitHub Issue #5926](https://github.com/TanStack/table/issues/5926)
-
-**Verified**: Community testing + GitHub issue report
-
-**Prevention**:
-```typescript
-// 1. Use server-side grouping for large datasets
-// 2. Implement pagination to limit rows per page
-// 3. Disable grouping for 10k+ rows
-const shouldEnableGrouping = data.length < 10000
-
-// 4. OR: Use React.memo on row components
-const MemoizedRow = React.memo(TableRow)
-```
-
----
-
-## Known Issues & Solutions
-
-**Issue #1: Infinite Re-Renders**
-- **Error**: Table re-renders infinitely, browser freezes
-- **Cause**: `data` or `columns` references change on every render
-- **Fix**: Use `useMemo(() => [...], [])` or define data/columns outside component
-
-**Issue #2: Query + Table State Mismatch**
-- **Error**: Query refetches but pagination state not synced, stale data
-- **Cause**: Query key missing table state (pagination, filters, sorting)
-- **Fix**: Include ALL state in query key: `queryKey: ['users', pagination, columnFilters, sorting]`
-
-**Issue #3: Server-Side Features Not Working**
-- **Error**: Pagination/filtering/sorting doesn't trigger API calls
-- **Cause**: Missing `manual*` flags
-- **Fix**: Set `manualPagination: true`, `manualFiltering: true`, `manualSorting: true` + provide `pageCount`
-
-**Issue #4: TypeScript "Cannot Find Module"**
-- **Error**: Import errors for `createColumnHelper`
-- **Fix**: Import from `@tanstack/react-table` (NOT `@tanstack/table-core`)
-
-**Issue #5: Sorting Not Working Server-Side**
-- **Error**: Clicking sort headers doesn't update data
-- **Cause**: Sorting state not in query key/API params
-- **Fix**: Include `sorting` in query key, add sort params to API call, set `manualSorting: true` + `onSortingChange`
-
-**Issue #6: Poor Performance (1000+ Rows)**
-- **Error**: Table slow/laggy with large datasets
-- **Fix**: Use TanStack Virtual for client-side OR implement server-side pagination
-
-**Issue #7: React Compiler Incompatibility (React 19+)**
-- **Error**: `"Table doesn't re-render when data changes"` (with React Compiler enabled)
-- **Source**: [GitHub Issue #5567](https://github.com/TanStack/table/issues/5567)
-- **Why It Happens**: React Compiler's automatic memoization conflicts with table core instance, preventing re-renders when data/state changes
-- **Prevention**: Add `"use no memo"` directive at top of components using `useReactTable`:
-
-```typescript
-"use no memo"
-
-function TableComponent() {
+// ❌ BAD: New array reference every render
+function Table() {
+  const data = [{ id: 1 }] // Creates new array!
   const table = useReactTable({ data, columns, getCoreRowModel: getCoreRowModel() })
-  // Now works correctly with React Compiler
+}
+
+// ✅ GOOD: Stable reference
+function Table() {
+  const data = useMemo(() => [{ id: 1 }], []) // Stable
+  const table = useReactTable({ data, columns, getCoreRowModel: getCoreRowModel() })
+}
+
+// ✅ ALSO GOOD: Define outside component
+const data = [{ id: 1 }]
+function Table() {
+  const table = useReactTable({ data, columns, getCoreRowModel: getCoreRowModel() })
 }
 ```
 
-**Note**: This issue also affects column visibility and row selection. Full fix coming in v9.
+### Error 2: TanStack Query + Table State Mismatch
 
-**Issue #8: Server-Side Pagination Row Selection Bug**
-- **Error**: `toggleAllRowsSelected(false)` only deselects current page, not all pages
-- **Source**: [GitHub Issue #5929](https://github.com/TanStack/table/issues/5929)
-- **Why It Happens**: Selection state persists across pages (intentional for server-side use cases), but header checkbox state is calculated incorrectly
-- **Prevention**: Manually clear selection state when toggling off:
+**Problem:** Query refetches but pagination state not in sync, causing stale data.
+
+**Solution:** Include ALL table state in query key:
 
 ```typescript
-const toggleAllRows = (value: boolean) => {
-  if (!value) {
-    table.setRowSelection({}) // Clear entire selection object
-  } else {
-    table.toggleAllRowsSelected(true)
+// ❌ BAD: Missing pagination in query key
+const { data } = useQuery({
+  queryKey: ['users'], // Doesn't include page!
+  queryFn: () => fetch(`/api/users?page=${pagination.pageIndex}`).then(r => r.json())
+})
+
+// ✅ GOOD: Complete query key
+const { data } = useQuery({
+  queryKey: ['users', pagination.pageIndex, pagination.pageSize, columnFilters, sorting],
+  queryFn: () => {
+    const params = new URLSearchParams({
+      page: pagination.pageIndex.toString(),
+      pageSize: pagination.pageSize.toString(),
+      // ... filters, sorting
+    })
+    return fetch(`/api/users?${params}`).then(r => r.json())
   }
-}
-```
-
-**Issue #9: Client-Side onPaginationChange Returns Incorrect pageIndex**
-- **Error**: `onPaginationChange` always returns `pageIndex: 0` instead of current page
-- **Source**: [GitHub Issue #5970](https://github.com/TanStack/table/issues/5970)
-- **Why It Happens**: Client-side pagination mode has state tracking bug (only occurs in client mode, works correctly in server/manual mode)
-- **Prevention**: Switch to manual pagination for correct behavior:
-
-```typescript
-// Instead of relying on client-side pagination
-const table = useReactTable({
-  data,
-  columns,
-  manualPagination: true, // Forces correct state tracking
-  pageCount: Math.ceil(data.length / pagination.pageSize),
-  state: { pagination },
-  onPaginationChange: setPagination,
 })
 ```
 
-**Issue #10: Row Selection Not Cleaned Up When Data Removed**
-- **Error**: Selected rows that no longer exist in data remain in selection state
-- **Source**: [GitHub Issue #5850](https://github.com/TanStack/table/issues/5850)
-- **Why It Happens**: Intentional behavior to support server-side pagination (where rows disappear from current page but should stay selected)
-- **Prevention**: Manually clean up selection when removing data:
+### Error 3: Server-Side Features Not Working
+
+**Problem:** Pagination/filtering/sorting doesn't trigger API calls.
+
+**Solution:** Set `manual*` flags to `true`:
 
 ```typescript
-const removeRow = (idToRemove: string) => {
-  // Remove from data
-  setData(data.filter(row => row.id !== idToRemove))
+const table = useReactTable({
+  data,
+  columns,
+  getCoreRowModel: getCoreRowModel(),
+  // CRITICAL: Tell table these are server-side
+  manualPagination: true,
+  manualFiltering: true,
+  manualSorting: true,
+  pageCount: serverPageCount, // Must provide total page count
+})
+```
 
-  // Clean up selection if it was selected
-  const { rowSelection } = table.getState()
-  if (rowSelection[idToRemove]) {
-    table.setRowSelection((old) => {
-      const filtered = Object.entries(old).filter(([id]) => id !== idToRemove)
-      return Object.fromEntries(filtered)
-    })
+### Error 4: TypeScript "Cannot Find Module" for Column Helper
+
+**Problem:** Import errors for `createColumnHelper`.
+
+**Solution:** Import from correct path:
+
+```typescript
+// ❌ BAD: Wrong path
+import { createColumnHelper } from '@tanstack/table-core'
+
+// ✅ GOOD: Correct path
+import { createColumnHelper } from '@tanstack/react-table'
+
+// Usage for type-safe columns
+const columnHelper = createColumnHelper<User>()
+const columns = [
+  columnHelper.accessor('name', {
+    header: 'Name',
+    cell: info => info.getValue(), // Fully typed!
+  }),
+]
+```
+
+### Error 5: Sorting Not Working with Server-Side
+
+**Problem:** Clicking sort headers doesn't update data.
+
+**Solution:** Include sorting in query key and API call:
+
+```typescript
+const [sorting, setSorting] = useState<SortingState>([])
+
+const { data } = useQuery({
+  queryKey: ['users', pagination, sorting], // Include sorting
+  queryFn: async () => {
+    const sortParam = sorting[0]
+      ? `&sortBy=${sorting[0].id}&sortOrder=${sorting[0].desc ? 'desc' : 'asc'}`
+      : ''
+    return fetch(`/api/users?page=${pagination.pageIndex}${sortParam}`).then(r => r.json())
   }
-}
+})
 
-// OR: Use table.resetRowSelection(true) to clear all
+const table = useReactTable({
+  data: data?.data ?? [],
+  columns,
+  getCoreRowModel: getCoreRowModel(),
+  manualSorting: true,
+  state: { sorting },
+  onSortingChange: setSorting,
+})
 ```
 
-**Issue #11: Performance Degradation with React DevTools Open**
-- **Error**: Table performance significantly degrades with React DevTools open (development only)
-- **Why It Happens**: DevTools inspects table instance and row models on every render, especially noticeable with 500+ rows
-- **Fix**: Close React DevTools during performance testing. This is not a production issue.
+### Error 6: Poor Performance with Large Datasets
 
-**Issue #12: TypeScript getValue() Type Inference with Grouped Columns**
-- **Error**: `getValue()` returns `unknown` instead of accessor's actual type inside `columnHelper.group()`
-- **Source**: [GitHub Issue #5860](https://github.com/TanStack/table/issues/5860)
-- **Fix**: Manually specify type or use `renderValue()`:
+**Problem:** Table slow/laggy with 1000+ rows.
+
+**Solution:** Use virtualization (see example above) or implement server-side pagination.
+
+---
+
+## Integration with Existing Skills
+
+### With tanstack-query Skill
+
+TanStack Table + TanStack Query is the recommended pattern:
 
 ```typescript
-// Option 1: Type assertion
-cell: (info) => {
-  const value = info.getValue() as string
-  return value.toUpperCase()
+// Query handles data fetching + caching
+const { data, isLoading } = useQuery({
+  queryKey: ['users', tableState],
+  queryFn: fetchUsers,
+})
+
+// Table handles display + interactions
+const table = useReactTable({
+  data: data?.data ?? [],
+  columns,
+  getCoreRowModel: getCoreRowModel(),
+})
+```
+
+### With cloudflare-d1 Skill
+
+```typescript
+// Cloudflare Workers API (from cloudflare-d1 skill patterns)
+export async function onRequestGet({ env }: { env: Env }) {
+  const { results } = await env.DB.prepare('SELECT * FROM users LIMIT 20').all()
+  return Response.json({ data: results })
 }
 
-// Option 2: Use renderValue() (better type inference)
-cell: (info) => {
-  const value = info.renderValue()
-  return typeof value === 'string' ? value.toUpperCase() : value
+// Client-side table consumes D1 data
+const { data } = useQuery({
+  queryKey: ['users'],
+  queryFn: () => fetch('/api/users').then(r => r.json())
+})
+```
+
+### With tailwind-v4-shadcn Skill
+
+Use shadcn/ui Table components with TanStack Table logic:
+
+```typescript
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
+
+function StyledTable() {
+  const table = useReactTable({ /* config */ })
+
+  return (
+    <Table>
+      <TableHeader>
+        {table.getHeaderGroups().map(headerGroup => (
+          <TableRow key={headerGroup.id}>
+            {headerGroup.headers.map(header => (
+              <TableHead key={header.id}>
+                {header.column.columnDef.header}
+              </TableHead>
+            ))}
+          </TableRow>
+        ))}
+      </TableHeader>
+      <TableBody>
+        {table.getRowModel().rows.map(row => (
+          <TableRow key={row.id}>
+            {row.getVisibleCells().map(cell => (
+              <TableCell key={cell.id}>
+                {cell.renderValue()}
+              </TableCell>
+            ))}
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  )
 }
 ```
 
 ---
 
-**Related Skills**: tanstack-query (data fetching), cloudflare-d1 (database backend), tailwind-v4-shadcn (UI styling)
+## Best Practices
+
+### 1. Always Memoize Data and Columns
+```typescript
+const data = useMemo(() => [...], [dependencies])
+const columns = useMemo(() => [...], [])
+```
+
+### 2. Use Server-Side for Large Datasets
+- Client-side: <1000 rows
+- Server-side: 1000+ rows or frequently changing data
+
+### 3. Coordinate Query Keys with Table State
+```typescript
+queryKey: ['resource', pagination, filters, sorting]
+```
+
+### 4. Provide Loading States
+```typescript
+if (isLoading) return <TableSkeleton />
+if (error) return <ErrorMessage error={error} />
+```
+
+### 5. Use Column Helper for Type Safety
+```typescript
+const columnHelper = createColumnHelper<YourType>()
+const columns = [
+  columnHelper.accessor('field', { /* fully typed */ })
+]
+```
+
+### 6. Virtualize Large Client-Side Tables
+```typescript
+if (data.length > 1000) {
+  // Use TanStack Virtual (see example above)
+}
+```
+
+### 7. Control Only the State You Need
+- Keep `sorting`, `pagination`, `filters`, `visibility`, `pinning`, `order`, `selection` in controlled state when you must persist or sync.
+- Avoid controlling `columnSizingInfo` unless persisting drag state; it triggers frequent updates and can hurt performance.
 
 ---
 
-**Last verified**: 2026-01-21 | **Skill version**: 2.0.0 | **Changes**: Added 7 new known issues from TIER 1-2 research findings (React 19 Compiler, server-side row selection, virtualization in hidden containers, client-side pagination bug, column pinning with groups, row selection cleanup, DevTools performance, TypeScript getValue). Error count: 6 → 12.
+## Templates Reference
+
+All templates available in `~/.claude/skills/tanstack-table/templates/`:
+
+1. **package.json** - Dependencies and versions
+2. **basic-client-table.tsx** - Simple client-side table
+3. **server-paginated-table.tsx** - Server-side pagination with Query
+4. **d1-database-example.tsx** - Cloudflare D1 integration
+5. **column-configuration.tsx** - Type-safe column patterns
+6. **controlled-table-state.tsx** - Visibility, pinning, ordering, fuzzy/global filtering, selection
+7. **virtualized-large-dataset.tsx** - Performance with Virtual
+8. **shadcn-styled-table.tsx** - Tailwind v4 + shadcn UI styling
+
+---
+
+## Reference Docs
+
+Deep-dive guides in `~/.claude/skills/tanstack-table/references/`:
+
+1. **server-side-patterns.md** - Pagination, filtering, sorting with APIs
+2. **query-integration.md** - Coordinating with TanStack Query
+3. **cloudflare-d1-examples.md** - Workers + D1 complete examples
+4. **performance-virtualization.md** - TanStack Virtual guide
+5. **common-errors.md** - All 6+ documented issues with solutions
+6. **feature-controls.md** - Controlled state, visibility, pinning, ordering, fuzzy/global filtering, selection
+
+---
+
+## When to Load References
+
+Claude should suggest loading these reference files based on user needs:
+
+### Load `references/common-errors.md` when:
+- User encounters infinite re-renders or table freezing
+- Query data not syncing with pagination state changes
+- Server-side features (pagination/filtering/sorting) not triggering API calls
+- TypeScript errors with column helper imports
+- Sorting state changes not updating API calls
+- Performance problems with 1000+ rows client-side
+- Any error message mentioned in the 6 documented issues
+
+### Load `references/server-side-patterns.md` when:
+- User asks about implementing pagination with API backends
+- Need to build filtering with backend query parameters
+- Implementing sorting tied to database queries
+- Building Cloudflare Workers or any API endpoints for table data
+- Coordinating table state (page, filters, sort) with server calls
+- Questions about manualPagination, manualFiltering, or manualSorting flags
+
+### Load `references/query-integration.md` when:
+- Coordinating TanStack Table + TanStack Query together
+- Query keys and table state synchronization issues
+- Refetch patterns when pagination/filter/sort changes
+- Query key composition with table state
+- Stale data issues with server-side tables
+
+### Load `references/cloudflare-d1-examples.md` when:
+- Building Cloudflare Workers API endpoints for table data
+- Writing D1 database queries with pagination/filtering
+- Need complete end-to-end Cloudflare integration examples
+- SQL query patterns for table features (LIMIT/OFFSET, WHERE, ORDER BY)
+- wrangler.jsonc bindings setup for D1 + table
+
+### Load `references/performance-virtualization.md` when:
+- Working with 1000+ row datasets client-side
+- TanStack Virtual integration questions
+- Memory-efficient rendering patterns
+- useVirtualizer() hook usage
+- Large table performance optimization
+- Questions about row virtualization or scroll performance
+
+### Load `references/feature-controls.md` when:
+- Need column visibility, pinning, or ordering controls
+- Building toolbars (global search, toggles) or syncing state to URL/localStorage
+- Implementing fuzzy/global search or faceted filters
+- Setting up row selection/pinning or controlled pagination/sorting
+
+---
+
+## Token Efficiency
+
+**Without this skill:**
+- ~8,000 tokens: Research v8 changes, server-side patterns, Query integration
+- 3-4 common errors encountered
+- 30-45 minutes total time
+
+**With this skill:**
+- ~3,500 tokens: Direct templates, error prevention
+- 0 errors (all documented issues prevented)
+- 10-15 minutes total time
+
+**Savings:** ~55-65% tokens, ~70% time
+
+---
+
+## Production Validation
+
+**Tested with:**
+- React 19.2
+- Vite 6.0
+- TypeScript 5.8
+- Cloudflare Workers (Wrangler 4.0)
+- TanStack Query v5.90.7 (tanstack-query skill)
+- Tailwind v4 + shadcn/ui (tailwind-v4-shadcn skill)
+
+**Stack compatibility:**
+- ✅ Cloudflare Workers + Static Assets
+- ✅ Cloudflare D1 database
+- ✅ TanStack Query integration
+- ✅ React 19.2+ server components
+- ✅ TypeScript strict mode
+- ✅ Vite 6.0+ build optimization
+
+---
+
+## Further Reading
+
+- **Official Docs:** https://tanstack.com/table/latest
+- **TanStack Virtual:** https://tanstack.com/virtual/latest
+- **GitHub:** https://github.com/TanStack/table
+- **Cloudflare D1 Skill:** `~/.claude/skills/cloudflare-d1/`
+- **TanStack Query Skill:** `~/.claude/skills/tanstack-query/`
+
+---
+
+**Last Updated:** 2025-12-09
+**Skill Version:** 1.1.0
+**Library Version:** @tanstack/react-table v8.21.3
