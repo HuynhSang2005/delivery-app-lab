@@ -419,33 +419,7 @@ test("button in all states", async ({ page }) => {
 });
 ```
 
-### Pattern 2: Parallel Testing with Sharding
-
-```typescript
-// playwright.config.ts
-export default defineConfig({
-  projects: [
-    {
-      name: "shard-1",
-      use: { ...devices["Desktop Chrome"] },
-      grepInvert: /@slow/,
-      shard: { current: 1, total: 4 },
-    },
-    {
-      name: "shard-2",
-      use: { ...devices["Desktop Chrome"] },
-      shard: { current: 2, total: 4 },
-    },
-    // ... more shards
-  ],
-});
-
-// Run in CI
-// bunx playwright test --shard=1/4
-// bunx playwright test --shard=2/4
-```
-
-### Pattern 3: Accessibility Testing
+### Pattern 2: Accessibility Testing
 
 ```typescript
 // Install: bun add @axe-core/playwright
@@ -503,36 +477,9 @@ cy.get('[data-testid="email-input"]').type("user@example.com");
 - **No Cleanup**: Clean up test data after each test
 - **Testing Implementation**: Test user behavior, not internals
 
-## Debugging Failing Tests
+## Extended Reference
 
-```typescript
-// Playwright debugging
-// 1. Run in headed mode
-bunx playwright test --headed
-
-// 2. Run in debug mode
-bunx playwright test --debug
-
-// 3. Use trace viewer
-await page.screenshot({ path: 'screenshot.png' });
-await page.video()?.saveAs('video.webm');
-
-// 4. Add test.step for better reporting
-test('checkout flow', async ({ page }) => {
-    await test.step('Add item to cart', async () => {
-        await page.goto('/products');
-        await page.getByRole('button', { name: 'Add to Cart' }).click();
-    });
-
-    await test.step('Proceed to checkout', async () => {
-        await page.goto('/cart');
-        await page.getByRole('button', { name: 'Checkout' }).click();
-    });
-});
-
-// 5. Inspect page state
-await page.pause();  // Pauses execution, opens inspector
-```
+See [references/e2e-extended.md](references/e2e-extended.md) for extended examples including parallel testing with sharding and debugging techniques.
 
 ## Resources
 
