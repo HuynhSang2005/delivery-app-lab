@@ -14,7 +14,7 @@ You need a dev client ONLY when using:
 - Apple targets (widgets, app clips, extensions)
 - Third-party native modules not in Expo Go
 
-**Try Expo Go first** with `npx expo start`. If everything works, you don't need a dev client.
+**Try Expo Go first** with `bunx expo start`. If everything works, you don't need a dev client.
 
 ## EAS Configuration
 
@@ -138,7 +138,7 @@ Connect to local development:
 
 ```bash
 # Start Metro bundler
-npx expo start --dev-client
+bunx expo start --dev-client
 
 # Scan QR code with dev client or enter URL manually
 ```

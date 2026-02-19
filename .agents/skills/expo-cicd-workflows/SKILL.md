@@ -77,7 +77,7 @@ After generating or editing a workflow file, validate it against the schema:
 
 ```sh
 # Install dependencies if missing
-[ -d "{baseDir}/scripts/node_modules" ] || npm install --prefix {baseDir}/scripts
+[ -d "{baseDir}/scripts/node_modules" ] || bun install --cwd {baseDir}/scripts
 
 node {baseDir}/scripts/validate.js <workflow.yml> [workflow2.yml ...]
 ```

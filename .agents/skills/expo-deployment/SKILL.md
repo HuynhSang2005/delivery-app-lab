@@ -22,14 +22,14 @@ Consult these resources as needed:
 ### Install EAS CLI
 
 ```bash
-npm install -g eas-cli
+bun add -g eas-cli
 eas login
 ```
 
 ### Initialize EAS
 
 ```bash
-npx eas-cli@latest init
+bunx eas-cli@latest init
 ```
 
 This creates `eas.json` with build profiles.
@@ -40,26 +40,26 @@ This creates `eas.json` with build profiles.
 
 ```bash
 # iOS App Store build
-npx eas-cli@latest build -p ios --profile production
+bunx eas-cli@latest build -p ios --profile production
 
 # Android Play Store build
-npx eas-cli@latest build -p android --profile production
+bunx eas-cli@latest build -p android --profile production
 
 # Both platforms
-npx eas-cli@latest build --profile production
+bunx eas-cli@latest build --profile production
 ```
 
 ### Submit to Stores
 
 ```bash
 # iOS: Build and submit to App Store Connect
-npx eas-cli@latest build -p ios --profile production --submit
+bunx eas-cli@latest build -p ios --profile production --submit
 
 # Android: Build and submit to Play Store
-npx eas-cli@latest build -p android --profile production --submit
+bunx eas-cli@latest build -p android --profile production --submit
 
 # Shortcut for iOS TestFlight
-npx testflight
+bunx testflight
 ```
 
 ## Web Deployment
@@ -68,11 +68,11 @@ Deploy web apps using EAS Hosting:
 
 ```bash
 # Deploy to production
-npx expo export -p web
-npx eas-cli@latest deploy --prod
+bunx expo export -p web
+bunx eas-cli@latest deploy --prod
 
 # Deploy PR preview
-npx eas-cli@latest deploy
+bunx eas-cli@latest deploy
 ```
 
 ## EAS Configuration
@@ -116,7 +116,7 @@ Standard `eas.json` for production deployments:
 
 ### iOS
 
-- Use `npx testflight` for quick TestFlight submissions
+ - Use `bunx testflight` for quick TestFlight submissions
 - Configure Apple credentials via `eas credentials`
 - See ./reference/testflight.md for credential setup
 - See ./reference/ios-app-store.md for App Store submission
