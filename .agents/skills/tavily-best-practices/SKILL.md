@@ -31,7 +31,7 @@ pip install tavily-python
 
 **JavaScript:**
 ```bash
-npm install @tavily/core
+bun add @tavily/core
 ```
 
 See **[references/sdk.md](references/sdk.md)** for complete SDK reference.
