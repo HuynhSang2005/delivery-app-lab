@@ -312,6 +312,16 @@ src/client/
 └── tanstack-query.gen.ts  # React Query hooks
 ```
 
+## Extended Reference
+
+The skill was trimmed to stay within length limits. See references/hey-api-patterns-extended.md for:
+
+- Full UI examples (OrdersPage) and long usage examples
+- Client configuration and interceptor patterns
+- Longer snippets for working with generated hooks and types
+
+All moved content was preserved verbatim in the referenced file.
+
 ## Common Mistakes
 
 | Mistake | Fix |
