@@ -70,399 +70,466 @@ Master proven backend architecture patterns including Clean Architecture, Hexago
 ### Directory Structure
 
 ```
-app/
+src/
 ├── domain/           # Entities & business rules
 │   ├── entities/
-│   │   ├── user.py
-│   │   └── order.py
-│   ├── value_objects/
-│   │   ├── email.py
-│   │   └── money.py
-│   └── interfaces/   # Abstract interfaces
-│       ├── user_repository.py
-│       └── payment_gateway.py
-├── use_cases/        # Application business rules
-│   ├── create_user.py
-│   ├── process_order.py
-│   └── send_notification.py
+│   │   ├── user.entity.ts
+│   │   └── order.entity.ts
+│   ├── value-objects/
+│   │   ├── email.vo.ts
+│   │   └── money.vo.ts
+│   └── interfaces/   # Abstract interfaces (ports)
+│       ├── user-repository.interface.ts
+│       └── payment-gateway.interface.ts
+├── use-cases/        # Application business rules
+│   ├── create-user.use-case.ts
+│   ├── process-order.use-case.ts
+│   └── send-notification.use-case.ts
 ├── adapters/         # Interface implementations
 │   ├── repositories/
-│   │   ├── postgres_user_repository.py
-│   │   └── redis_cache_repository.py
+│   │   ├── postgres-user.repository.ts
+│   │   └── redis-cache.repository.ts
 │   ├── controllers/
-│   │   └── user_controller.py
+│   │   └── user.controller.ts
 │   └── gateways/
-│       ├── stripe_payment_gateway.py
-│       └── sendgrid_email_gateway.py
+│       ├── stripe-payment.gateway.ts
+│       └── sendgrid-email.gateway.ts
 └── infrastructure/   # Framework & external concerns
-    ├── database.py
-    ├── config.py
-    └── logging.py
+    ├── database.module.ts
+    ├── config.module.ts
+    └── logger.service.ts
 ```
 
 ### Implementation Example
 
-```python
-# domain/entities/user.py
-from dataclasses import dataclass
-from datetime import datetime
-from typing import Optional
+```typescript
+// domain/entities/user.entity.ts
+export class User {
+  /** Core user entity - no framework dependencies. */
+  constructor(
+    public readonly id: string,
+    public email: string,
+    public name: string,
+    public readonly createdAt: Date,
+    public isActive: boolean = true,
+  ) {}
 
-@dataclass
-class User:
-    """Core user entity - no framework dependencies."""
-    id: str
-    email: str
-    name: str
-    created_at: datetime
-    is_active: bool = True
+  deactivate(): void {
+    /** Business rule: deactivating user. */
+    this.isActive = false;
+  }
 
-    def deactivate(self):
-        """Business rule: deactivating user."""
-        self.is_active = False
+  canPlaceOrder(): boolean {
+    /** Business rule: active users can order. */
+    return this.isActive;
+  }
+}
 
-    def can_place_order(self) -> bool:
-        """Business rule: active users can order."""
-        return self.is_active
+// domain/interfaces/user-repository.interface.ts
+export interface IUserRepository {
+  /** Port: defines contract, no implementation. */
+  findById(userId: string): Promise<User | null>;
+  findByEmail(email: string): Promise<User | null>;
+  save(user: User): Promise<User>;
+  delete(userId: string): Promise<boolean>;
+}
 
-# domain/interfaces/user_repository.py
-from abc import ABC, abstractmethod
-from typing import Optional, List
-from domain.entities.user import User
+// use-cases/create-user.use-case.ts
+import { Injectable, Inject } from '@nestjs/common';
+import { User } from '../domain/entities/user.entity';
+import { IUserRepository, USER_REPOSITORY } from '../domain/interfaces/user-repository.interface';
 
-class IUserRepository(ABC):
-    """Port: defines contract, no implementation."""
+export interface CreateUserRequest {
+  email: string;
+  name: string;
+}
 
-    @abstractmethod
-    async def find_by_id(self, user_id: str) -> Optional[User]:
-        pass
+export interface CreateUserResponse {
+  user: User | null;
+  success: boolean;
+  error?: string;
+}
 
-    @abstractmethod
-    async def find_by_email(self, email: str) -> Optional[User]:
-        pass
+@Injectable()
+export class CreateUserUseCase {
+  /** Use case: orchestrates business logic. */
+  constructor(
+    @Inject(USER_REPOSITORY) private readonly userRepository: IUserRepository,
+  ) {}
 
-    @abstractmethod
-    async def save(self, user: User) -> User:
-        pass
+  async execute(request: CreateUserRequest): Promise<CreateUserResponse> {
+    // Business validation
+    const existing = await this.userRepository.findByEmail(request.email);
+    if (existing) {
+      return {
+        user: null,
+        success: false,
+        error: 'Email already exists',
+      };
+    }
 
-    @abstractmethod
-    async def delete(self, user_id: str) -> bool:
-        pass
+    // Create entity
+    const user = new User(
+      crypto.randomUUID(),
+      request.email,
+      request.name,
+      new Date(),
+      true,
+    );
 
-# use_cases/create_user.py
-from domain.entities.user import User
-from domain.interfaces.user_repository import IUserRepository
-from dataclasses import dataclass
-from datetime import datetime
-import uuid
+    // Persist
+    const savedUser = await this.userRepository.save(user);
 
-@dataclass
-class CreateUserRequest:
-    email: str
-    name: str
+    return {
+      user: savedUser,
+      success: true,
+    };
+  }
+}
 
-@dataclass
-class CreateUserResponse:
-    user: User
-    success: bool
-    error: Optional[str] = None
+// adapters/repositories/postgres-user.repository.ts
+import { Injectable } from '@nestjs/common';
+import { IUserRepository } from '../../domain/interfaces/user-repository.interface';
+import { User } from '../../domain/entities/user.entity';
 
-class CreateUserUseCase:
-    """Use case: orchestrates business logic."""
+@Injectable()
+export class PostgresUserRepository implements IUserRepository {
+  /** Adapter: PostgreSQL implementation. */
+  constructor(private readonly db: DatabaseService) {}
 
-    def __init__(self, user_repository: IUserRepository):
-        self.user_repository = user_repository
+  async findById(userId: string): Promise<User | null> {
+    const row = await this.db.query(
+      'SELECT * FROM users WHERE id = $1',
+      [userId],
+    );
+    return row ? this.toEntity(row) : null;
+  }
 
-    async def execute(self, request: CreateUserRequest) -> CreateUserResponse:
-        # Business validation
-        existing = await self.user_repository.find_by_email(request.email)
-        if existing:
-            return CreateUserResponse(
-                user=None,
-                success=False,
-                error="Email already exists"
-            )
+  async findByEmail(email: string): Promise<User | null> {
+    const row = await this.db.query(
+      'SELECT * FROM users WHERE email = $1',
+      [email],
+    );
+    return row ? this.toEntity(row) : null;
+  }
 
-        # Create entity
-        user = User(
-            id=str(uuid.uuid4()),
-            email=request.email,
-            name=request.name,
-            created_at=datetime.now(),
-            is_active=True
-        )
+  async save(user: User): Promise<User> {
+    await this.db.query(
+      `
+      INSERT INTO users (id, email, name, created_at, is_active)
+      VALUES ($1, $2, $3, $4, $5)
+      ON CONFLICT (id) DO UPDATE
+      SET email = $2, name = $3, is_active = $5
+      `,
+      [user.id, user.email, user.name, user.createdAt, user.isActive],
+    );
+    return user;
+  }
 
-        # Persist
-        saved_user = await self.user_repository.save(user)
+  async delete(userId: string): Promise<boolean> {
+    const result = await this.db.query(
+      'DELETE FROM users WHERE id = $1',
+      [userId],
+    );
+    return result.rowCount === 1;
+  }
 
-        return CreateUserResponse(
-            user=saved_user,
-            success=True
-        )
+  private toEntity(row: any): User {
+    /** Map database row to entity. */
+    return new User(
+      row.id,
+      row.email,
+      row.name,
+      row.created_at,
+      row.is_active,
+    );
+  }
+}
 
-# adapters/repositories/postgres_user_repository.py
-from domain.interfaces.user_repository import IUserRepository
-from domain.entities.user import User
-from typing import Optional
-import asyncpg
+// adapters/controllers/user.controller.ts
+import { Controller, Post, Body, Inject, BadRequestException } from '@nestjs/common';
+import { CreateUserUseCase, CreateUserRequest } from '../../use-cases/create-user.use-case';
 
-class PostgresUserRepository(IUserRepository):
-    """Adapter: PostgreSQL implementation."""
+class CreateUserDto {
+  email: string;
+  name: string;
+}
 
-    def __init__(self, pool: asyncpg.Pool):
-        self.pool = pool
+@Controller('users')
+export class UserController {
+  /** Controller: handles HTTP concerns only. */
+  constructor(private readonly createUserUseCase: CreateUserUseCase) {}
 
-    async def find_by_id(self, user_id: str) -> Optional[User]:
-        async with self.pool.acquire() as conn:
-            row = await conn.fetchrow(
-                "SELECT * FROM users WHERE id = $1", user_id
-            )
-            return self._to_entity(row) if row else None
+  @Post()
+  async createUser(@Body() dto: CreateUserDto) {
+    const request: CreateUserRequest = { email: dto.email, name: dto.name };
+    const response = await this.createUserUseCase.execute(request);
 
-    async def find_by_email(self, email: str) -> Optional[User]:
-        async with self.pool.acquire() as conn:
-            row = await conn.fetchrow(
-                "SELECT * FROM users WHERE email = $1", email
-            )
-            return self._to_entity(row) if row else None
+    if (!response.success) {
+      throw new BadRequestException(response.error);
+    }
 
-    async def save(self, user: User) -> User:
-        async with self.pool.acquire() as conn:
-            await conn.execute(
-                """
-                INSERT INTO users (id, email, name, created_at, is_active)
-                VALUES ($1, $2, $3, $4, $5)
-                ON CONFLICT (id) DO UPDATE
-                SET email = $2, name = $3, is_active = $5
-                """,
-                user.id, user.email, user.name, user.created_at, user.is_active
-            )
-            return user
-
-    async def delete(self, user_id: str) -> bool:
-        async with self.pool.acquire() as conn:
-            result = await conn.execute(
-                "DELETE FROM users WHERE id = $1", user_id
-            )
-            return result == "DELETE 1"
-
-    def _to_entity(self, row) -> User:
-        """Map database row to entity."""
-        return User(
-            id=row["id"],
-            email=row["email"],
-            name=row["name"],
-            created_at=row["created_at"],
-            is_active=row["is_active"]
-        )
-
-# adapters/controllers/user_controller.py
-from fastapi import APIRouter, Depends, HTTPException
-from use_cases.create_user import CreateUserUseCase, CreateUserRequest
-from pydantic import BaseModel
-
-router = APIRouter()
-
-class CreateUserDTO(BaseModel):
-    email: str
-    name: str
-
-@router.post("/users")
-async def create_user(
-    dto: CreateUserDTO,
-    use_case: CreateUserUseCase = Depends(get_create_user_use_case)
-):
-    """Controller: handles HTTP concerns only."""
-    request = CreateUserRequest(email=dto.email, name=dto.name)
-    response = await use_case.execute(request)
-
-    if not response.success:
-        raise HTTPException(status_code=400, detail=response.error)
-
-    return {"user": response.user}
+    return { user: response.user };
+  }
+}
 ```
 
 ## Hexagonal Architecture Pattern
 
-```python
-# Core domain (hexagon center)
-class OrderService:
-    """Domain service - no infrastructure dependencies."""
+```typescript
+// Core domain (hexagon center)
+import { Injectable, Inject } from '@nestjs/common';
+import { OrderRepositoryPort, ORDER_REPOSITORY } from './ports/order-repository.port';
+import { PaymentGatewayPort, PAYMENT_GATEWAY } from './ports/payment-gateway.port';
+import { NotificationPort, NOTIFICATION_SERVICE } from './ports/notification.port';
 
-    def __init__(
-        self,
-        order_repository: OrderRepositoryPort,
-        payment_gateway: PaymentGatewayPort,
-        notification_service: NotificationPort
-    ):
-        self.orders = order_repository
-        self.payments = payment_gateway
-        self.notifications = notification_service
+@Injectable()
+export class OrderService {
+  /** Domain service - no infrastructure dependencies. */
+  constructor(
+    @Inject(ORDER_REPOSITORY) private readonly orders: OrderRepositoryPort,
+    @Inject(PAYMENT_GATEWAY) private readonly payments: PaymentGatewayPort,
+    @Inject(NOTIFICATION_SERVICE) private readonly notifications: NotificationPort,
+  ) {}
 
-    async def place_order(self, order: Order) -> OrderResult:
-        # Business logic
-        if not order.is_valid():
-            return OrderResult(success=False, error="Invalid order")
+  async placeOrder(order: Order): Promise<OrderResult> {
+    // Business logic
+    if (!order.isValid()) {
+      return { success: false, error: 'Invalid order' };
+    }
 
-        # Use ports (interfaces)
-        payment = await self.payments.charge(
-            amount=order.total,
-            customer=order.customer_id
-        )
+    // Use ports (interfaces)
+    const payment = await this.payments.charge({
+      amount: order.total,
+      customer: order.customerId,
+    });
 
-        if not payment.success:
-            return OrderResult(success=False, error="Payment failed")
+    if (!payment.success) {
+      return { success: false, error: 'Payment failed' };
+    }
 
-        order.mark_as_paid()
-        saved_order = await self.orders.save(order)
+    order.markAsPaid();
+    const savedOrder = await this.orders.save(order);
 
-        await self.notifications.send(
-            to=order.customer_email,
-            subject="Order confirmed",
-            body=f"Order {order.id} confirmed"
-        )
+    await this.notifications.send({
+      to: order.customerEmail,
+      subject: 'Order confirmed',
+      body: `Order ${order.id} confirmed`,
+    });
 
-        return OrderResult(success=True, order=saved_order)
+    return { success: true, order: savedOrder };
+  }
+}
 
-# Ports (interfaces)
-class OrderRepositoryPort(ABC):
-    @abstractmethod
-    async def save(self, order: Order) -> Order:
-        pass
+// Ports (interfaces)
+export interface OrderRepositoryPort {
+  save(order: Order): Promise<Order>;
+}
 
-class PaymentGatewayPort(ABC):
-    @abstractmethod
-    async def charge(self, amount: Money, customer: str) -> PaymentResult:
-        pass
+export const ORDER_REPOSITORY = Symbol('ORDER_REPOSITORY');
 
-class NotificationPort(ABC):
-    @abstractmethod
-    async def send(self, to: str, subject: str, body: str):
-        pass
+export interface PaymentGatewayPort {
+  charge(params: { amount: Money; customer: string }): Promise<PaymentResult>;
+}
 
-# Adapters (implementations)
-class StripePaymentAdapter(PaymentGatewayPort):
-    """Primary adapter: connects to Stripe API."""
+export const PAYMENT_GATEWAY = Symbol('PAYMENT_GATEWAY');
 
-    def __init__(self, api_key: str):
-        self.stripe = stripe
-        self.stripe.api_key = api_key
+export interface NotificationPort {
+  send(params: { to: string; subject: string; body: string }): Promise<void>;
+}
 
-    async def charge(self, amount: Money, customer: str) -> PaymentResult:
-        try:
-            charge = self.stripe.Charge.create(
-                amount=amount.cents,
-                currency=amount.currency,
-                customer=customer
-            )
-            return PaymentResult(success=True, transaction_id=charge.id)
-        except stripe.error.CardError as e:
-            return PaymentResult(success=False, error=str(e))
+export const NOTIFICATION_SERVICE = Symbol('NOTIFICATION_SERVICE');
 
-class MockPaymentAdapter(PaymentGatewayPort):
-    """Test adapter: no external dependencies."""
+// Adapters (implementations)
+import { Injectable } from '@nestjs/common';
 
-    async def charge(self, amount: Money, customer: str) -> PaymentResult:
-        return PaymentResult(success=True, transaction_id="mock-123")
+@Injectable()
+export class StripePaymentAdapter implements PaymentGatewayPort {
+  /** Primary adapter: connects to Stripe API. */
+  constructor(private readonly stripe: StripeService) {}
+
+  async charge(params: { amount: Money; customer: string }): Promise<PaymentResult> {
+    try {
+      const charge = await this.stripe.charges.create({
+        amount: params.amount.cents,
+        currency: params.amount.currency,
+        customer: params.customer,
+      });
+      return { success: true, transactionId: charge.id };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+}
+
+@Injectable()
+export class MockPaymentAdapter implements PaymentGatewayPort {
+  /** Test adapter: no external dependencies. */
+  async charge(params: { amount: Money; customer: string }): Promise<PaymentResult> {
+    return { success: true, transactionId: 'mock-123' };
+  }
+}
 ```
 
 ## Domain-Driven Design Pattern
 
-```python
-# Value Objects (immutable)
-from dataclasses import dataclass
-from typing import Optional
+```typescript
+// Value Objects (immutable)
+export class Email {
+  /** Value object: validated email. */
+  constructor(public readonly value: string) {
+    if (!value.includes('@')) {
+      throw new Error('Invalid email');
+    }
+  }
 
-@dataclass(frozen=True)
-class Email:
-    """Value object: validated email."""
-    value: str
+  equals(other: Email): boolean {
+    return this.value === other.value;
+  }
+}
 
-    def __post_init__(self):
-        if "@" not in self.value:
-            raise ValueError("Invalid email")
+export class Money {
+  /** Value object: amount with currency. */
+  constructor(
+    public readonly amount: number, // cents
+    public readonly currency: string,
+  ) {}
 
-@dataclass(frozen=True)
-class Money:
-    """Value object: amount with currency."""
-    amount: int  # cents
-    currency: str
+  add(other: Money): Money {
+    if (this.currency !== other.currency) {
+      throw new Error('Currency mismatch');
+    }
+    return new Money(this.amount + other.amount, this.currency);
+  }
 
-    def add(self, other: "Money") -> "Money":
-        if self.currency != other.currency:
-            raise ValueError("Currency mismatch")
-        return Money(self.amount + other.amount, self.currency)
+  equals(other: Money): boolean {
+    return this.amount === other.amount && this.currency === other.currency;
+  }
+}
 
-# Entities (with identity)
-class Order:
-    """Entity: has identity, mutable state."""
+// Entities (with identity)
+export class Order {
+  /** Entity: has identity, mutable state. */
+  private _items: OrderItem[] = [];
+  private _status: OrderStatus = OrderStatus.PENDING;
+  private _events: DomainEvent[] = [];
 
-    def __init__(self, id: str, customer: Customer):
-        self.id = id
-        self.customer = customer
-        self.items: List[OrderItem] = []
-        self.status = OrderStatus.PENDING
-        self._events: List[DomainEvent] = []
+  constructor(
+    public readonly id: string,
+    public readonly customer: Customer,
+  ) {}
 
-    def add_item(self, product: Product, quantity: int):
-        """Business logic in entity."""
-        item = OrderItem(product, quantity)
-        self.items.append(item)
-        self._events.append(ItemAddedEvent(self.id, item))
+  addItem(product: Product, quantity: number): void {
+    /** Business logic in entity. */
+    const item = new OrderItem(product, quantity);
+    this._items.push(item);
+    this._events.push(new ItemAddedEvent(this.id, item));
+  }
 
-    def total(self) -> Money:
-        """Calculated property."""
-        return sum(item.subtotal() for item in self.items)
+  get total(): Money {
+    /** Calculated property. */
+    return this._items.reduce((sum, item) => sum.add(item.subtotal), Money.zero());
+  }
 
-    def submit(self):
-        """State transition with business rules."""
-        if not self.items:
-            raise ValueError("Cannot submit empty order")
-        if self.status != OrderStatus.PENDING:
-            raise ValueError("Order already submitted")
+  submit(): void {
+    /** State transition with business rules. */
+    if (this._items.length === 0) {
+      throw new Error('Cannot submit empty order');
+    }
+    if (this._status !== OrderStatus.PENDING) {
+      throw new Error('Order already submitted');
+    }
 
-        self.status = OrderStatus.SUBMITTED
-        self._events.append(OrderSubmittedEvent(self.id))
+    this._status = OrderStatus.SUBMITTED;
+    this._events.push(new OrderSubmittedEvent(this.id));
+  }
 
-# Aggregates (consistency boundary)
-class Customer:
-    """Aggregate root: controls access to entities."""
+  get status(): OrderStatus {
+    return this._status;
+  }
 
-    def __init__(self, id: str, email: Email):
-        self.id = id
-        self.email = email
-        self._addresses: List[Address] = []
-        self._orders: List[str] = []  # Order IDs, not full objects
+  get items(): readonly OrderItem[] {
+    return this._items;
+  }
 
-    def add_address(self, address: Address):
-        """Aggregate enforces invariants."""
-        if len(self._addresses) >= 5:
-            raise ValueError("Maximum 5 addresses allowed")
-        self._addresses.append(address)
+  get events(): readonly DomainEvent[] {
+    return this._events;
+  }
 
-    @property
-    def primary_address(self) -> Optional[Address]:
-        return next((a for a in self._addresses if a.is_primary), None)
+  clearEvents(): void {
+    this._events = [];
+  }
+}
 
-# Domain Events
-@dataclass
-class OrderSubmittedEvent:
-    order_id: str
-    occurred_at: datetime = field(default_factory=datetime.now)
+// Aggregates (consistency boundary)
+export class Customer {
+  /** Aggregate root: controls access to entities. */
+  private _addresses: Address[] = [];
+  private _orders: string[] = []; // Order IDs, not full objects
 
-# Repository (aggregate persistence)
-class OrderRepository:
-    """Repository: persist/retrieve aggregates."""
+  constructor(
+    public readonly id: string,
+    public readonly email: Email,
+  ) {}
 
-    async def find_by_id(self, order_id: str) -> Optional[Order]:
-        """Reconstitute aggregate from storage."""
-        pass
+  addAddress(address: Address): void {
+    /** Aggregate enforces invariants. */
+    if (this._addresses.length >= 5) {
+      throw new Error('Maximum 5 addresses allowed');
+    }
+    this._addresses.push(address);
+  }
 
-    async def save(self, order: Order):
-        """Persist aggregate and publish events."""
-        await self._persist(order)
-        await self._publish_events(order._events)
-        order._events.clear()
+  get primaryAddress(): Address | undefined {
+    return this._addresses.find((a) => a.isPrimary);
+  }
+
+  get addresses(): readonly Address[] {
+    return this._addresses;
+  }
+}
+
+// Domain Events
+export class OrderSubmittedEvent implements DomainEvent {
+  readonly occurredAt: Date;
+
+  constructor(public readonly orderId: string) {
+    this.occurredAt = new Date();
+  }
+}
+
+// Repository (aggregate persistence)
+export interface IOrderRepository {
+  /** Repository: persist/retrieve aggregates. */
+  findById(orderId: string): Promise<Order | null>;
+  save(order: Order): Promise<void>;
+}
+
+@Injectable()
+export class OrderRepository implements IOrderRepository {
+  constructor(private readonly db: DatabaseService) {}
+
+  async findById(orderId: string): Promise<Order | null> {
+    /** Reconstitute aggregate from storage. */
+    // Implementation...
+    return null;
+  }
+
+  async save(order: Order): Promise<void> {
+    /** Persist aggregate and publish events. */
+    await this.persist(order);
+    await this.publishEvents(order.events);
+    order.clearEvents();
+  }
+
+  private async persist(order: Order): Promise<void> {
+    // Implementation...
+  }
+
+  private async publishEvents(events: readonly DomainEvent[]): Promise<void> {
+    // Implementation...
+  }
+}
 ```
 
 ## Resources
