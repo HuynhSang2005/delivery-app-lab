@@ -18,7 +18,7 @@ If the issue is specifically about:
 ### Environment Detection
 ```bash
 # Check Prisma version
-npx prisma --version 2>/dev/null || echo "Prisma not installed"
+bunx --bun prisma --version 2>/dev/null || echo "Prisma not installed"
 
 # Check database provider
 grep "provider" prisma/schema.prisma 2>/dev/null | head -1
@@ -26,8 +26,8 @@ grep "provider" prisma/schema.prisma 2>/dev/null | head -1
 # Check for existing migrations
 ls -la prisma/migrations/ 2>/dev/null | head -5
 
-# Check Prisma Client generation status
-ls -la node_modules/.prisma/client/ 2>/dev/null | head -3
+# Check Prisma Client generation status (v7: generated/prisma, NOT node_modules/.prisma/client)
+ls -la generated/prisma/ 2>/dev/null | head -3 || echo "Client not generated"
 ```
 
 ### Apply Strategy
@@ -48,13 +48,13 @@ ls -la node_modules/.prisma/client/ 2>/dev/null | head -3
 **Diagnosis:**
 ```bash
 # Validate schema
-npx prisma validate
+bunx --bun prisma validate
 
 # Check for schema drift
-npx prisma migrate diff --from-schema-datamodel prisma/schema.prisma --to-schema-datasource prisma/schema.prisma
+bunx --bun prisma migrate diff --from-schema-datamodel prisma/schema.prisma --to-schema-datasource prisma/schema.prisma
 
 # Format schema
-npx prisma format
+bunx --bun prisma format
 ```
 
 **Prioritized Fixes:**
@@ -64,6 +64,18 @@ npx prisma format
 
 **Best Practices:**
 ```prisma
+// Generator config for Prisma v7 (REQUIRED: output + driverAdapters)
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../generated/prisma"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
 // Good: Explicit relations with clear naming
 model User {
   id        String   @id @default(cuid())
@@ -103,7 +115,7 @@ model Post {
 **Diagnosis:**
 ```bash
 # Check migration status
-npx prisma migrate status
+bunx --bun prisma migrate status
 
 # View pending migrations
 ls -la prisma/migrations/
@@ -120,15 +132,15 @@ ls -la prisma/migrations/
 **Safe Migration Workflow:**
 ```bash
 # Development
-npx prisma migrate dev --name descriptive_name
+bunx --bun prisma migrate dev --name descriptive_name
 
 # Production (never use migrate dev!)
-npx prisma migrate deploy
+bunx --bun prisma migrate deploy
 
 # If migration fails in production
-npx prisma migrate resolve --applied "migration_name"
+bunx --bun prisma migrate resolve --applied "migration_name"
 # or
-npx prisma migrate resolve --rolled-back "migration_name"
+bunx --bun prisma migrate resolve --rolled-back "migration_name"
 ```
 
 **Resources:**
@@ -205,34 +217,77 @@ const result = await prisma.$queryRaw`
 - https://www.prisma.io/docs/guides/performance-and-optimization
 - https://www.prisma.io/docs/concepts/components/prisma-client/raw-database-access
 
-### Connection Management
+### Connection Management (Prisma v7)
+
+**⚠️ BREAKING CHANGE in Prisma v7**: Direct database connections are no longer supported. You MUST use a driver adapter.
+
 **Common Issues:**
+- Missing driver adapter configuration
+- WebSocket constructor not set for Neon serverless
+- Importing from `@prisma/client` instead of generated path
 - Connection pool exhaustion
 - "Too many connections" errors
-- Connection leaks in serverless environments
-- Slow initial connections
 
 **Diagnosis:**
 ```bash
 # Check current connections (PostgreSQL)
 psql -c "SELECT count(*) FROM pg_stat_activity WHERE datname = 'your_db';"
+
+# Verify generated client exists
+ls -la generated/prisma/ 2>/dev/null || echo "Client not generated - run: bunx --bun prisma generate"
 ```
 
 **Prioritized Fixes:**
-1. **Minimal**: Configure connection limit in DATABASE_URL
-2. **Better**: Implement proper connection lifecycle management
-3. **Complete**: Use connection pooler (PgBouncer) for high-traffic apps
+1. **Minimal**: Add driver adapter to PrismaClient initialization
+2. **Better**: Configure neonConfig for serverless WebSocket support
+3. **Complete**: Implement singleton pattern with proper lifecycle
 
-**Connection Configuration:**
+**Prisma v7 Setup Requirements:**
+
+1. **Config file** (`prisma.config.ts`):
 ```typescript
-// For serverless (Vercel, AWS Lambda)
-import { PrismaClient } from '@prisma/client';
+import { defineConfig } from 'prisma/config';
 
+export default defineConfig({
+  earlyAccess: true,
+  schema: './prisma/schema.prisma',
+});
+```
+
+2. **Schema generator** (with `output` and `previewFeatures`):
+```prisma
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../generated/prisma"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+```
+
+3. **Client instantiation with Neon adapter**:
+```typescript
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import { PrismaNeon } from '@prisma/adapter-neon';
+import { PrismaClient } from '../generated/prisma'; // NOT from '@prisma/client'
+import ws from 'ws';
+
+// Required for Neon serverless
+neonConfig.webSocketConstructor = ws;
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaNeon(pool);
+
+// Singleton pattern for serverless
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
 export const prisma =
   globalForPrisma.prisma ||
   new PrismaClient({
+    adapter,
     log: process.env.NODE_ENV === 'development' ? ['query'] : [],
   });
 
@@ -241,17 +296,21 @@ if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 // Graceful shutdown
 process.on('beforeExit', async () => {
   await prisma.$disconnect();
+  await pool.end();
 });
 ```
 
-```env
-# Connection URL with pool settings
-DATABASE_URL="postgresql://user:pass@host:5432/db?connection_limit=5&pool_timeout=10"
+**ESM Imports (Prisma v7 is ESM-first):**
+```typescript
+// All imports use standard ESM
+import { PrismaClient } from '../generated/prisma';
+import type { User, Post } from '../generated/prisma';
 ```
 
 **Resources:**
 - https://www.prisma.io/docs/guides/performance-and-optimization/connection-management
-- https://www.prisma.io/docs/guides/deployment/deployment-guides/deploying-to-vercel
+- https://www.prisma.io/docs/orm/overview/databases/neon
+- https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/databases-connections
 
 ### Transaction Patterns
 **Common Issues:**
