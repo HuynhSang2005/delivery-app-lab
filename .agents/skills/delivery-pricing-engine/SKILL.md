@@ -214,45 +214,15 @@ export class PromotionService {
 }
 ```
 
-## Database Schema
+## Extended Reference
 
-```sql
--- Pricing configuration
-CREATE TABLE pricing_configs (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  vehicle_type VARCHAR(20) NOT NULL,
-  base_fare INTEGER NOT NULL,
-  per_km_rate INTEGER NOT NULL,
-  min_fare INTEGER NOT NULL,
-  is_active BOOLEAN DEFAULT true,
-  UNIQUE(vehicle_type, effective_from)
-);
+The skill was trimmed for readability. See references/delivery-pricing-engine-extended.md for:
 
--- Promotions
-CREATE TABLE promotions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  code VARCHAR(50) UNIQUE NOT NULL,
-  type VARCHAR(20) NOT NULL, -- PERCENTAGE, FIXED, FREE_DELIVERY
-  value INTEGER NOT NULL,
-  min_order_amount INTEGER,
-  max_discount INTEGER,
-  valid_from TIMESTAMP NOT NULL,
-  valid_until TIMESTAMP NOT NULL,
-  usage_limit INTEGER,
-  usage_count INTEGER DEFAULT 0,
-  is_active BOOLEAN DEFAULT true
-);
+- Full service implementations (PricingService, SurgePricingService, PromotionService)
+- Database schema DDL for pricing configs, promotions, promotion usages, and surge history
+- Longer integration examples for Redis and Prisma
 
--- Promotion usage tracking
-CREATE TABLE promotion_usages (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  promotion_id UUID REFERENCES promotions(id),
-  user_id UUID NOT NULL,
-  order_id UUID REFERENCES orders(id),
-  discount_amount INTEGER NOT NULL,
-  used_at TIMESTAMP DEFAULT NOW()
-);
-```
+All moved content was preserved verbatim in the referenced file.
 
 ## Quick Reference
 
