@@ -441,14 +441,14 @@ export default defineConfig({
 });
 
 // Run in CI
-// npx playwright test --shard=1/4
-// npx playwright test --shard=2/4
+// bunx playwright test --shard=1/4
+// bunx playwright test --shard=2/4
 ```
 
 ### Pattern 3: Accessibility Testing
 
 ```typescript
-// Install: npm install @axe-core/playwright
+// Install: bun add @axe-core/playwright
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
@@ -508,10 +508,10 @@ cy.get('[data-testid="email-input"]').type("user@example.com");
 ```typescript
 // Playwright debugging
 // 1. Run in headed mode
-npx playwright test --headed
+bunx playwright test --headed
 
 // 2. Run in debug mode
-npx playwright test --debug
+bunx playwright test --debug
 
 // 3. Use trace viewer
 await page.screenshot({ path: 'screenshot.png' });

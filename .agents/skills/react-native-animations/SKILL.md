@@ -28,7 +28,7 @@ After completing this skill, you will be able to:
 
 ### 1. Installation
 ```bash
-npm install react-native-reanimated react-native-gesture-handler
+bun add react-native-reanimated react-native-gesture-handler
 
 # babel.config.js
 module.exports = {

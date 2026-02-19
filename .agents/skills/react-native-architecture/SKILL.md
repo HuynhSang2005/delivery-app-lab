@@ -50,12 +50,12 @@ src/
 
 ```bash
 # Create new Expo project
-npx create-expo-app@latest my-app -t expo-template-blank-typescript
+bunx create-expo-app@latest my-app -t expo-template-blank-typescript
 
 # Install essential dependencies
-npx expo install expo-router expo-status-bar react-native-safe-area-context
-npx expo install @react-native-async-storage/async-storage
-npx expo install expo-secure-store expo-haptics
+bunx expo install expo-router expo-status-bar react-native-safe-area-context
+bunx expo install @react-native-async-storage/async-storage
+bunx expo install expo-secure-store expo-haptics
 ```
 
 ```typescript

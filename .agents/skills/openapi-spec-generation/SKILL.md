@@ -890,8 +890,8 @@ export class UsersController extends Controller {
 
 ```bash
 # Install validation tools
-npm install -g @stoplight/spectral-cli
-npm install -g @redocly/cli
+bun add -g @stoplight/spectral-cli
+bun add -g @redocly/cli
 
 # Spectral ruleset (.spectral.yaml)
 cat > .spectral.yaml << 'EOF'
@@ -975,7 +975,7 @@ redocly preview-docs openapi.yaml
 
 ```bash
 # OpenAPI Generator
-npm install -g @openapitools/openapi-generator-cli
+bun add -g @openapitools/openapi-generator-cli
 
 # Generate TypeScript client
 openapi-generator-cli generate \
