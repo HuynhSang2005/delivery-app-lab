@@ -115,12 +115,10 @@ export class User {
   ) {}
 
   deactivate(): void {
-    /** Business rule: deactivating user. */
     this.isActive = false;
   }
 
   canPlaceOrder(): boolean {
-    /** Business rule: active users can order. */
     return this.isActive;
   }
 }
@@ -247,28 +245,16 @@ export class PostgresUserRepository implements IUserRepository {
 }
 
 // adapters/controllers/user.controller.ts
-import { Controller, Post, Body, Inject, BadRequestException } from '@nestjs/common';
-import { CreateUserUseCase, CreateUserRequest } from '../../use-cases/create-user.use-case';
-
-class CreateUserDto {
-  email: string;
-  name: string;
-}
-
 @Controller('users')
 export class UserController {
-  /** Controller: handles HTTP concerns only. */
   constructor(private readonly createUserUseCase: CreateUserUseCase) {}
 
   @Post()
-  async createUser(@Body() dto: CreateUserDto) {
-    const request: CreateUserRequest = { email: dto.email, name: dto.name };
-    const response = await this.createUserUseCase.execute(request);
-
+  async createUser(@Body() dto: { email: string; name: string }) {
+    const response = await this.createUserUseCase.execute(dto);
     if (!response.success) {
       throw new BadRequestException(response.error);
     }
-
     return { user: response.user };
   }
 }
@@ -498,64 +484,17 @@ export class OrderSubmittedEvent implements DomainEvent {
   }
 }
 
-// Repository (aggregate persistence)
+// Repository interface (implementation in adapters layer)
 export interface IOrderRepository {
   /** Repository: persist/retrieve aggregates. */
   findById(orderId: string): Promise<Order | null>;
   save(order: Order): Promise<void>;
 }
-
-@Injectable()
-export class OrderRepository implements IOrderRepository {
-  constructor(private readonly db: DatabaseService) {}
-
-  async findById(orderId: string): Promise<Order | null> {
-    /** Reconstitute aggregate from storage. */
-    // Implementation...
-    return null;
-  }
-
-  async save(order: Order): Promise<void> {
-    /** Persist aggregate and publish events. */
-    await this.persist(order);
-    await this.publishEvents(order.events);
-    order.clearEvents();
-  }
-
-  private async persist(order: Order): Promise<void> {
-    // Implementation...
-  }
-
-  private async publishEvents(events: readonly DomainEvent[]): Promise<void> {
-    // Implementation...
-  }
-}
 ```
 
-## Resources
+## Extended Reference
 
-- **references/clean-architecture-guide.md**: Detailed layer breakdown
-- **references/hexagonal-architecture-guide.md**: Ports and adapters patterns
-- **references/ddd-tactical-patterns.md**: Entities, value objects, aggregates
-- **assets/clean-architecture-template/**: Complete project structure
-- **assets/ddd-examples/**: Domain modeling examples
-
-## Best Practices
-
-1. **Dependency Rule**: Dependencies always point inward
-2. **Interface Segregation**: Small, focused interfaces
-3. **Business Logic in Domain**: Keep frameworks out of core
-4. **Test Independence**: Core testable without infrastructure
-5. **Bounded Contexts**: Clear domain boundaries
-6. **Ubiquitous Language**: Consistent terminology
-7. **Thin Controllers**: Delegate to use cases
-8. **Rich Domain Models**: Behavior with data
-
-## Common Pitfalls
-
-- **Anemic Domain**: Entities with only data, no behavior
-- **Framework Coupling**: Business logic depends on frameworks
-- **Fat Controllers**: Business logic in controllers
-- **Repository Leakage**: Exposing ORM objects
-- **Missing Abstractions**: Concrete dependencies in core
-- **Over-Engineering**: Clean architecture for simple CRUD
+See [references/arch-patterns-extended.md](references/arch-patterns-extended.md) for:
+- Additional resources (clean-architecture-guide, hexagonal-architecture-guide, ddd-tactical-patterns)
+- Best practices (dependency rule, interface segregation, thin controllers)
+- Common pitfalls (anemic domain, framework coupling, over-engineering)
