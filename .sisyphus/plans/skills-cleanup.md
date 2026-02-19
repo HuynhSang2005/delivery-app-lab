@@ -62,12 +62,12 @@ Clean, format-compliant, project-accurate set of agent skills in `.agents/skills
 - System-scope skills copied to project scope where project-specific customization needed
 
 ### Definition of Done
-- [ ] `grep -r "^license:" .agents/skills/*/SKILL.md` returns 0 results
-- [ ] `grep -r "^version:" .agents/skills/*/SKILL.md` returns 0 results
-- [ ] `grep -rn "npm install\|npx " .agents/skills/` returns 0 results (except documented exceptions)
-- [ ] All SKILL.md files ≤ 500 lines (verify with `wc -l`)
-- [ ] All 7 archived skills exist in `.agents/skills/.archive/`
-- [ ] All 10 system-scope skills copied to `.agents/skills/`
+- [x] `grep -r "^license:" .agents/skills/*/SKILL.md` returns 0 results
+- [x] `grep -r "^version:" .agents/skills/*/SKILL.md` returns 0 results
+- [x] `grep -rn "npm install\|npx " .agents/skills/` returns 0 results (except documented exceptions)
+- [x] All SKILL.md files ≤ 500 lines (verify with `wc -l`)
+- [x] All 7 archived skills exist in `.agents/skills/.archive/`
+- [x] All 10 system-scope skills copied to `.agents/skills/`
 
 ### Must Have
 - Archive (not delete) skills being removed
@@ -683,7 +683,7 @@ Wave 5 (After ALL — final audit):
 
   **Commit**: YES (Wave 2 group commit)
 
-- [ ] 12. Trim `javascript-testing-patterns` (1021L → ≤500L)
+- [x] 12. Trim `javascript-testing-patterns` (1021L → ≤500L)
 
   **What to do**:
   - Read full SKILL.md (1021 lines — largest file)
@@ -727,7 +727,7 @@ Wave 5 (After ALL — final audit):
 
   **Commit**: YES (Wave 3 group commit)
 
-- [ ] 13. Trim `openapi-spec-generation` (1024L → ≤500L)
+- [x] 13. Trim `openapi-spec-generation` (1024L → ≤500L)
 
   **What to do**:
   - Read full SKILL.md (1024 lines — largest alongside javascript-testing-patterns)
@@ -768,7 +768,7 @@ Wave 5 (After ALL — final audit):
 
   **Commit**: YES (Wave 3 group commit)
 
-- [ ] 14. Trim `qa-test-planner` (757L → ≤500L)
+- [x] 14. Trim `qa-test-planner` (757L → ≤500L)
 
   **What to do**:
   - Read full `.agents/skills/qa-test-planner/SKILL.md` (757 lines)
@@ -799,7 +799,7 @@ Wave 5 (After ALL — final audit):
 
   **Commit**: YES (Wave 3 group commit)
 
-- [ ] 15. Trim `firebase` (744L → ≤500L) + add Phone OTP section
+- [x] 15. Trim `firebase` (744L → ≤500L) + add Phone OTP section
 
   **What to do**:
   - Read full `.agents/skills/firebase/SKILL.md` (744 lines)
@@ -843,7 +843,7 @@ Wave 5 (After ALL — final audit):
 
   **Commit**: YES (Wave 3 group commit)
 
-- [ ] 16. Trim `typescript-advanced-types` (724L → ≤500L)
+- [x] 16. Trim `typescript-advanced-types` (724L → ≤500L)
 
   **What to do**:
   - Read full SKILL.md (724 lines)
@@ -875,7 +875,7 @@ Wave 5 (After ALL — final audit):
 
   **Commit**: YES (Wave 3 group commit)
 
-- [ ] 17. Trim 4 skills: `tanstack-table` (796L), `database-schema-designer` (688L), `react-native-architecture` (673L), `backend-patterns` (597L, if not already handled in Task 9)
+- [x] 17. Trim 4 skills: `tanstack-table` (796L), `database-schema-designer` (688L), `react-native-architecture` (673L), `backend-patterns` (597L, if not already handled in Task 9)
 
   **What to do**:
   For each skill:
@@ -912,7 +912,7 @@ Wave 5 (After ALL — final audit):
 
   **Commit**: YES (Wave 3 group commit)
 
-- [ ] 18. Copy `nestjs-firebase-auth` + `nestjs-modular-monolith` from system scope
+- [x] 18. Copy `nestjs-firebase-auth` + `nestjs-modular-monolith` from system scope
 
   **What to do**:
   - These skills exist in system scope (see `<available_skills>` in agent context)
@@ -956,7 +956,7 @@ Wave 5 (After ALL — final audit):
 
   **Commit**: YES (Wave 4 group commit)
 
-- [ ] 19. Copy `goong-maps-integration` + `vietnam-phone-validation` from system scope
+- [x] 19. Copy `goong-maps-integration` + `vietnam-phone-validation` from system scope
 
   **What to do**:
   - Copy `goong-maps-integration` skill folder → `.agents/skills/goong-maps-integration/`
@@ -988,7 +988,7 @@ Wave 5 (After ALL — final audit):
 
   **Commit**: YES (Wave 4 group commit)
 
-- [ ] 20. Copy `expo-location-patterns` + `expo-notifications` from system scope
+- [x] 20. Copy `expo-location-patterns` + `expo-notifications` from system scope
 
   **What to do**:
   - Copy `expo-location-patterns` → `.agents/skills/expo-location-patterns/`
@@ -1019,7 +1019,7 @@ Wave 5 (After ALL — final audit):
 
   **Commit**: YES (Wave 4 group commit)
 
-- [ ] 21. Copy `delivery-order-matching` + `delivery-pricing-engine` from system scope
+- [x] 21. Copy `delivery-order-matching` + `delivery-pricing-engine` from system scope
 
   **What to do**:
   - Copy `delivery-order-matching` → `.agents/skills/delivery-order-matching/`
@@ -1050,7 +1050,7 @@ Wave 5 (After ALL — final audit):
 
   **Commit**: YES (Wave 4 group commit)
 
-- [ ] 22. Copy `hey-api-patterns` + `postgis-skill` from system scope
+- [x] 22. Copy `hey-api-patterns` + `postgis-skill` from system scope
 
   **What to do**:
   - Copy `hey-api-patterns` → `.agents/skills/hey-api-patterns/`
@@ -1082,7 +1082,7 @@ Wave 5 (After ALL — final audit):
 
   **Commit**: YES (Wave 4 group commit)
 
-- [ ] 23. Final format audit — grep all skills for violations
+- [x] 23. Final format audit — grep all skills for violations
 
   **What to do**:
   Run comprehensive grep audit across all skills:
@@ -1119,7 +1119,7 @@ Wave 5 (After ALL — final audit):
   **Commit**: YES
   - Message: `chore(skills): final audit — all skills format-compliant`
 
-- [ ] 24. Final content audit — spot check 10 random skills
+- [x] 24. Final content audit — spot check 10 random skills
 
   **What to do**:
   Read and verify content of 10 skills spread across categories:
@@ -1165,18 +1165,18 @@ Wave 5 (After ALL — final audit):
 
 ## Final Verification Wave
 
-- [ ] F1. **Format Compliance Audit** — `quick`
+- [x] F1. **Format Compliance Audit** — `quick`
   Run: `grep -rn "^license:\|^version:\|^metadata:\|^allowed-tools:\|^argument-hint:\|^user-invocable:\|^sasmp_version:\|^bonded_agent:\|^bond_type:\|^updated:\|^trigger:" .agents/skills/*/SKILL.md` → must return 0 results.
   Run: `grep -rn "npm install\|npx " .agents/skills/` → must return 0 results (or only documented exceptions).
   Run: `for f in $(find .agents/skills -name SKILL.md); do lines=$(wc -l < "$f"); if [ "$lines" -gt 500 ]; then echo "OVER: $f ($lines)"; fi; done` → must return 0 OVER results.
   Output: `Frontmatter [PASS/FAIL] | Package Manager [PASS/FAIL] | Line Count [PASS/FAIL] | VERDICT`
 
-- [ ] F2. **Archive Verification** — `quick`
+- [x] F2. **Archive Verification** — `quick`
   Run: `ls .agents/skills/.archive/` → must list: next-best-practices, next-cache-components, next-upgrade, frontend-testing, jwt-auth, jwt-security, vercel-react-best-practices.
   Verify each archived skill directory exists and contains SKILL.md.
   Output: `Archived [7/7 expected] | VERDICT`
 
-- [ ] F3. **Copied Skills Verification** — `quick`
+- [x] F3. **Copied Skills Verification** — `quick`
   Read each of the 10 copied skills. Verify SKILL.md exists and has correct `name` frontmatter.
   Output: `Copied [10/10 expected] | VERDICT`
 
@@ -1226,8 +1226,8 @@ ls .agents/skills/nestjs-firebase-auth .agents/skills/nestjs-modular-monolith \
 ```
 
 ### Final Checklist
-- [ ] All "Must Have" present
-- [ ] All "Must NOT Have" absent
-- [ ] 7 skills archived in `.agents/skills/.archive/`
-- [ ] 10 skills copied from system scope
-- [ ] ~46 remaining skills pass format audit
+- [x] All "Must Have" present
+- [x] All "Must NOT Have" absent
+- [x] 7 skills archived in `.agents/skills/.archive/`
+- [x] 10 skills copied from system scope
+- [x] ~46 remaining skills pass format audit
