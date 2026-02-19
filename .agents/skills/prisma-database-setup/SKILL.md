@@ -84,8 +84,8 @@ Prisma Client must be installed and generated for any database.
 
 1. Install Prisma CLI and Prisma Client:
    ```bash
-   npm install prisma --save-dev
-   npm install @prisma/client
+   bun add -d prisma
+   bun add @prisma/client
    ```
 
 1. Add a generator block (output is required in Prisma v7):
@@ -98,7 +98,7 @@ Prisma Client must be installed and generated for any database.
 
 1. Generate Prisma Client:
    ```bash
-   npx prisma generate
+   bunx --bun prisma generate
    ```
 
 1. Instantiate Prisma Client with the database-specific driver adapter:

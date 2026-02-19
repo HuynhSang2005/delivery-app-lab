@@ -153,8 +153,8 @@ NODE_ENV=development
     ┌─────┴─────┬─────────────┬─────────────┬─────────────┐
     ▼           ▼             ▼             ▼             ▼
 ┌────────┐ ┌────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐
-│  Neon  │ │ Redis  │  │ Firebase │  │ Cloudinary│  │  Goong   │
-│PostgreSQL│ │        │  │   Auth   │  │          │  │   Maps   │
+│  Neon  │ │ Redis  │  │ Firebase │  │Cloudinary│  │  Goong   │
+│PostgreSQL│        │  │   Auth   │  │          │  │   Maps   │
 │+PostGIS│ │        │  │          │  │          │  │          │
 └────────┘ └────────┘  └──────────┘  └──────────┘  └──────────┘
 ```

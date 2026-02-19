@@ -418,7 +418,7 @@ Wave 5 (After ALL — final audit):
 
   **Commit**: YES (group with Wave 1 commit)
 
-- [ ] 6. Fix npm→bun — Batch A (Expo skills: 6 skills)
+- [x] 6. Fix npm→bun — Batch A (Expo skills: 6 skills)
 
   **What to do**:
   Replace all npm/npx commands with bun/bunx equivalents in:
@@ -458,7 +458,7 @@ Wave 5 (After ALL — final audit):
 
   **Commit**: YES (Wave 2 group commit)
 
-- [ ] 7. Fix npm→bun — Batch B (other skills: 6 skills)
+- [x] 7. Fix npm→bun — Batch B (other skills: 6 skills)
 
   **What to do**:
   - `firebase` — `npm install -g firebase-tools` → `bun add -g firebase-tools`
@@ -496,7 +496,7 @@ Wave 5 (After ALL — final audit):
 
   **Commit**: YES (Wave 2 group commit)
 
-- [ ] 8. Fix `architecture-patterns` — Python examples → TypeScript/NestJS
+- [x] 8. Fix `architecture-patterns` — Python examples → TypeScript/NestJS
 
   **What to do**:
   - Read `.agents/skills/architecture-patterns/SKILL.md` fully
@@ -550,7 +550,7 @@ Wave 5 (After ALL — final audit):
 
   **Commit**: YES (Wave 2 group commit)
 
-- [ ] 9. Fix `backend-patterns` description + content references
+- [x] 9. Fix `backend-patterns` description + content references
 
   **What to do**:
   - Read `.agents/skills/backend-patterns/SKILL.md`
@@ -592,7 +592,7 @@ Wave 5 (After ALL — final audit):
 
   **Commit**: YES (Wave 2 group commit)
 
-- [ ] 10. Fix `prisma-expert` — Update to Prisma v7 patterns
+- [x] 10. Fix `prisma-expert` — Update to Prisma v7 patterns
 
   **What to do**:
   - Read `.agents/skills/prisma-expert/SKILL.md` fully
@@ -640,7 +640,7 @@ Wave 5 (After ALL — final audit):
 
   **Commit**: YES (Wave 2 group commit)
 
-- [ ] 11. Fix `architecture-designer` broken references
+- [x] 11. Fix `architecture-designer` broken references
 
   **What to do**:
   - Read `.agents/skills/architecture-designer/SKILL.md`

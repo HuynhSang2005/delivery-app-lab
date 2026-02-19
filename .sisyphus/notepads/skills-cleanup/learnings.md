@@ -33,3 +33,7 @@ Gotchas:
 Verification:
 
 - Ran grep for forbidden keys across the 12 SKILL.md files. No matches found after edits.
+Session T6 edits: Replaced npm/npx commands with bun/bunx equivalents in 7 Expo-related SKILL.md files per T6 requirements.
+- Files changed: building-native-ui, expo-api-routes, expo-cicd-workflows, expo-deployment, expo-dev-client, expo-tailwind-setup, upgrading-expo
+- Replacement rules applied: npx -> bunx (for expo/eas/testflight/create-expo-app), npm install -g -> bun add -g, npm install --prefix -> bun install --cwd, npm install -> bun add, npm run -> bun run
+- Verified manual targeted edits; will run grep verification next.
