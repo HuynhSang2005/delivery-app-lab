@@ -102,6 +102,12 @@ firebase-adminsdk*.json
 opencode.json
 
 # ==========================================
+# Beads (git-backed task tracker)
+# ==========================================
+# SQLite DB is local-only; JSONL files are git-tracked
+.beads/beads.db
+
+# ==========================================
 # Temp files
 # ==========================================
 .temp/

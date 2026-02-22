@@ -200,8 +200,6 @@ skill({ name: "skill-name" })
 - [ ] TypeScript compiles with no errors
 
 ## 7. File Organization
-
-### Backend Structure (TARGET — not yet implemented)
 ```
 apps/api/src/
 ├── main.ts                          # Entry point
@@ -222,3 +220,22 @@ apps/api/src/
 
 ### Validation Note
 Note: `class-validator` appears in `package.json` as peer dependency of `@nestjs/*` packages, but all application validation MUST use Zod v4.
+
+## 8. Beads Task Tracking
+
+This project uses **beads** (`bd`) for git-backed issue tracking.
+
+### Quick Reference
+```bash
+bd prime                                     # Session start: load context
+bd list --status open --json                 # List open tasks
+bd ready --json                              # Tasks ready (no blockers)
+bd create "Task" --label backend --json      # Create issue
+bd update delivery-app-lab-eia --status in_progress --json
+bd close delivery-app-lab-eia --json
+bd sync                                      # Commit JSONL to git (session end)
+```
+
+Issue prefix: **`delivery-app-lab`** (e.g. `delivery-app-lab-eia`)
+
+Full reference: `.opencode/skills/beads/SKILL.md`

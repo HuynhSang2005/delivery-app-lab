@@ -174,6 +174,31 @@ See `docs/00-Unified-Tech-Stack-Spec.md` for complete version reference.
 
 ---
 
+## Task Tracking (beads)
+
+This project uses **beads** (`bd`) for git-backed task tracking. Issues are stored in `.beads/issues.jsonl` (git-tracked).
+
+### Session Start
+```bash
+bd prime                        # Load context + see session close checklist
+bd list --status open --json    # See all open issues
+bd ready --json                 # Issues ready to work (no blockers)
+```
+
+### Working on Tasks
+```bash
+bd update <id> --status in_progress --json   # Start a task
+bd close <id> --json                          # Complete a task
+bd create "New task" --label backend --json  # Create an issue
+```
+
+### Issue Prefix: `delivery-app-lab`
+IDs look like: `delivery-app-lab-eia`
+
+For full beads command reference, see skill: `.opencode/skills/beads/SKILL.md`
+
+---
+
 ## When Stuck
 
 1. Read `docs/be/dev-v1/CURRENT_STATE.md` for context
@@ -191,3 +216,29 @@ See `docs/00-Unified-Tech-Stack-Spec.md` for complete version reference.
 - [Database Design](docs/02-Database-Design-Document.md)
 - [API Specification](docs/03-API-Design-Document.md)
 - [Implementation Plan](docs/be/dev-v1/IMPLEMENTATION_PLAN.md)
+
+## Landing the Plane (Session Completion)
+
+**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+
+**MANDATORY WORKFLOW:**
+
+1. **File issues for remaining work** - `bd create "..." --label backend --json`
+2. **Run quality gates** (if code changed) - Tests, linters, builds
+3. **Update issue status** - `bd close <id> --json` for finished, update in-progress
+4. **PUSH TO REMOTE** - This is MANDATORY:
+   ```bash
+   git pull --rebase
+   bd sync
+   git push
+   git status  # MUST show "up to date with origin"
+   ```
+5. **Clean up** - Clear stashes, prune remote branches
+6. **Verify** - All changes committed AND pushed
+7. **Hand off** - Provide context for next session
+
+**CRITICAL RULES:**
+- Work is NOT complete until `git push` succeeds
+- NEVER stop before pushing - that leaves work stranded locally
+- NEVER say "ready to push when you are" - YOU must push
+- If push fails, resolve and retry until it succeeds
