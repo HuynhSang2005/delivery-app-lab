@@ -1,8 +1,6 @@
 # Logship-MVP — AI Agent Guide
 
 > **Project**: On-demand delivery platform for Vietnam market  
-> **Status**: Phase 1 Foundation (25% complete)  
-> **Current Task**: 1.2.1 Initialize Prisma  
 > **Last Updated**: February 20, 2026
 
 ---
