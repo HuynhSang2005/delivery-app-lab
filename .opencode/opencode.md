@@ -177,6 +177,7 @@ skill({ name: "skill-name" })
 | vietnam-phone-validation | VN phone numbers, carriers |
 | zod | Schema validation (v4) |
 | zustand-state-management | Global state management |
+| beads-workflow | Git-backed task tracking with beads (bd) |
 
 ### Agent Skills (.agents/skills/)
 - `api-design-principles`, `architecture-patterns`, `auth-implementation-patterns`, `backend-patterns`, `error-handling-patterns`
@@ -223,7 +224,7 @@ Note: `class-validator` appears in `package.json` as peer dependency of `@nestjs
 
 ## 8. Beads Task Tracking
 
-This project uses **beads** (`bd`) for git-backed issue tracking.
+This project uses **beads** (`bd`) for git-backed issue tracking. Load the `beads-workflow` skill for comprehensive workflow guidance.
 
 ### Quick Reference
 ```bash
@@ -238,4 +239,6 @@ bd sync                                      # Commit JSONL to git (session end)
 
 Issue prefix: **`delivery-app-lab`** (e.g. `delivery-app-lab-eia`)
 
-Full reference: `.opencode/skills/beads/SKILL.md`
+**Full workflow guide:** Load skill `{ name: "beads-workflow" }` or see `.opencode/skills/beads-workflow/SKILL.md`
+
+**AGENTS.md reference:** See root `AGENTS.md` → "Task Tracking (beads)" section for complete protocol
