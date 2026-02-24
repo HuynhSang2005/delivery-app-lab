@@ -1,7 +1,7 @@
 # Logship-MVP — AI Agent Guide
 
 > **Project**: On-demand delivery platform for Vietnam market  
-> **Last Updated**: February 20, 2026
+> **Last Updated**: February 24, 2026
 
 ---
 
@@ -176,212 +176,29 @@ See `docs/00-Unified-Tech-Stack-Spec.md` for complete version reference.
 
 ## Task Tracking (beads)
 
-This project uses **beads** (`bd`) — a git-backed, dependency-aware issue tracker designed for AI coding agents. All issues are stored in `.beads/issues.jsonl` (git-tracked) with local SQLite cache (gitignored).
+Uses `bd` — git-backed, dependency-aware issue tracker. Issues in `.beads/issues.jsonl`.
 
-**Core Principle**: Check beads N times, implement once. Beads prevent context loss across sessions and enable dependency-aware work routing.
-
-### Why Beads?
-
-- **Git-native**: Issues version-controlled alongside code
-- **Dependency-aware**: `bd ready` shows only unblocked work
-- **AI-optimized**: Hash-based IDs prevent collision in multi-agent workflows
-- **Self-documenting**: Rich descriptions with background, reasoning, acceptance criteria
-
----
-
-### Session Start Protocol
-
-**ALWAYS run at the beginning of every session:**
-
+### Session Start
 ```bash
-bd prime                        # Load context + inject session close checklist
-bd ready --json                 # Find unblocked work (prioritize recent tasks)
-bd list --status open --json    # See all open issues
+bd ready --json                  # Find unblocked work
+bd list --status open --json     # See all open issues
 ```
 
-**Check recent tasks first** — highest-numbered IDs represent current priorities:
-
+### Core Commands
 ```bash
-# View recent tasks (highest 20 IDs = most recent work)
-bd list --status open --json | jq 'sort_by(.id | sub(".*-"; "") | tonumber) | reverse | .[0:20]'
+bd create "Task title" -t task -p 1 --description="Context" --json
+bd update <id> --status in_progress --json
+bd close <id> --reason "Done in commit abc" --json
+bd dep add <child-id> <parent-id> --type parent-child --json
+bd stats --json
+bd sync
 ```
 
----
-
-### Issue Types & Priorities
-
-| Type | Use For |
-|------|---------|
-| `epic` | Large body of work (parent to multiple tasks) |
-| `feature` | New functionality |
-| `task` | Standard work item (default) |
-| `bug` | Defects to fix |
-| `chore` | Maintenance, refactoring |
-
-| Priority | Level |
-|----------|-------|
-| `0` | Critical/blocking |
-| `1` | High |
-| `2` | Medium (default) |
-| `3` | Low |
-| `4` | Nice to have |
-
----
-
-### Working on Tasks
-
-#### 1. Find and Claim Work
-
-```bash
-bd ready --json                                    # Show unblocked issues
-bd update delivery-app-lab-eia --status in_progress --json   # Claim task
-```
-
-#### 2. Create Issues (Always with Descriptions)
-
-```bash
-# Basic task
-bd create "Implement JWT auth" \
-  -t feature -p 1 \
-  --description="Add JWT-based authentication with refresh tokens" \
-  --json
-
-# Bug with detailed context
-bd create "Fix login with special chars" \
-  -t bug -p 0 \
-  --description="Login fails when password contains quotes. Root cause in sanitization layer." \
-  --json
-
-# With labels
-bd create "Update CI config" -t task -l "ci,infra" --json
-
-# Child of epic
-bd create "Design auth UI" --parent delivery-app-lab-abc --json
-```
+**Labels**: `backend`, `mobile`, `database`, `infra`, `security`, `testing`, `urgent`  
+**Types**: `epic`, `feature`, `task`, `bug`, `chore`  
+**Priorities**: `0`=critical, `1`=high, `2`=medium, `3`=low, `4`=nice-to-have
 
 **ALWAYS include `--description`** — future agents need context without consulting original plans.
-
-#### 3. Complete Work
-
-```bash
-bd close delivery-app-lab-eia \
-  --reason "Implemented in commit abc123, tests passing" \
-  --json
-```
-
----
-
-### Dependency Management
-
-Link related work to establish ordering and prevent premature execution:
-
-```bash
-# bd-5 depends on bd-3 (bd-5 blocked until bd-3 closes)
-bd dep add delivery-app-lab-rmk delivery-app-lab-eia
-
-# Parent-child hierarchy
-bd dep add delivery-app-lab-sub delivery-app-lab-parent --type parent-child
-
-# Discovered during work on another issue
-bd create "Found edge case bug" -t bug -p 1 --json
-bd dep add delivery-app-lab-new delivery-app-lab-current --type discovered-from
-```
-
-**Check for circular dependencies:**
-```bash
-bd dep cycles --json
-```
-
----
-
-### Discovery During Work
-
-When finding new work during implementation:
-
-```bash
-# 1. Create the discovered issue
-NEW_ID=$(bd create "Fix discovered race condition" -t bug -p 1 --json | jq -r '.id')
-
-# 2. Link back to parent work
-bd dep add $NEW_ID delivery-app-lab-current --type discovered-from --json
-
-# 3. Decide: handle now or defer?
-# If blocking current work → switch to new issue
-# If not blocking → continue, new issue will appear in `bd ready`
-```
-
----
-
-### Querying and Inspection
-
-```bash
-# List with filters
-bd list --status open --json
-bd list --priority 0,1 --type bug --json
-bd list --label backend,urgent --json
-
-# Show full details
-bd show delivery-app-lab-eia --json
-
-# Check blocked issues
-bd blocked --json
-
-# Project statistics
-bd stats --json
-
-# Search by text
-bd search "authentication" --json
-```
-
----
-
-### Labels for This Project
-
-| Label | Use For |
-|-------|---------|
-| `backend` | NestJS API work |
-| `mobile` | Expo/React Native |
-| `database` | Prisma/PostgreSQL/PostGIS |
-| `infra` | DevOps, CI/CD, config |
-| `security` | Auth, encryption, vulnerabilities |
-| `testing` | Unit/E2E test coverage |
-| `urgent` | Time-critical items |
-
----
-
-### Best Practices
-
-**DO:**
-- ✅ Always use `--json` for programmatic access
-- ✅ Always include `--description` when creating issues
-- ✅ Use dependencies to model task relationships
-- ✅ Query `bd ready` at session start
-- ✅ Link discovered work back to parent issues
-- ✅ Close with descriptive reasons
-- ✅ Run `bd sync` before session end
-
-**DON'T:**
-- ❌ Create circular dependencies
-- ❌ Skip updating status (confuses ready work detection)
-- ❌ Forget to link discovered issues
-- ❌ Use short descriptions — be verbose and self-documenting
-
----
-
-### Issue Prefix: `delivery-app-lab`
-
-IDs look like: `delivery-app-lab-eia`, `delivery-app-lab-rmk`
-
-**JSON Output Parsing Example:**
-```bash
-# Get first ready issue
-ISSUE=$(bd ready --json | jq -r '.[0]')
-ISSUE_ID=$(echo "$ISSUE" | jq -r '.id')
-ISSUE_TITLE=$(echo "$ISSUE" | jq -r '.title')
-
-# Check if any ready work exists
-READY_COUNT=$(bd ready --json | jq 'length')
-```
 
 ---
 
@@ -402,6 +219,8 @@ READY_COUNT=$(bd ready --json | jq 'length')
 - [Database Design](docs/02-Database-Design-Document.md)
 - [API Specification](docs/03-API-Design-Document.md)
 - [Implementation Plan](docs/be/dev-v1/IMPLEMENTATION_PLAN.md)
+
+---
 
 ## Landing the Plane (Session Completion)
 
