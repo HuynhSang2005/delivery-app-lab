@@ -610,7 +610,7 @@ Roles: DRIVER
 
 ### 4.4. Update Driver Location
 
-Called periodically (every 5 seconds) by driver app.
+Called periodically (every 30 seconds, adaptive 10 seconds when within 500m of destination) by driver app.
 
 ```http
 POST /drivers/me/location
@@ -1701,7 +1701,7 @@ socket.emit('order:leave', { orderId: 'uuid' });
 
 ### 12.3. Driver Location Events
 
-**Driver sends location (every 5s):**
+**Driver sends location (every 30s, adaptive 10s near destination):**
 ```typescript
 // Driver app
 socket.emit('driver:location', {

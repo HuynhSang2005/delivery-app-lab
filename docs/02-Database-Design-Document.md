@@ -700,6 +700,10 @@ model Driver {
   rating            Float        @default(0)
   totalRatings      Int          @default(0)
   totalDeliveries   Int          @default(0)
+  dailyCancellations  Int        @default(0)
+  totalCancellations  Int        @default(0)
+  isLocked          Boolean      @default(false)
+  lockedUntil       DateTime?
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 
@@ -782,6 +786,8 @@ model Order {
   basePrice               Decimal     @db.Decimal(10, 2)
   distancePrice           Decimal     @db.Decimal(10, 2)
   weightPrice             Decimal     @default(0) @db.Decimal(10, 2)
+  platformFee             Decimal     @default(0) @db.Decimal(10, 2)
+  pricePerKm              Decimal?    @db.Decimal(6, 0)
   surgeMultiplier         Decimal     @default(1.00) @db.Decimal(3, 2)
   discountAmount          Decimal     @default(0) @db.Decimal(10, 2)
   totalPrice              Decimal     @db.Decimal(10, 2)
@@ -789,7 +795,10 @@ model Order {
   
   // Cancellation
   cancelledBy             String?
+  cancelledByRole         String?     // 'customer' | 'driver' | 'admin'
   cancellationReason      String?
+  cancellationFee         Decimal     @default(0) @db.Decimal(10, 2)
+  minutesToCancel         Int?        // minutes elapsed before cancellation
   
   // Driver earnings
   driverEarnings          Decimal?    @db.Decimal(10, 2)

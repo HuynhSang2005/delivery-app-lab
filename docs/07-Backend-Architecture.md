@@ -589,16 +589,9 @@ export class ValidationPipe implements PipeTransform {
   }
 }
 
-// pipes/parse-object-id.pipe.ts
-@Injectable()
-export class ParseObjectIdPipe implements PipeTransform<string, string> {
-  transform(value: string): string {
-    if (!isValidObjectId(value)) {
-      throw new BadRequestException('Invalid ObjectId');
-    }
-    return value;
-  }
-}
+// Use NestJS built-in ParseUUIDPipe instead of custom ParseObjectIdPipe
+// Example: @Param('id', ParseUUIDPipe) id: string
+// Import from: import { ParseUUIDPipe } from '@nestjs/common';
 ```
 
 ### Interceptors Implementation
@@ -797,17 +790,17 @@ export default defineConfig({
 // src/database/prisma.service.ts
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient } from '../../generated/prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaNeon } from '@prisma/adapter-neon';
+import { neon } from '@neondatabase/serverless';
 
 @Injectable()
 export class PrismaService implements OnModuleInit, OnModuleDestroy {
   public readonly client: PrismaClient;
 
   constructor() {
-    // Create driver adapter for PostgreSQL
-    const adapter = new PrismaPg({
-      connectionString: process.env.DATABASE_URL,
-    });
+    // Create driver adapter for Neon PostgreSQL
+    const sql = neon(process.env.DATABASE_URL!);
+    const adapter = new PrismaNeon(sql);
 
     this.client = new PrismaClient({
       adapter,
@@ -829,7 +822,7 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
 
 **Required dependency:**
 ```bash
-bun add @prisma/adapter-pg
+bun add @prisma/adapter-neon
 ```
 
 ### 4.6. PostGIS Geospatial Queries in Repository Pattern
@@ -1007,11 +1000,11 @@ export default defineConfig({
 ```typescript
 // New PrismaClient instantiation with driver adapter
 import { PrismaClient } from '../generated/prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaNeon } from '@prisma/adapter-neon';
+import { neon } from '@neondatabase/serverless';
 
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL,
-});
+const sql = neon(process.env.DATABASE_URL!);
+const adapter = new PrismaNeon(sql);
 
 export const prisma = new PrismaClient({ adapter });
 ```
@@ -1022,7 +1015,7 @@ export const prisma = new PrismaClient({ adapter });
 - [ ] Update generator block with `output` path
 - [ ] Remove `url` from datasource block
 - [ ] Create `prisma.config.ts` file
-- [ ] Install `@prisma/adapter-pg` package
+- [ ] Install `@prisma/adapter-neon` package
 - [ ] Update all PrismaClient imports to use generated path
 - [ ] Add driver adapter to PrismaClient instantiation
 - [ ] Run `bunx prisma generate` to regenerate client
@@ -1341,28 +1334,18 @@ We use **nestjs-zod** for DTO validation with automatic OpenAPI schema generatio
 
 ```typescript
 // src/modules/users/dto/create-user.dto.ts
-import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { extendApi } from '@anatine/zod-openapi';
+import { createZodDto } from 'nestjs-zod';
 
-// Define Zod schema
+// Define schema with Zod v4
 export const CreateUserSchema = z.object({
-  phone: z.string().regex(/^\+84[0-9]{9,10}$/, 'Invalid Vietnamese phone number'),
-  name: z.string().min(2).max(100).optional(),
-  email: z.string().email().optional(),
+  pickupAddress: z.string().min(1),
+  deliveryAddress: z.string().min(1),
+  description: z.string().optional(),
 });
 
-// Extend with OpenAPI metadata (optional)
-export const CreateUserSchemaOpenApi = extendApi(CreateUserSchema, {
-  title: 'Create User Request',
-  description: 'Request body for creating a new user',
-});
-
-// Create DTO class using nestjs-zod
-export class CreateUserDto extends createZodDto(CreateUserSchemaOpenApi) {}
-
-// Export type for TypeScript usage
-export type CreateUserDtoType = z.infer<typeof CreateUserSchema>;
+// Create DTO class from schema
+export class CreateUserDto extends createZodDto(CreateUserSchema) {}
 ```
 
 #### Controller with Swagger Decorators

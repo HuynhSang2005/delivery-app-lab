@@ -50,6 +50,8 @@ This document serves as the **single source of truth** for all technology decisi
 | **Prisma** | ORM | ^7.4.0 |
 | `@prisma/client` | Prisma Client | ^7.4.0 |
 | `prisma` | CLI | ^7.4.0 |
+| `@prisma/adapter-neon` | Neon WebSocket Adapter | ^7.4.0 |
+| `@neondatabase/serverless` | Neon Serverless Driver | ^0.10.4 |
 
 **CRITICAL:** Prisma is the ORM, Neon is the database. Never confuse these.
 
@@ -71,7 +73,7 @@ This document serves as the **single source of truth** for all technology decisi
 | `@nestjs/platform-socket.io` | ^11.1.13 | Socket.io adapter |
 | `socket.io` | ^4.8.3 | WebSocket server |
 | `@nestjs/bullmq` | ^11.0.4 | Queue integration |
-| `bullmq` | ^5.69.1 | Message queues |
+| `bullmq` | ^5.70.1 | Message queues |
 | `ioredis` | ^5.9.3 | Redis client (Upstash) |
 
 ### 2.5. API Documentation

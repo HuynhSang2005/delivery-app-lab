@@ -193,7 +193,7 @@ CREATE POLICY admin_orders ON orders
 ```
 
 **Field-Level Encryption:**
-- Phone numbers: Hashed (bcrypt)
+- Phone numbers: Stored as plaintext (E.164 format, e.g., +84901234567) — phone numbers are not sensitive credentials and must remain searchable. Authentication is handled by Firebase OTP, not password comparison.
 - ID numbers: Encrypted (AES-256)
 - Location history: Encrypted at rest
 

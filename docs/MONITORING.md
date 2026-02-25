@@ -596,22 +596,38 @@ export const loggerConfig = WinstonModule.createLogger({
 
 ### 8.3. Health Checks
 
+> **Note:** Project uses Prisma ORM (NOT TypeORM). Health check uses raw Prisma query to verify database connectivity.
+
 ```typescript
 // health.controller.ts
+import { Controller, Get } from '@nestjs/common';
+import { HealthCheck, HealthCheckService, HttpHealthIndicator } from '@nestjs/terminus';
+import { PrismaService } from '../database/prisma.service';
+import { InjectRedis } from '@nestjs-modules/ioredis';
+import Redis from 'ioredis';
+
 @Controller('health')
 export class HealthController {
   constructor(
     private health: HealthCheckService,
-    private db: TypeOrmHealthIndicator,
-    private redis: RedisHealthIndicator,
+    private prisma: PrismaService,
+    @InjectRedis() private redis: Redis,
   ) {}
 
   @Get()
   @HealthCheck()
-  check() {
+  async check() {
     return this.health.check([
-      () => this.db.pingCheck('database'),
-      () => this.redis.pingCheck('redis'),
+      // Prisma / Database health
+      async () => {
+        await this.prisma.$queryRaw`SELECT 1`;
+        return { database: { status: 'up' } };
+      },
+      // Redis health
+      async () => {
+        await this.redis.ping();
+        return { redis: { status: 'up' } };
+      },
     ]);
   }
 }
