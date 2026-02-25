@@ -14,6 +14,39 @@
 
 **Agent Priorities**: Type safety > Correctness > Performance > Speed
 
+**Communication Language**: Tiếng Việt (Vietnamese) — AI agents MUST respond in Vietnamese unless code/technical identifiers require English.
+
+---
+
+## AI Agent Behavior Rules
+
+> These rules govern HOW AI agents must behave in this project. Non-negotiable.
+
+### 🇻🇳 Language: Vietnamese First
+- **ALL responses, explanations, and plans MUST be in Vietnamese**
+- Code, variable names, file paths, technical identifiers → keep in English
+- Error messages and stack traces → keep in English, but explain in Vietnamese
+- Example: "Tôi sẽ tạo một NestJS service mới trong `apps/api/src/modules/orders/`"
+
+### ❓ Ask Before Acting
+- **BEFORE starting any task**: Ask clarifying questions to fully understand requirements
+- **BEFORE making changes**: Present a plan and wait for explicit approval
+- **BEFORE each phase**: Confirm with user before proceeding to the next phase
+- Exception: trivial single-line fixes that are unambiguous
+
+### 📋 Plan First, Execute Second
+1. Analyze the task and identify unknowns
+2. Present a detailed plan in Vietnamese (what, why, how, risks)
+3. Wait for user to say "ok" / "tiến hành" / "làm đi" or similar approval
+4. Only then execute
+
+### 🛑 Stop and Clarify
+Stop and ask if:
+- Requirements are ambiguous
+- Multiple valid approaches exist with non-trivial trade-offs
+- A decision would be hard to reverse
+- Scope seems larger than expected
+
 ---
 
 ## Project Structure

@@ -24,7 +24,7 @@ SQL optimization, schema design, and Neon Postgres operations.
 
 2. **RESEARCH** - Optimization strategies
    - `context7_query-docs` → ORM patterns (TypeORM, Prisma)
-   - `perplexity_perplexity_research` → PostgreSQL optimization techniques
+   - `tavily_tavily_research` → PostgreSQL optimization techniques
    - **Find skills**: `skill({ name: "find-skills" })`
 
 3. **OPTIMIZE** - Improve performance
@@ -40,7 +40,7 @@ SQL optimization, schema design, and Neon Postgres operations.
 ## Research Tools
 
 - **Library patterns**: `context7_*` → ORM-specific optimizations
-- **Deep research**: `perplexity_perplexity_research` → Complex SQL tuning
+- **Deep research**: `tavily_tavily_research` → Complex SQL tuning
 - **Best practices**: `tavily_tavily_search` → Latest PostgreSQL patterns
 
 ## Skill Discovery

@@ -2,9 +2,9 @@
 
 Detailed technical guide for AI agents integrating with the Logship-MVP environment tools, agents, and MCP servers.
 
-> For project context and core rules, see [AGENTS.md](./AGENTS.md)
+> For project context and core rules, see [AGENTS.md](../AGENTS.md)
 
-Last Updated: February 18, 2026
+Last Updated: February 25, 2026
 
 ## 1. Tool Priority
 
@@ -20,7 +20,7 @@ Last Updated: February 18, 2026
 
 ### Research (for external knowledge)
 1. `context7` — Library documentation lookup (FIRST for any library question)
-2. `perplexity_perplexity_research` — Deep technical research
+2. `tavily_tavily_research` — Deep technical research
 3. `tavily_tavily_search` — Current information, news, tutorials
 4. `google_search` — Broad web search
 
@@ -36,49 +36,30 @@ Last Updated: February 18, 2026
 - ALWAYS check serena symbols before reading file content
 - Use `serena_get_symbols_overview` first when exploring a new file
 
-## 2. Oh-my-opencode Integration
+## 2. Oh-my-opencode-slim Integration
 
-This project uses the **oh-my-opencode** plugin which provides an 11-agent architecture.
+This project uses the **oh-my-opencode-slim** plugin which provides a 6-agent architecture optimized for development workflows.
 
-### Primary Agents
-| Agent | Role | Model |
-|-------|------|-------|
-| Sisyphus | Main orchestrator, task execution | Kimi K2.5 |
-| Atlas | Master coordinator, QA gate | Claude Opus 4.6 |
-| Prometheus | Strategic planner | Kimi K2.5 |
-| Hephaestus | Code craftsman | Kimi K2.5 |
+### Agents
+| Agent | Role | When to Use |
+|-------|------|-------------|
+| Orchestrator | Master delegator, strategic coordinator | Complex multi-step tasks, session orchestration |
+| Explorer | Codebase reconnaissance, parallel search | Finding files, locating patterns, discovery |
+| Oracle | Strategic advisor, complex debugging | Architecture decisions, hard debugging, high-stakes choices |
+| Librarian | External documentation research | Library docs, API references, version-specific behavior |
+| Designer | UI/UX implementation specialist | Mobile UI, responsive layouts, animations |
+| Fixer | Fast implementation specialist | Well-defined tasks, parallel execution, repetitive changes |
 
-### Subagents
-| Agent | Role | Model | Restrictions |
-|-------|------|-------|--------------|
-| Oracle | High-IQ consultation, debugging | GPT 5.2 Codex | Read-only. Cannot write/edit/delegate. |
-| Metis | Pre-planning analysis | Claude Sonnet 4.5 | |
-| Momus | Code review, QA verification | GPT 5.2 | |
-| Librarian | Documentation research | GPT 5 Mini | Read-only. Cannot write/edit/delegate. |
-| Explore | Codebase search | GPT 5 Mini | Read-only. Cannot write/edit/delegate. |
-| Multimodal-looker | Image/PDF analysis | Gemini 3 Flash | |
+### Preset: logship-mvp
+The project uses the `logship-mvp` preset in `~/.config/opencode/oh-my-opencode-slim.json` which maps each agent to appropriate models with fallback chains.
 
-### Task Categories
-| Category | Best For |
-|----------|----------|
-| `visual-engineering` | Frontend, UI/UX, design |
-| `ultrabrain` | Hard logic problems |
-| `deep` | Complex problem-solving |
-| `quick` | Trivial single-file changes |
-| `artistry` | Creative solutions |
-| `writing` | Documentation |
-| `unspecified-low` | Low effort misc tasks |
-| `unspecified-high` | High effort misc tasks |
-
-### Commands & Patterns
-- `/cancel-ralph`: Stop active self-referential development loops.
-- **Delegation Pattern:**
+### Delegation Pattern
+When the current agent needs specialist help, use the `task()` tool:
 ```typescript
 task(
-  category="deep",
-  load_skills=["nestjs-expert", "architecture-patterns"],
-  run_in_background=false,
-  prompt="..."
+  description="Short task description",
+  subagent_type="fixer",  // or: oracle, explorer, librarian, designer
+  prompt="Detailed spec with file paths and expected output"
 )
 ```
 
@@ -115,13 +96,15 @@ Codebase exploration via Language Server Protocol.
 
 ### context7
 Library documentation lookup. Use FIRST when you need docs for any library.
-- Query: `context7_query-docs` with library name and topic
+- `context7_resolve-library-id` — Resolve library ID
+- `context7_query-docs` — Query documentation
 
 ### tavily
 Web search, extraction, and research.
 - `tavily_tavily_search` — Web search
 - `tavily_tavily_extract` — URL content extraction
 - `tavily_tavily_research` — Deep research on topic
+- `tavily_tavily_crawl` — Crawl websites
 
 ### neon
 Database operations for Neon PostgreSQL.
@@ -130,15 +113,9 @@ Database operations for Neon PostgreSQL.
 - `neon_describe_table_schema` — Table structure
 - `neon_get_database_tables` — List tables
 
-### perplexity
-Deep research and reasoning.
-- `perplexity_perplexity_ask` — Quick answers with citations
-- `perplexity_perplexity_reason` — Chain-of-thought analysis
-- `perplexity_perplexity_research` — Comprehensive research
-
 ### Research Workflow
 1. **Library docs:** context7 (FIRST)
-2. **Deep research:** perplexity_perplexity_research
+2. **Deep research:** tavily_tavily_research
 3. **Current info:** tavily_tavily_search
 4. **Broad search:** google_search
 
@@ -156,46 +133,40 @@ skill({ name: "skill-name" })
 ### Core Skills (.opencode/skills/)
 | Skill | Description |
 |-------|-------------|
-| brainstorming | Explore user intent before implementation |
+| beads-workflow | Git-backed task tracking with beads (bd) |
 | building-native-ui | Expo Router, styling, components, navigation |
+| database-design | Schema design, indexing, ORM selection |
 | delivery-order-matching | PostGIS KNN, driver assignment, ETA |
 | delivery-pricing-engine | Dynamic pricing, surge, discounts |
 | expo-location-patterns | Location tracking, permissions, background |
 | expo-notifications | Push notifications, FCM, deep linking |
-| firebase-auth | Firebase Auth (web + React Native) |
+| firebase | Firebase Firestore, Auth, Storage |
 | goong-maps-integration | Vietnam maps, geocoding, directions |
 | hey-api-patterns | TypeScript API clients from OpenAPI |
+| nestjs-best-practices | NestJS patterns, DI, security |
 | nestjs-firebase-auth | NestJS token verification, guards |
 | nestjs-modular-monolith | Feature-based NestJS modules |
-| nestjs-queue-architect | BullMQ job processing |
-| project-planning | Structured project phases |
-| react-hook-form-zod | Type-safe forms validation |
+| prisma-expert | Prisma ORM, schema, migrations |
+| react-hook-form | Client-side forms with RHF |
 | tanstack-query | Server state management v5 |
-| tanstack-table | Data tables with pagination |
-| upgrading-expo | SDK migration guides |
-| vercel-react-native-skills | React Native performance |
-| vietnam-phone-validation | VN phone numbers, carriers |
+| typescript | TypeScript performance & type system |
+| vietnam-phone-validation | VN phone numbers, E.164, carriers |
+| websocket-engineer | WebSocket, Socket.IO, real-time |
 | zod | Schema validation (v4) |
-| zustand-state-management | Global state management |
-| beads-workflow | Git-backed task tracking with beads (bd) |
-
-### Agent Skills (.agents/skills/)
-- `api-design-principles`, `architecture-patterns`, `auth-implementation-patterns`, `backend-patterns`, `error-handling-patterns`
-- `nestjs-best-practices`, `nestjs-dependency-injection`, `nestjs-expert`
-- `postgis-skill`, `redis-development`, `sql-optimization-patterns`, `websocket-engineer`
+| zustand | Global state management |
 
 ## 6. Testing Guidelines
 
 ### AI-Agent Testing Workflow
 - **Phase 1: Explore:** Read implementation, understand dependencies, identify scenarios.
 - **Phase 2: Generate:** 1. Service unit tests (80%+ coverage, mock Repository); 2. Controller unit tests (70%+ coverage); 3. E2E tests (stable features).
-- **Phase 3: Validate:** `bun run typecheck`, `bun run test {module}`, `bun run test:cov`.
+- **Phase 3: Validate:** `bun typecheck`, `bun test {module}`, `bun test --coverage`.
 - **Phase 4: Iterate:** Fix implementation or tests based on failures, add missing scenarios.
 
 ### Testing Checklist
 - [ ] Unit tests for all service methods
 - [ ] Controller tests for all endpoints
-- [ ] `bun run test` passes
+- [ ] `bun test` passes
 - [ ] Coverage > 80% for services
 - [ ] Error cases and edge cases tested
 - [ ] TypeScript compiles with no errors
@@ -205,7 +176,7 @@ skill({ name: "skill-name" })
 apps/api/src/
 ├── main.ts                          # Entry point
 ├── app.module.ts                    # Root module
-├── config/                          # Configuration (Partial exists)
+├── config/                          # Configuration
 ├── common/                          # Shared infrastructure (@Global)
 ├── database/                        # Database layer
 ├── infrastructure/                  # External services
@@ -214,7 +185,7 @@ apps/api/src/
 ```
 
 ### Configuration Files
-- `.opencode/AGENTS.md`: Core rules and project context.
+- `AGENTS.md`: Core rules and project context (root level).
 - `.opencode/opencode.md`: THIS FILE — Tool and agent integration details.
 - `docs/`: Project documentation (Tech Stack, SDD, API, Architecture).
 - `prisma/`: Prisma schema and config.

@@ -1,0 +1,184 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": ["AGENTS.md"],
+  "mcp": {
+    "serena": {
+      "type": "local",
+      "command": [
+        "uvx",
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "ide",
+        "--project-from-cwd"
+      ],
+      "enabled": true,
+      "timeout": 30000
+    },
+    "tavily": {
+      "type": "local",
+      "command": ["bunx", "-y", "tavily-mcp@latest"],
+      "environment": {
+        "TAVILY_API_KEY": "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"
+      },
+      "enabled": true
+    },
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "ctx7sk-73771fe1-66ff-43a9-9885-104b89d47e9c"
+      },
+      "enabled": true,
+      "timeout": 30000
+    },
+    "neon": {
+      "type": "remote",
+      "url": "https://mcp.neon.tech/mcp",
+      "headers": {
+        "Authorization": "Bearer napi_jy202pqsh5g52mo16inf6cbladwh96vkjeu55a6oyyu40n5kmkg4hpu06yaxqmdv"
+      },
+      "enabled": true,
+      "timeout": 15000
+    }
+  },
+  "agent": {
+    "plan": {
+      "mode": "all",
+      "description": "Architecture planning and analysis agent",
+      "temperature": 0.3,
+      "steps": 50,
+      "prompt": "{file:.opencode/agents/plan-prompt.md}",
+      "permission": {
+        "edit": "deny",
+        "bash": "deny"
+      }
+    },
+    "review": {
+      "mode": "subagent",
+      "description": "Code review and QA verification agent",
+      "temperature": 0.2,
+      "steps": 30,
+      "prompt": "{file:.opencode/agents/review-prompt.md}",
+      "permission": {
+        "edit": "deny",
+        "bash": "allow"
+      }
+    },
+    "db": {
+      "mode": "subagent",
+      "description": "Database optimization and SQL agent",
+      "temperature": 0.3,
+      "steps": 40,
+      "prompt": "{file:.opencode/agents/db-prompt.md}",
+      "permission": {
+        "edit": "deny",
+        "bash": "allow"
+      }
+    },
+    "oracle": {
+      "mode": "subagent",
+      "description": "Strategic technical advisor for architecture and complex debugging",
+      "temperature": 0.1,
+      "steps": 50,
+      "permission": {
+        "edit": "deny",
+        "bash": "deny"
+      }
+    },
+    "fixer": {
+      "mode": "subagent",
+      "description": "Fast implementation specialist for well-defined tasks",
+      "temperature": 0.1,
+      "steps": 30,
+      "permission": {
+        "edit": "allow",
+        "bash": "allow"
+      }
+    },
+    "explorer": {
+      "mode": "subagent",
+      "description": "Parallel search specialist for codebase discovery",
+      "temperature": 0.1,
+      "steps": 15,
+      "permission": {
+        "edit": "deny",
+        "bash": "deny"
+      }
+    },
+    "librarian": {
+      "mode": "subagent",
+      "description": "External documentation and library research specialist",
+      "temperature": 0.2,
+      "steps": 20,
+      "permission": {
+        "edit": "deny",
+        "bash": "deny"
+      }
+    },
+    "designer": {
+      "mode": "subagent",
+      "description": "UI/UX design and implementation specialist",
+      "temperature": 0.3,
+      "steps": 40,
+      "permission": {
+        "edit": "allow",
+        "bash": "allow"
+      }
+    }
+  },
+  "default_agent": "plan",
+  "share": "manual",
+  "autoupdate": true,
+  "command": {
+    "test": {
+      "description": "Run test suite",
+      "template": "Run bun test, bun typecheck, and bun lint. Report all results clearly."
+    },
+    "review": {
+      "description": "Code review and verification",
+      "template": "Review code for quality, security, and run verification checks."
+    },
+    "migrate": {
+      "description": "Create and apply database migration",
+      "template": "Check for pending Prisma schema changes. If any, create migration with descriptive name and apply it. Run: bunx --bun prisma migrate dev"
+    },
+    "deploy": {
+      "description": "Deploy to production",
+      "template": "Run full deployment checklist: 1) git pull --rebase, 2) bun install, 3) bun typecheck, 4) bun test, 5) bun build, 6) deploy commands. Report status."
+    },
+    "beads-prime": {
+      "description": "Start work session - find ready tasks",
+      "template": "Run: bd prime && bd ready --json. Show all tasks ready to work on with no blockers."
+    },
+    "beads-create": {
+      "description": "Create new beads task",
+      "template": "bd create \"$ARGUMENTS\" --label backend --priority 1 --json"
+    },
+    "beads-close": {
+      "description": "Close completed beads task",
+      "template": "bd close $ARGUMENTS --json && bd sync"
+    }
+  },
+  "permission": {
+    "edit": "ask",
+    "bash": "ask"
+  },
+  "compaction": {
+    "auto": true,
+    "prune": true
+  },
+  "watcher": {
+    "ignore": [
+      "node_modules/**",
+      "dist/**",
+      ".git/**",
+      ".next/**",
+      "build/**",
+      "*.log",
+      ".env*"
+    ]
+  }
+}

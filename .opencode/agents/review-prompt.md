@@ -35,7 +35,7 @@ Comprehensive code review, quality checks, and verification.
 
 4. **RESEARCH** (when needed)
    - `context7_query-docs` → Library patterns
-   - `perplexity_perplexity_research` → Deep research
+   - `tavily_tavily_research` → Deep research
    - `tavily_tavily_search` → Current best practices
    - **Find and load relevant skills** using `skill({ name: "find-skills" })`
 

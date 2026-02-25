@@ -25,7 +25,7 @@ Architecture analysis, implementation planning, and research.
 
 2. **RESEARCH** - When needed
    - `context7_resolve-library-id` + `context7_query-docs` → Library docs
-   - `perplexity_perplexity_research` → Deep technical research
+   - `tavily_tavily_research` → Deep technical research
    - `tavily_tavily_search` → Current best practices and examples
    - **Find and load relevant skills** using `skill({ name: "find-skills" })`
 
@@ -38,7 +38,7 @@ Architecture analysis, implementation planning, and research.
 ## Research Tools Priority
 
 1. **Library-specific**: `context7_*` (NestJS, React, etc.)
-2. **Deep research**: `perplexity_perplexity_research` (complex technical questions)
+2. **Deep research**: `tavily_tavily_research` (complex technical questions)
 3. **Current trends**: `tavily_*` (latest patterns, comparisons)
 4. **Skills**: `skill({ name: "find-skills" })` → Discover domain-specific skills
 
