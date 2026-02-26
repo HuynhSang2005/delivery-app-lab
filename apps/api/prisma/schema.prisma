@@ -1,0 +1,397 @@
+// prisma/schema.prisma
+// Generated for Logship-MVP — Prisma 7.4.0 + Neon PostgreSQL + PostGIS
+
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../generated/prisma"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [postgis, uuidOssp(map: "uuid-ossp")]
+}
+
+// ─────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────
+
+enum UserRole {
+  customer
+  driver
+  admin
+}
+
+enum DriverStatus {
+  offline
+  online
+  busy
+  inactive
+}
+
+enum OrderStatus {
+  pending
+  assigned
+  picking_up
+  delivering
+  completed
+  cancelled
+}
+
+enum PaymentStatus {
+  pending
+  completed
+  failed
+  refunded
+}
+
+enum PaymentMethod {
+  cash
+  card
+  wallet
+  bank_transfer
+}
+
+enum MessageType {
+  text
+  image
+  system
+}
+
+enum NotificationType {
+  order_created
+  driver_assigned
+  driver_arrived
+  order_delivered
+  order_cancelled
+  promotion
+}
+
+enum VehicleType {
+  motorbike
+  car
+  van
+  truck
+}
+
+enum PackageSize {
+  small
+  medium
+  large
+  extra_large
+}
+
+// ─────────────────────────────────────────────
+// Models
+// ─────────────────────────────────────────────
+
+model User {
+  id          String   @id @default(uuid())
+  phone       String   @unique
+  email       String?  @unique
+  fullName    String?
+  avatarUrl   String?
+  role        UserRole @default(customer)
+  firebaseUid String?  @unique
+  isVerified  Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  isDeleted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  // Relations
+  addresses     UserAddress[]
+  driver        Driver?
+  orders        Order[]        @relation("CustomerOrders")
+  messages      Message[]
+  notifications Notification[]
+  payments      Payment[]
+
+  @@index([phone])
+  @@index([role])
+  @@index([isActive])
+  @@map("users")
+}
+
+model UserAddress {
+  id          String  @id @default(uuid())
+  userId      String
+  label       String?
+  addressLine String
+  // PostGIS geography type - use raw SQL for spatial queries
+  location    Unsupported("geography(Point, 4326)")
+  latitude    Float
+  longitude   Float
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([location], type: Gist)
+  @@map("user_addresses")
+}
+
+model Driver {
+  id                String       @id @default(uuid())
+  userId            String       @unique
+  vehicleType       VehicleType  @default(motorbike)
+  vehiclePlate      String
+  vehiclePhotoUrl   String?
+  licenseNumber     String?
+  licensePhotoUrl   String?
+  idCardPhotoUrl    String?
+  status            DriverStatus @default(offline)
+  isApproved        Boolean      @default(false)
+  approvedAt        DateTime?
+  currentLocation   Unsupported("geography(Point, 4326)")?
+  currentLatitude   Float?
+  currentLongitude  Float?
+  locationUpdatedAt DateTime?
+  rating            Float        @default(0)
+  totalRatings      Int          @default(0)
+  totalDeliveries   Int          @default(0)
+  dailyCancellations  Int        @default(0)
+  totalCancellations  Int        @default(0)
+  isLocked          Boolean      @default(false)
+  lockedUntil       DateTime?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  // Relations
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders    Order[]
+  locations DriverLocation[]
+  earnings  DriverEarning[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([isApproved])
+  @@index([currentLocation], type: Gist)
+  @@map("drivers")
+}
+
+model DriverLocation {
+  id         String   @id @default(uuid())
+  driverId   String
+  location   Unsupported("geography(Point, 4326)")
+  latitude   Float
+  longitude  Float
+  accuracy   Float?
+  heading    Float?
+  speed      Float?
+  recordedAt DateTime @default(now())
+
+  driver Driver @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  @@index([driverId])
+  @@index([location], type: Gist)
+  @@index([recordedAt])
+  @@map("driver_locations")
+}
+
+model Order {
+  id         String      @id @default(uuid())
+  orderNumber String     @unique
+  customerId String
+  driverId   String?
+
+  // Pickup
+  pickupAddress       String
+  pickupLocation      Unsupported("geography(Point, 4326)")
+  pickupLatitude      Float
+  pickupLongitude     Float
+  pickupContactName   String?
+  pickupContactPhone  String?
+
+  // Dropoff
+  dropoffAddress      String
+  dropoffLocation     Unsupported("geography(Point, 4326)")
+  dropoffLatitude     Float
+  dropoffLongitude    Float
+  dropoffContactName  String?
+  dropoffContactPhone String?
+
+  // Package details
+  packageType          String?
+  packageDescription   String?
+  packageSize          PackageSize @default(medium)
+  packageWeightKg      Decimal?    @db.Decimal(8, 2)
+  packageDimensionsCm  String?
+  packagePhotoUrl      String?
+  isFragile            Boolean     @default(false)
+  requiresSignature    Boolean     @default(false)
+
+  // Status
+  status              OrderStatus @default(pending)
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  assignedAt          DateTime?
+  pickedUpAt          DateTime?
+  deliveredAt         DateTime?
+  cancelledAt         DateTime?
+  estimatedDeliveryAt DateTime?
+
+  // Pricing
+  distanceKm       Decimal?  @db.Decimal(8, 2)
+  basePrice        Decimal   @db.Decimal(10, 2)
+  distancePrice    Decimal   @db.Decimal(10, 2)
+  weightPrice      Decimal   @default(0) @db.Decimal(10, 2)
+  platformFee      Decimal   @default(0) @db.Decimal(10, 2)
+  pricePerKm       Decimal?  @db.Decimal(6, 0)
+  surgeMultiplier  Decimal   @default(1.00) @db.Decimal(3, 2)
+  discountAmount   Decimal   @default(0) @db.Decimal(10, 2)
+  totalPrice       Decimal   @db.Decimal(10, 2)
+  currency         String    @default("VND")
+
+  // Cancellation
+  cancelledBy        String?
+  cancelledByRole    String?  // 'customer' | 'driver' | 'admin'
+  cancellationReason String?
+  cancellationFee    Decimal  @default(0) @db.Decimal(10, 2)
+  minutesToCancel    Int?     // minutes elapsed before cancellation
+
+  // Driver earnings
+  driverEarnings Decimal? @db.Decimal(10, 2)
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+
+  // Relations
+  customer      User            @relation("CustomerOrders", fields: [customerId], references: [id])
+  driver        Driver?         @relation(fields: [driverId], references: [id])
+  payment       Payment?
+  messages      Message[]
+  tracking      OrderTracking[]
+  earnings      DriverEarning?
+  notifications Notification[]
+
+  @@index([customerId])
+  @@index([driverId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([pickupLocation], type: Gist)
+  @@index([dropoffLocation], type: Gist)
+  @@map("orders")
+}
+
+model OrderTracking {
+  id         String   @id @default(uuid())
+  orderId    String
+  driverId   String
+  location   Unsupported("geography(Point, 4326)")
+  latitude   Float
+  longitude  Float
+  accuracy   Float?
+  heading    Float?
+  speed      Float?
+  recordedAt DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([location], type: Gist)
+  @@index([recordedAt])
+  @@map("order_tracking")
+}
+
+model Payment {
+  id                    String        @id @default(uuid())
+  orderId               String        @unique
+  customerId            String
+  paymentMethod         PaymentMethod
+  status                PaymentStatus @default(pending)
+  amount                Decimal       @db.Decimal(10, 2)
+  currency              String        @default("VND")
+  transactionId         String?
+  paymentGatewayResponse Json?
+  paidAt                DateTime?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  order    Order @relation(fields: [orderId], references: [id])
+  customer User  @relation(fields: [customerId], references: [id])
+
+  @@index([orderId])
+  @@index([customerId])
+  @@index([status])
+  @@map("payments")
+}
+
+model Message {
+  id          String      @id @default(uuid())
+  orderId     String
+  senderId    String
+  content     String
+  messageType MessageType @default(text)
+  mediaUrl    String?
+  isRead      Boolean     @default(false)
+  readAt      DateTime?
+  createdAt   DateTime    @default(now())
+
+  order  Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  sender User  @relation(fields: [senderId], references: [id])
+
+  @@index([orderId])
+  @@index([senderId])
+  @@index([createdAt])
+  @@map("messages")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  orderId   String?
+  type      NotificationType
+  title     String
+  body      String
+  data      Json?
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+  sentAt    DateTime         @default(now())
+  createdAt DateTime         @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order Order? @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([orderId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model DriverEarning {
+  id           String   @id @default(uuid())
+  driverId     String
+  orderId      String?  @unique
+  amount       Decimal  @db.Decimal(10, 2)
+  type         String   @default("order")
+  description  String?
+  balanceAfter Decimal  @db.Decimal(10, 2)
+  createdAt    DateTime @default(now())
+
+  driver Driver  @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  order  Order?  @relation(fields: [orderId], references: [id])
+
+  @@index([driverId])
+  @@index([orderId])
+  @@index([createdAt])
+  @@map("driver_earnings")
+}
+
+model SystemConfig {
+  id          String   @id @default(uuid())
+  configKey   String   @unique
+  configValue Json
+  description String?
+  updatedBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([configKey])
+  @@map("system_config")
+}
