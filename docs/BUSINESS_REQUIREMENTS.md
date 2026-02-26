@@ -349,7 +349,7 @@
 
 1. **Market Demand:** Có đủ nhu cầu giao hàng same-day ở HCM
 2. **Driver Supply:** Đủ ngườii sẵn sàng làm tài xế với thu nhập 5-10 triệu/tháng
-3. **Technology:** Expo SDK 54 + React Native 0.84.0 stable
+3. **Technology:** Expo SDK 54 + React Native 0.81.0 stable
 4. **Regulatory:** Không có thay đổi lớn về quy định giao hàng
 
 ### 9.2. Constraints

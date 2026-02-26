@@ -1,6 +1,6 @@
 # Current Implementation State
 
-**Last Updated:** February 14, 2026  
+**Last Updated:** February 25, 2026  
 **Current Phase:** 1 - Foundation  
 **Current Task:** 1.2.1 - Initialize Prisma  
 
@@ -48,14 +48,14 @@ None
 - **Packages installed:**
   - Core: @nestjs/config, @nestjs/swagger, @nestjs/jwt, @nestjs/passport, @nestjs/websockets, @nestjs/platform-socket.io, @nestjs/bullmq, @nestjs/throttler
   - Auth: passport, passport-jwt, firebase-admin
-  - Database: @prisma/client@7.4.0, @prisma/adapter-pg, pg
+  - Database: @prisma/client@7.4.0, @prisma/adapter-neon, @neondatabase/serverless
   - Real-time: socket.io, @socket.io/redis-adapter
   - Queue: bullmq, ioredis
   - Validation: zod@4.3.6, nestjs-zod
   - Storage: cloudinary
   - Security: helmet
   - Utility: class-transformer, class-validator
-  - Dev: prisma@7.4.0, @types/passport-jwt, @types/pg
+  - Dev: prisma@7.4.0, @types/passport-jwt
 
 ### 1.1.3. Set up environment configuration module ✅
 - **Completed:** February 14, 2026
@@ -83,6 +83,28 @@ None
   - Added oh-my-opencode read-only agent restrictions and /cancel-ralph command
   - Backup preserved at `.opencode/AGENTS.md.backup.2026-02-18`
 
+### Fix incorrect Prisma adapter dependency ✅
+- **Completed:** February 25, 2026
+- **Duration:** ~5 min
+- **Changes:**
+  - Removed: `@prisma/adapter-pg`, `pg`, `@types/pg` (incorrect — project uses Neon serverless, not raw pg)
+  - Installed: `@prisma/adapter-neon@^7.4.0`, `@neondatabase/serverless@^0.10.4` (correct for Neon)
+- **Reason:** Task 1.1.2 mistakenly installed the PostgreSQL adapter instead of the Neon serverless adapter
+
+### Fix P2 documentation inconsistencies (audit follow-up) ✅
+- **Completed:** February 25, 2026
+- **Duration:** ~30 min
+- **Files updated:**
+  - `docs/01-SDD-System-Design-Document.md` — Fixed section numbering (5.x → 6.x, 6.x → 7.x)
+  - `docs/01-SDD-System-Design-Document.md` — Fixed Expo Router version to v4
+  - `docs/04-Mobile-App-Technical-Spec.md` — Fixed Expo Router version to v4
+  - `docs/adr/ADR-004-expo-react-native.md` — Fixed Expo Router version to v4
+  - `docs/02-Database-Design-Document.md` — Ensured DELIVERING (not in_transit) used consistently
+  - `docs/03-API-Design-Document.md` — Fixed pagination format (cursor-based, not offset)
+  - `docs/03-API-Design-Document.md` — Clarified driver location Socket.IO vs HTTP
+  - `docs/CI_CD.md` — Replaced Railway deploy with VPS SSH deploy
+- **Notes:** Follow-up from audit session (Feb 25, 2026). Previous audit fixed 10 P0/P1 issues (commit 6ffec69).
+
 ---
 
 ## Decisions Made
@@ -102,9 +124,11 @@ None.
 
 ## Notes for Next Session
 
-1. Next: Initialize Prisma (Task 1.2.1)
-2. Then: Create database schema (Task 1.2.2) — this is the largest task in Phase 1 (~3 hours)
+1. Next: Initialize Prisma (Task 1.2.1) — run `bunx prisma init` in `apps/api/`
+2. Then: Create database schema (Task 1.2.2) — largest task in Phase 1 (~3 hours), schema defined in `docs/02-Database-Design-Document.md`
 3. Remember Prisma 7.4.0 breaking changes: ESM, `prisma-client` generator, `prisma.config.ts`, driver adapter required
+4. Correct adapter is `@prisma/adapter-neon` + `@neondatabase/serverless` — already installed
+5. `apps/api/prisma.config.ts` already exists (untracked) — review before running `prisma init`
 
 ---
 

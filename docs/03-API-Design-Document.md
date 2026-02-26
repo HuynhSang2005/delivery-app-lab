@@ -59,12 +59,10 @@ Authorization: Bearer <access_token>
   "success": true,
   "data": [ ... ],
   "meta": {
-    "page": 1,
+    "hasMore": true,
+    "nextCursor": "eyJpZCI6IjEyMyJ9",
     "limit": 20,
-    "total": 150,
-    "totalPages": 8,
-    "hasNext": true,
-    "hasPrev": false
+    "timestamp": "2025-01-15T10:30:00Z"
   }
 }
 ```
@@ -609,6 +607,8 @@ Roles: DRIVER
 ---
 
 ### 4.4. Update Driver Location
+
+> **Note:** Real-time location updates are sent via Socket.IO (`driver:location` event). This HTTP endpoint is for occasional sync/recovery only.
 
 Called periodically (every 30 seconds, adaptive 10 seconds when within 500m of destination) by driver app.
 

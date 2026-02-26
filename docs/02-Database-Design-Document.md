@@ -97,8 +97,8 @@ CREATE TYPE order_status AS ENUM (
   'pending',      -- Created, waiting for driver
   'assigned',     -- Driver accepted
   'picking_up',   -- Driver heading to pickup
-  'in_transit',   -- Driver has package, delivering
-  'delivered',    -- Successfully delivered
+  'delivering',   -- Driver has package, delivering
+  'completed',    -- Successfully delivered
   'cancelled'     -- Cancelled by customer or admin
 );
 
@@ -328,8 +328,8 @@ CREATE TABLE orders (
     (status = 'pending' AND assigned_at IS NULL) OR
     (status = 'assigned' AND assigned_at IS NOT NULL) OR
     (status = 'picking_up') OR
-    (status = 'in_transit' AND picked_up_at IS NOT NULL) OR
-    (status = 'delivered' AND delivered_at IS NOT NULL) OR
+    (status = 'delivering' AND picked_up_at IS NOT NULL) OR
+    (status = 'completed' AND delivered_at IS NOT NULL) OR
     (status = 'cancelled' AND cancelled_at IS NOT NULL)
   )
 );
@@ -583,8 +583,8 @@ enum OrderStatus {
   pending
   assigned
   picking_up
-  in_transit
-  delivered
+  delivering
+  completed
   cancelled
 }
 

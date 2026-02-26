@@ -281,28 +281,24 @@ on:
 
 jobs:
   deploy-backend:
+    needs: test
     runs-on: ubuntu-latest
-    environment: staging
-    
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Deploy to Railway
-        uses: railway/cli@master
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          railway_token: ${{ secrets.RAILWAY_TOKEN }}
-          service: logship-api-staging
-          environment: staging
-      
-      - name: Run migrations
-        run: |
-          bunx prisma migrate deploy
-        env:
-          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
-      
-      - name: Health check
-        run: |
-          curl -f https://api-staging.logship.vn/health || exit 1
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /var/www/logship-api
+            git pull origin main
+            bun install
+            cd apps/api
+            bunx prisma migrate deploy
+            bun run build
+            pm2 restart logship-api
 
   deploy-admin:
     runs-on: ubuntu-latest
@@ -336,6 +332,7 @@ on:
 
 jobs:
   deploy-backend:
+    needs: test
     runs-on: ubuntu-latest
     environment: production
     
@@ -344,18 +341,20 @@ jobs:
         with:
           ref: ${{ github.event.inputs.version }}
       
-      - name: Deploy to Railway
-        uses: railway/cli@master
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          railway_token: ${{ secrets.RAILWAY_TOKEN }}
-          service: logship-api
-          environment: production
-      
-      - name: Run migrations
-        run: |
-          bunx prisma migrate deploy
-        env:
-          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /var/www/logship-api
+            git pull origin main
+            bun install
+            cd apps/api
+            bunx prisma migrate deploy
+            bun run build
+            pm2 restart logship-api
       
       - name: Health check
         run: |

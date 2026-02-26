@@ -32,14 +32,14 @@ This document specifies the technical implementation for Logship-MVP mobile appl
 | expo-task-manager | Background tasks for driver location |
 | EAS Build | Cloud builds for iOS/Android |
 | EAS Update | OTA updates without app store review |
-| React Native 0.84 | Latest stable React Native with Hermes V1 |
-| React 19.2 | Latest React 19 version |
+| React Native 0.81 | Latest stable React Native with Hermes V1 |
+| React 19.1 | Latest React 19 version |
 
-> **Note:** Expo SDK 54 is the latest stable release with React Native 0.84 and React 19.2.
+> **Note:** Expo SDK 54 is the latest stable release with React Native 0.81 and React 19.1.
 
-### 1.3. React Native 0.84.0 Changes
+### 1.3. React Native 0.81.0 Changes
 
-> **ℹ️ UPDATE:** React Native 0.84.0 includes Hermes V1 as the default JavaScript engine.
+> **ℹ️ UPDATE:** React Native 0.81.0 includes Hermes V1 as the default JavaScript engine.
 
 | Feature | Description |
 |---------|-------------|
@@ -139,22 +139,22 @@ apps/mobile/
     "expo-image": "~3.0.11",
     "expo-image-picker": "~17.0.0",
     "expo-linking": "~8.0.0",
-    "expo-location": "~19.0.8",
+    "expo-location": "~18.0.0",
     "expo-notifications": "~0.32.16",
     "expo-router": "~6.0.23",
     "expo-secure-store": "~15.0.8",
     "expo-splash-screen": "~0.30.0",
     "expo-status-bar": "~3.0.0",
     "expo-system-ui": "~5.0.0",
-    "expo-task-manager": "~13.0.0",
+    "expo-task-manager": "~12.0.0",
     "expo-updates": "~0.28.0",
     "expo-web-browser": "~15.0.0",
     "lodash-es": "^4.17.21",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
     "react-hook-form": "^7.71.1",
     "@hookform/resolvers": "^5.2.2",
-    "react-native": "0.84.0",
+    "react-native": "0.81.0",
     "react-native-gesture-handler": "~2.30.0",
     "react-native-maps": "1.27.1",
     "react-native-reanimated": "~4.2.1",
@@ -173,7 +173,7 @@ apps/mobile/
     "@babel/core": "^7.25.0",
     "@hey-api/openapi-ts": "^0.92.4",
     "@types/lodash-es": "^4.17.12",
-    "@types/react": "~19.2.4",
+    "@types/react": "~19.1.0",
     "typescript": "^5.9.3"
   }
 }
@@ -184,8 +184,8 @@ apps/mobile/
 | Category | Library | Version | Purpose |
 |----------|---------|---------|---------|
 | **Core** | `expo` | ~54.0.0 | Expo SDK |
-| **Core** | `react-native` | 0.84.0 | React Native 0.84 with Hermes V1 |
-| **Core** | `react` | 19.2.4 | React (Expo SDK 54 uses React 19.2.4) |
+| **Core** | `react-native` | 0.81.0 | React Native 0.81 with Hermes V1 |
+| **Core** | `react` | 19.1.0 | React (Expo SDK 54 uses React 19.1.0) |
 | **Navigation** | `expo-router` | ~6.0.23 | File-based routing |
 | **API Client** | `@hey-api/client-fetch` | ^0.13.1 | Type-safe API client |
 | **State (Server)** | `@tanstack/react-query` | ^5.90.21 | Server state management |
@@ -193,8 +193,8 @@ apps/mobile/
 | **Forms** | `react-hook-form` | ^7.71.1 | Form handling |
 | **Validation** | `zod` | ^4.3.6 | Schema validation (Zod v4 - latest) |
 | **Maps** | `react-native-maps` | 1.27.1 | Map components (with Goong tiles) |
-| **Location** | `expo-location` | ~19.0.8 | GPS and location tracking |
-| **Background Tasks** | `expo-task-manager` | ~13.0.0 | Background location updates |
+| **Location** | `expo-location` | ~18.0.0 | GPS and location tracking |
+| **Background Tasks** | `expo-task-manager` | ~12.0.0 | Background location updates |
 | **Lists** | `@shopify/flash-list` | 2.2.2 | High-performance lists |
 | **Bottom Sheet** | `@gorhom/bottom-sheet` | ^5.2.8 | Bottom sheet UI |
 | **Toast** | `react-native-toast-message` | ^2.3.3 | Toast notifications |
@@ -427,12 +427,12 @@ Location services are critical for Logship-MVP, enabling:
 
 ```json
 {
-  "expo-location": "~19.0.0",
-  "expo-task-manager": "~13.0.0"
+  "expo-location": "~18.0.0",
+  "expo-task-manager": "~12.0.0"
 }
 ```
 
-**Note:** `expo-location ~19.0.0` is compatible with Expo SDK 54.
+**Note:** `expo-location ~18.0.0` is compatible with Expo SDK 54.
 
 ### 6.3. App Configuration
 

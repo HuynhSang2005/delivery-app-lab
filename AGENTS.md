@@ -1,5 +1,4 @@
 # Logship-MVP — AI Agent Guide
-
 > **Project**: On-demand delivery platform for Vietnam market  
 > **Last Updated**: February 24, 2026
 

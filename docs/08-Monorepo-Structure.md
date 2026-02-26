@@ -181,9 +181,9 @@ apps/mobile/
   "dependencies": {
     "@hey-api/client-fetch": "^0.13.1",
     "expo": "~54.0.0",
-    "expo-router": "~6.0.23",
-    "react": "19.2.4",
-    "react-native": "0.84.0",
+    "expo-router": "~4.0.0",
+    "react": "19.1.0",
+    "react-native": "0.81.0",
     "@tanstack/react-query": "^5.90.21"
   },
   "devDependencies": {
@@ -707,8 +707,8 @@ jobs:
 
 | Component | Platform | Reason |
 |-----------|----------|--------|
-| **Backend API** | **VPS** (DigitalOcean/AWS Lightsail) | Full control, cost-effective for student |
-| **Admin Dashboard** | **Cloudflare Pages** | Free tier, fast global CDN, custom domain support |
+| **Backend API** | **VPS** (DigitalOcean/Hetzner) | Full control, cost-effective |
+| **Admin Dashboard** | **Vercel** | Free tier, fast global CDN, custom domain support |
 | **Mobile App** | **Expo EAS Free Tier** + **GitHub Actions** | 30 builds/month free + unlimited CI builds |
 
 ### 7.2. Backend Deployment (VPS)

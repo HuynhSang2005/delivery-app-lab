@@ -95,8 +95,8 @@ Logship-MVP is a logistics delivery application connecting **Users** (customers)
 | Database | Neon (Serverless Postgres) | Free tier, PostGIS support, scale-to-zero |
 | Real-time | Socket.io + Redis Adapter | Room-based broadcasting, scalable |
 | Mobile Framework |  React Native + Expo SDK 54   | Cross-platform, OTA updates |
-| Mobile Framework |  React Native 0.84.0   | Latest stable |
-| Mobile Framework |  React 19.2.4   | Latest React |
+| Mobile Framework |  React Native 0.81.0   | Latest stable |
+| Mobile Framework |  React 19.1.0   | Latest React |
 | State Management | Zustand + TanStack Query | Simple local state + powerful server state |
 | Authentication | Firebase Auth (OTP + Email) | Free tier, phone auth built-in |
 | Maps (Vietnam) | Goong Maps | Vietnam-optimized, competitive pricing |
@@ -525,9 +525,9 @@ Order Event                    BullMQ                         External Services
 
 | Category | Technology | Version |
 |----------|------------|---------|
-| Framework | React Native | 0.84.0 |
+| Framework | React Native | 0.81.0 |
 | Platform | Expo SDK | 54 |
-| Navigation | Expo Router | 5.x |
+| Navigation | Expo Router | ~4.x |
 | State (Local) | Zustand | 5.x |
 | State (Server) | TanStack Query | 5.x |
 | Maps | react-native-maps + **Goong Maps** | 1.x |
@@ -580,7 +580,7 @@ Order Event                    BullMQ                         External Services
 
 ## 6. Business Logic
 
-### 5.1. Pricing Model
+### 6.1. Pricing Model
 
 **Giá cố định:** 8.000 VND/km (đơn giản, dễ hiểu)
 
@@ -600,7 +600,7 @@ Driver Earnings = Total Price × 85%
 
 **Max Distance:** 25km (Hồ Chí Minh city limits)
 
-### 5.2. Cancellation Policy
+### 6.2. Cancellation Policy
 
 **Customer Cancellation:**
 - **Free:** Trong 5 phút sau đặt hàng
@@ -612,7 +612,7 @@ Driver Earnings = Total Price × 85%
 - **Sau 3 lần:** Khóa tài khoản 24 giờ
 - **Penalty:** -10 điểm rating mỗi lần hủy sau khi nhận đơn
 
-### 5.3. Driver Matching Rules
+### 6.3. Driver Matching Rules
 
 | Parameter | Value |
 |-----------|-------|
@@ -630,7 +630,7 @@ Driver Earnings = Total Price × 85%
 5. Nếu không có ai nhận → Mở rộng 5km (+20% giá)
 6. Nếu vẫn không có → Mở rộng 7km (+20% giá)
 
-### 5.4. Location Tracking
+### 6.4. Location Tracking
 
 | Scenario | Frequency |
 |----------|-----------|
@@ -638,7 +638,7 @@ Driver Earnings = Total Price × 85%
 | Near destination (<500m) | 10 giây/lần |
 | Background | Enabled |
 
-### 5.5. Service Area
+### 6.5. Service Area
 
 - **Thành phố:** Hồ Chí Minh
 - **Max distance:** 25km
@@ -648,21 +648,21 @@ Driver Earnings = Total Price × 85%
 
 ## 7. Security Considerations
 
-### 6.1. Authentication & Authorization
+### 7.1. Authentication & Authorization
 
 - Firebase Auth tokens verified server-side
 - JWT tokens for API authentication (short-lived: 15min)
 - Refresh tokens stored securely (HTTP-only cookies for web, SecureStore for mobile)
 - RBAC guards on all protected endpoints
 
-### 6.2. Data Protection
+### 7.2. Data Protection
 
 - HTTPS everywhere (TLS 1.3)
 - Database connections via SSL
 - Sensitive data encrypted at rest (Neon default)
 - No PII in logs
 
-### 6.3. API Security
+### 7.3. API Security
 
 - Rate limiting (100 req/min per user)
 - Input validation with Zod v4 + nestjs-zod
